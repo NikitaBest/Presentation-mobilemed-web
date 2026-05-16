@@ -6,7 +6,8 @@
 
 | Параметр | Значение | Где |
 |----------|----------|-----|
-| Камера | `facingMode: 'user'`, `aspectRatio: { ideal: 9/16 }`, `width/height ideal 720×1280` | `ScanPage.jsx` → `FACE_CAMERA_VIDEO_CONSTRAINTS` |
+| Камера | `facingMode: { ideal: 'user' }`, portrait ideal 720×1280, сброс zoom трека | `src/utils/faceCamera.js` |
+| Превью | `contain` / `cover` по aspect потока vs экрана (без смены потока для SDK) | `faceCamera.js` + `.scan-video--*` |
 | Ориентация сессии | `resolveSdkDeviceOrientation()` (не хардкод `PORTRAIT`) | `ScanPage.jsx` → `createFaceSession` |
 | Строгий режим | `strictMeasurementGuidance: false` (дефолт SDK) | `ScanPage.jsx` |
 | Вход SDK | один `<video ref>` → `input` в `createFaceSession` | `ScanPage.jsx` |
@@ -15,9 +16,9 @@
 
 ## Превью на весь экран
 
-- **CSS:** `object-fit: cover` на `.scan-video` — только отображение.
-- **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из обрезки на экране.
-- Раньше `contain` давал чёрные полосы, но помогал отладить рассинхрон; после портретных constraints и `strictMeasurementGuidance: false` детекция стабильна и с `cover`.
+- **CSS:** `resolvePreviewObjectFit()` — при сильном расхождении aspect потока и экрана используется `contain` (иначе `cover` даёт «супер-зум» на телефоне до «Начать»).
+- **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из CSS-обрезки.
+- Смена `object-fit` не меняет поток камеры и не ломает `createFaceSession`.
 
 ## ImageValidity
 

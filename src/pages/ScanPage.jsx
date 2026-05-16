@@ -13,18 +13,11 @@ import {
   sdkDeviceOrientationLabel,
 } from '../sdk/faceScan.js'
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
+import {
+  attachPreviewFitObserver,
+  openFaceCameraStream,
+} from '../utils/faceCamera.js'
 import './ScanPage.css'
-
-/**
- * Рабочие ограничения камеры (см. docs/SCAN.md). Не подменять на 1280×720 landscape.
- * Превью на весь экран — только CSS object-fit: cover; SDK читает буфер video, не CSS.
- */
-const FACE_CAMERA_VIDEO_CONSTRAINTS = {
-  facingMode: 'user',
-  aspectRatio: { ideal: 9 / 16 },
-  width: { ideal: 720, max: 1920 },
-  height: { ideal: 1280, max: 1920 },
-}
 
 function sessionStateLabel(state) {
   switch (state) {
@@ -135,6 +128,7 @@ async function waitForVideoReady(video, timeoutMs = 8000) {
 export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const ecgCycleId = `scan-ecg-cycle-${useId().replace(/:/g, '')}`
   const videoRef = useRef(null)
+  const viewportRef = useRef(null)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
@@ -148,6 +142,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   /** Последний ImageValidity из onImageData — плашка «кадр» (docs/SDK.md). */
   const [frameValidity, setFrameValidity] = useState(null)
   const [errorText, setErrorText] = useState('')
+  /** contain при расхождении aspect потока и экрана — иначе cover даёт «супер-зум» (только CSS). */
+  const [previewFit, setPreviewFit] = useState('contain')
   const pendingStartTimerRef = useRef(null)
   /** Не обновлять подсказку без смены (состояние сессии, validity) — onImageData на каждый кадр. */
   const lastHintKeyRef = useRef('')
@@ -216,11 +212,16 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const openPreviewCamera = useCallback(async () => {
     const video = videoRef.current
     if (!video) throw new Error('Нет элемента видео')
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: FACE_CAMERA_VIDEO_CONSTRAINTS,
-      audio: false,
-    })
+    const stream = await openFaceCameraStream()
     streamRef.current = stream
+    const track = stream.getVideoTracks()[0]
+    const settings = track?.getSettings?.() ?? {}
+    scanSdkDebug('камера (превью)', {
+      width: settings.width,
+      height: settings.height,
+      facingMode: settings.facingMode,
+      aspectRatio: settings.aspectRatio,
+    })
     video.srcObject = stream
     video.setAttribute('playsinline', '')
     video.muted = true
@@ -263,6 +264,13 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     }
   }, [openPreviewCamera, teardownStream])
 
+  useEffect(() => {
+    const video = videoRef.current
+    const container = viewportRef.current
+    if (!video || !container) return undefined
+    return attachPreviewFitObserver(video, container, setPreviewFit)
+  }, [])
+
   const runScanPipeline = useCallback(
     async ({ reuseStream = false } = {}) => {
       /* Одна сессия одновременно: перед createFaceSession завершаем предыдущую (док. «Быстрый старт»). */
@@ -283,10 +291,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         setPhase('camera')
         setHint('Запрашиваем доступ к камере…')
         setHintTone('neutral')
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: FACE_CAMERA_VIDEO_CONSTRAINTS,
-          audio: false,
-        })
+        stream = await openFaceCameraStream()
         streamRef.current = stream
         video.srcObject = stream
         video.setAttribute('playsinline', '')
@@ -659,12 +664,12 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   return (
     <div className="scan-page scan-page--fullscreen" role="application" aria-label="Сканирование лица">
       <div className="scan-viewport-wrap">
-        <div className="scan-viewport">
+        <div ref={viewportRef} className="scan-viewport">
           {/* Один video: превью как в Camera.css (scaleX); тот же узел — input в createFaceSession (docs/SDK.md). */}
           <video
             ref={videoRef}
             id="scan-face-preview"
-            className="scan-video"
+            className={`scan-video scan-video--${previewFit}`}
             playsInline
             muted
           />

@@ -77,8 +77,8 @@
 /*
  * Один <video> — тот же узел в createFaceSession (docs/SDK.md).
  * scaleX(-1): зеркало превью фронтальной камеры.
- * object-fit: cover — превью на весь экран; SDK читает кадр из videoWidth×videoHeight,
- * а не из CSS, поэтому cover не ломает детекцию (см. docs/SCAN.md).
+ * object-fit задаётся классом --contain / --cover (см. faceCamera.js): при несовпадении
+ * aspect потока и экрана cover даёт сильный «зум»; SDK читает буфер video, не CSS.
  */
 .scan-video {
   position: absolute;
@@ -86,9 +86,17 @@
   z-index: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   object-position: center center;
   transform: scaleX(-1);
+  background: #0f172a;
+}
+
+.scan-video--contain {
+  object-fit: contain;
+}
+
+.scan-video--cover {
+  object-fit: cover;
 }
 
 .scan-mask-layer {

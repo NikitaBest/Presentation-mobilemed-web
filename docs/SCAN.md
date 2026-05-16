@@ -7,7 +7,7 @@
 | Параметр | Значение | Где |
 |----------|----------|-----|
 | Камера | `facingMode: { ideal: 'user' }`, portrait ideal 720×1280, сброс zoom трека | `src/utils/faceCamera.js` |
-| Превью | `contain` / `cover` по aspect потока vs экрана (без смены потока для SDK) | `faceCamera.js` + `.scan-video--*` |
+| Превью | `cover` + `--preview-scale` при расхождении aspect (без смены потока для SDK) | `faceCamera.js` + `.scan-video-stage` |
 | Ориентация сессии | `resolveSdkDeviceOrientation()` (не хардкод `PORTRAIT`) | `ScanPage.jsx` → `createFaceSession` |
 | Строгий режим | `strictMeasurementGuidance: false` (дефолт SDK) | `ScanPage.jsx` |
 | Вход SDK | один `<video ref>` → `input` в `createFaceSession` | `ScanPage.jsx` |
@@ -16,9 +16,9 @@
 
 ## Превью на весь экран
 
-- **CSS:** `resolvePreviewObjectFit()` — при сильном расхождении aspect потока и экрана используется `contain` (иначе `cover` даёт «супер-зум» на телефоне до «Начать»).
+- **CSS:** всегда `object-fit: cover` на весь экран; `resolvePreviewCoverScale()` слегка уменьшает превью при landscape-потоке на портретном экране (без полос `contain`).
 - **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из CSS-обрезки.
-- Смена `object-fit` не меняет поток камеры и не ломает `createFaceSession`.
+- Масштаб превью не меняет поток камеры и не ломает `createFaceSession`.
 
 ## ImageValidity
 

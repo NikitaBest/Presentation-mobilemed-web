@@ -14,7 +14,7 @@ import {
 } from '../sdk/faceScan.js'
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
 import {
-  attachPreviewFitObserver,
+  attachPreviewScaleObserver,
   openFaceCameraStream,
 } from '../utils/faceCamera.js'
 import './ScanPage.css'
@@ -142,8 +142,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   /** Последний ImageValidity из onImageData — плашка «кадр» (docs/SDK.md). */
   const [frameValidity, setFrameValidity] = useState(null)
   const [errorText, setErrorText] = useState('')
-  /** contain при расхождении aspect потока и экрана — иначе cover даёт «супер-зум» (только CSS). */
-  const [previewFit, setPreviewFit] = useState('contain')
+  /** Лёгкое отдаление cover-превью при landscape-потоке на портретном экране (только CSS). */
+  const [previewScale, setPreviewScale] = useState(1)
   const pendingStartTimerRef = useRef(null)
   /** Не обновлять подсказку без смены (состояние сессии, validity) — onImageData на каждый кадр. */
   const lastHintKeyRef = useRef('')
@@ -268,7 +268,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     const video = videoRef.current
     const container = viewportRef.current
     if (!video || !container) return undefined
-    return attachPreviewFitObserver(video, container, setPreviewFit)
+    return attachPreviewScaleObserver(video, container, setPreviewScale)
   }, [])
 
   const runScanPipeline = useCallback(
@@ -665,14 +665,19 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     <div className="scan-page scan-page--fullscreen" role="application" aria-label="Сканирование лица">
       <div className="scan-viewport-wrap">
         <div ref={viewportRef} className="scan-viewport">
-          {/* Один video: превью как в Camera.css (scaleX); тот же узел — input в createFaceSession (docs/SDK.md). */}
-          <video
-            ref={videoRef}
-            id="scan-face-preview"
-            className={`scan-video scan-video--${previewFit}`}
-            playsInline
-            muted
-          />
+          <div
+            className="scan-video-stage"
+            style={{ '--preview-scale': String(previewScale) }}
+          >
+            {/* Один video: превью; тот же узел — input в createFaceSession (docs/SDK.md). */}
+            <video
+              ref={videoRef}
+              id="scan-face-preview"
+              className="scan-video"
+              playsInline
+              muted
+            />
+          </div>
           <div className="scan-mask-layer" aria-hidden>
             <div className="scan-dim" />
             <div className="scan-oval-frame">

@@ -10,10 +10,11 @@
   min-height: 0;
 }
 
-/* Замер: компактная шапка; овал выше; снизу овал → пульс → подсказка → кнопки */
+/* Замер: овал выше, но ry > rx (портретный овал, не круг) */
 .scan-page--fullscreen.scan-page--active-scan {
-  --scan-oval-cy: 39%;
-  --scan-oval-ry: clamp(8.25rem, 46vmin, 14rem);
+  --scan-oval-cy: 41%;
+  --scan-oval-rx: clamp(7.75rem, 40vmin, 12.5rem);
+  --scan-oval-ry: clamp(10rem, 52vmin, 15.5rem);
 }
 
 .scan-page--active-scan {
@@ -462,25 +463,29 @@
 }
 
 /*
- * Полоса между низом овала и футером: пульс → подсказка (колонка, без наложения на овал).
+ * Пульс + подсказка сразу над футером (высота по контенту, без пустой полосы посередине).
+ * max-height не даёт залезть на овал.
  */
 .scan-measuring-dock {
   position: fixed;
   left: max(var(--mm-space-3), env(safe-area-inset-left, 0px));
   right: max(var(--mm-space-3), env(safe-area-inset-right, 0px));
-  top: calc(
-    var(--scan-oval-cy) + var(--scan-oval-ry) + var(--scan-oval-bleed) + var(--scan-dock-gap)
+  top: auto;
+  bottom: var(--scan-footer-stack);
+  max-height: calc(
+    100dvh - var(--scan-oval-cy) - var(--scan-oval-ry) - var(--scan-oval-bleed) - var(--scan-dock-gap) -
+      var(--scan-footer-stack)
   );
-  bottom: calc(var(--scan-footer-stack) + var(--mm-space-2));
   z-index: 6;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: var(--mm-space-2);
   min-height: 0;
   pointer-events: none;
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .scan-measuring-dock .scan-hud-below-oval {
@@ -736,8 +741,9 @@
 
 @media (max-height: 700px) {
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 37%;
-    --scan-oval-ry: clamp(7.5rem, 42vmin, 11.5rem);
+    --scan-oval-cy: 40%;
+    --scan-oval-rx: clamp(7.25rem, 38vmin, 11.5rem);
+    --scan-oval-ry: clamp(9.25rem, 48vmin, 13.5rem);
     --scan-dock-gap: 0.375rem;
   }
 
@@ -755,8 +761,9 @@
   }
 
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 36%;
-    --scan-oval-ry: clamp(7rem, 40vmin, 10.5rem);
+    --scan-oval-cy: 39%;
+    --scan-oval-rx: clamp(6.75rem, 36vmin, 10.5rem);
+    --scan-oval-ry: clamp(8.5rem, 44vmin, 12rem);
     --scan-hint-area: clamp(2.65rem, 11svh, 3.5rem);
     --scan-dock-gap: 0.25rem;
   }
@@ -769,8 +776,9 @@
   }
 
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 34%;
-    --scan-oval-ry: clamp(6.5rem, 36vmin, 9.5rem);
+    --scan-oval-cy: 37%;
+    --scan-oval-rx: clamp(6.25rem, 34vmin, 9.5rem);
+    --scan-oval-ry: clamp(7.75rem, 40vmin, 10.5rem);
     --scan-hint-area: 2.5rem;
     --scan-dock-gap: 0.125rem;
   }

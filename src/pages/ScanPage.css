@@ -74,26 +74,19 @@
   isolation: isolate;
 }
 
-/* Обрезка при лёгком scale — превью на весь экран без «плашки» contain. */
-.scan-video-stage {
+/*
+ * Один <video> — превью и сканирование (docs/SDK.md, как Camera.css).
+ * cover на весь viewport; SDK читает буфер video, не CSS.
+ */
+.scan-video {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
-  background: #0f172a;
-}
-
-/*
- * Один <video> — тот же узел в createFaceSession (docs/SDK.md).
- * cover на весь stage; --preview-scale слегка отдаляет при landscape-потоке (faceCamera.js).
- */
-.scan-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center center;
-  transform: scaleX(-1) scale(var(--preview-scale, 1));
-  transform-origin: center center;
+  transform: scaleX(-1);
 }
 
 .scan-mask-layer {

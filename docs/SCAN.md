@@ -6,19 +6,19 @@
 
 | Параметр | Значение | Где |
 |----------|----------|-----|
-| Камера | `facingMode: { ideal: 'user' }`, portrait ideal 720×1280, сброс zoom трека | `src/utils/faceCamera.js` |
-| Превью | `cover` + `--preview-scale` при расхождении aspect (без смены потока для SDK) | `faceCamera.js` + `.scan-video-stage` |
+| Камера | `facingMode: 'user'`, `aspectRatio: { ideal: 9/16 }`, `width/height ideal 720×1280` | `ScanPage.jsx` → `FACE_CAMERA_VIDEO_CONSTRAINTS` |
+| Превью | один `<video>`, `object-fit: cover`, зеркало `scaleX(-1)` | `ScanPage.css` → `.scan-video` |
 | Ориентация сессии | `resolveSdkDeviceOrientation()` (не хардкод `PORTRAIT`) | `ScanPage.jsx` → `createFaceSession` |
 | Строгий режим | `strictMeasurementGuidance: false` (дефолт SDK) | `ScanPage.jsx` |
-| Вход SDK | один `<video ref>` → `input` в `createFaceSession` | `ScanPage.jsx` |
+| Вход SDK | тот же `<video ref>` → `input` в `createFaceSession` | `ScanPage.jsx` |
 | WASM / потоки | COOP/COEP в `vite.config.js`, ассеты в `public/` через `sync-biosense-assets` | см. `docs/SDK.md` |
 | Лицензия | `VITE_BIOSENSESIGNAL_LICENSE_KEY`, опционально `VITE_BIOSENSESIGNAL_PRODUCT_ID` | `.env` |
 
-## Превью на весь экран
+## Превью на мобильном
 
-- **CSS:** всегда `object-fit: cover` на весь экран; `resolvePreviewCoverScale()` слегка уменьшает превью при landscape-потоке на портретном экране (без полос `contain`).
-- **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из CSS-обрезки.
-- Масштаб превью не меняет поток камеры и не ломает `createFaceSession`.
+- Экран `.scan-page--fullscreen`: viewport на весь `100dvh`, видео `cover` по центру.
+- До «Начать» и во время замера — **один и тот же** поток и стили (без отдельной логики превью).
+- **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из CSS.
 
 ## ImageValidity
 

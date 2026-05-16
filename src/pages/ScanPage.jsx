@@ -13,11 +13,30 @@ import {
   sdkDeviceOrientationLabel,
 } from '../sdk/faceScan.js'
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
-import {
-  attachPreviewScaleObserver,
-  openFaceCameraStream,
-} from '../utils/faceCamera.js'
 import './ScanPage.css'
+
+/** Камера и превью — см. docs/SCAN.md. Один поток до и во время сканирования. */
+const FACE_CAMERA_VIDEO_CONSTRAINTS = {
+  facingMode: 'user',
+  aspectRatio: { ideal: 9 / 16 },
+  width: { ideal: 720, max: 1920 },
+  height: { ideal: 1280, max: 1920 },
+}
+
+async function acquireCameraStream() {
+  return navigator.mediaDevices.getUserMedia({
+    video: FACE_CAMERA_VIDEO_CONSTRAINTS,
+    audio: false,
+  })
+}
+
+async function bindStreamToVideo(video, stream) {
+  video.srcObject = stream
+  video.setAttribute('playsinline', '')
+  video.muted = true
+  await video.play()
+  await waitForVideoReady(video)
+}
 
 function sessionStateLabel(state) {
   switch (state) {
@@ -128,7 +147,6 @@ async function waitForVideoReady(video, timeoutMs = 8000) {
 export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const ecgCycleId = `scan-ecg-cycle-${useId().replace(/:/g, '')}`
   const videoRef = useRef(null)
-  const viewportRef = useRef(null)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
@@ -142,8 +160,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   /** Последний ImageValidity из onImageData — плашка «кадр» (docs/SDK.md). */
   const [frameValidity, setFrameValidity] = useState(null)
   const [errorText, setErrorText] = useState('')
-  /** Лёгкое отдаление cover-превью при landscape-потоке на портретном экране (только CSS). */
-  const [previewScale, setPreviewScale] = useState(1)
   const pendingStartTimerRef = useRef(null)
   /** Не обновлять подсказку без смены (состояние сессии, validity) — onImageData на каждый кадр. */
   const lastHintKeyRef = useRef('')
@@ -212,21 +228,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const openPreviewCamera = useCallback(async () => {
     const video = videoRef.current
     if (!video) throw new Error('Нет элемента видео')
-    const stream = await openFaceCameraStream()
+    const stream = await acquireCameraStream()
     streamRef.current = stream
-    const track = stream.getVideoTracks()[0]
-    const settings = track?.getSettings?.() ?? {}
-    scanSdkDebug('камера (превью)', {
-      width: settings.width,
-      height: settings.height,
-      facingMode: settings.facingMode,
-      aspectRatio: settings.aspectRatio,
-    })
-    video.srcObject = stream
-    video.setAttribute('playsinline', '')
-    video.muted = true
-    await video.play()
-    await waitForVideoReady(video)
+    await bindStreamToVideo(video, stream)
   }, [])
 
   useEffect(() => {
@@ -264,13 +268,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     }
   }, [openPreviewCamera, teardownStream])
 
-  useEffect(() => {
-    const video = videoRef.current
-    const container = viewportRef.current
-    if (!video || !container) return undefined
-    return attachPreviewScaleObserver(video, container, setPreviewScale)
-  }, [])
-
   const runScanPipeline = useCallback(
     async ({ reuseStream = false } = {}) => {
       /* Одна сессия одновременно: перед createFaceSession завершаем предыдущую (док. «Быстрый старт»). */
@@ -291,12 +288,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         setPhase('camera')
         setHint('Запрашиваем доступ к камере…')
         setHintTone('neutral')
-        stream = await openFaceCameraStream()
+        stream = await acquireCameraStream()
         streamRef.current = stream
-        video.srcObject = stream
-        video.setAttribute('playsinline', '')
-        video.muted = true
-        await video.play()
+        await bindStreamToVideo(video, stream)
       } else {
         if (!stream?.getVideoTracks().some((t) => t.readyState === 'live')) {
           throw new Error('Камера недоступна. Нажмите «Повторить».')
@@ -664,20 +658,14 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   return (
     <div className="scan-page scan-page--fullscreen" role="application" aria-label="Сканирование лица">
       <div className="scan-viewport-wrap">
-        <div ref={viewportRef} className="scan-viewport">
-          <div
-            className="scan-video-stage"
-            style={{ '--preview-scale': String(previewScale) }}
-          >
-            {/* Один video: превью; тот же узел — input в createFaceSession (docs/SDK.md). */}
-            <video
+        <div className="scan-viewport">
+          <video
               ref={videoRef}
               id="scan-face-preview"
               className="scan-video"
               playsInline
-              muted
-            />
-          </div>
+            muted
+          />
           <div className="scan-mask-layer" aria-hidden>
             <div className="scan-dim" />
             <div className="scan-oval-frame">

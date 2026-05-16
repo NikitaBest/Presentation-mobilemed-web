@@ -204,6 +204,15 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     }
   }, [teardownSession, teardownStream])
 
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]')
+    const prev = meta?.getAttribute('content') ?? ''
+    meta?.setAttribute('content', '#0f172a')
+    return () => {
+      meta?.setAttribute('content', prev || '#f9fafb')
+    }
+  }, [])
+
   /**
    * Прогресс овала только пока кадр ImageValidity.VALID (docs/SDK.md — строгий режим,
    * при невалидном кадре SDK не обрабатывает изображение; иначе UI «едет» без лица).
@@ -643,13 +652,27 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const canStartScan =
     phase === 'preview' && sessionState === SessionState.ACTIVE && !startedRef.current
   const primaryDisabled = phase === 'preview-loading' || phase === 'saving'
+  const cameraVisible =
+    phase === 'preview' ||
+    phase === 'running' ||
+    phase === 'measuring' ||
+    phase === 'saving'
+
+  /** Единая вёрстка овала/шапки с первого кадра — без скачка при «Начать». */
+  const scanLayoutLocked =
+    phase === 'preview-loading' ||
+    phase === 'preview' ||
+    phase === 'running' ||
+    phase === 'measuring' ||
+    phase === 'saving'
 
   return (
     <div
       className={[
         'scan-page',
         'scan-page--fullscreen',
-        phase === 'measuring' || phase === 'running' ? 'scan-page--active-scan' : '',
+        cameraVisible ? 'scan-page--camera-visible' : '',
+        scanLayoutLocked ? 'scan-page--active-scan' : '',
         phase === 'measuring' ? 'scan-page--measuring' : '',
       ]
         .filter(Boolean)

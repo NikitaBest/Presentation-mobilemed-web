@@ -7,6 +7,24 @@
   color: var(--mm-text-muted);
 }
 
+.app-loading--fade {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: app-loading-in 0.35s var(--mm-ease-out) both;
+}
+
+@keyframes app-loading-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .app-root {
   --mm-pad-inline-start: max(var(--mm-space-5), env(safe-area-inset-left, 0px));
   --mm-pad-inline-end: max(var(--mm-space-5), env(safe-area-inset-right, 0px));
@@ -22,6 +40,12 @@
   padding-bottom: 0;
   padding-left: 0;
   padding-right: 0;
+}
+
+/* Полноэкранное сканирование: без верхнего отступа приложения, тёмный фон под вырез */
+.app-root:has(.scan-page--fullscreen) {
+  padding-top: 0;
+  background: #0f172a;
 }
 
 .app-step-hint {

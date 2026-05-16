@@ -10,31 +10,28 @@
   min-height: 0;
 }
 
-/* Замер: овал выше, но ry > rx (портретный овал, не круг) */
-.scan-page--fullscreen.scan-page--active-scan {
-  --scan-oval-cy: 41%;
-  --scan-oval-rx: clamp(7.75rem, 40vmin, 12.5rem);
-  --scan-oval-ry: clamp(10rem, 52vmin, 15.5rem);
-}
-
+/* Режим замера: док пульса, компактная подсказка (овал — на .scan-page--fullscreen) */
 .scan-page--active-scan {
   --scan-hint-area: clamp(3rem, 13svh, 4.25rem);
-  --scan-dock-gap: clamp(0.5rem, 2.5vmin, 0.875rem);
   --scan-oval-bleed: clamp(0.375rem, 1.5vmin, 0.625rem);
 }
 
-.scan-page--active-scan .scan-page-overlay--top {
-  padding-bottom: var(--mm-space-2);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.35) 55%, transparent 100%);
+@property --scan-oval-rx {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 8.5rem;
 }
 
-.scan-page--active-scan .scan-page-title {
-  margin-bottom: 0;
-  font-size: clamp(1.125rem, 4.5vw, 1.375rem);
+@property --scan-oval-ry {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 11rem;
 }
 
-.scan-page--active-scan .scan-page-lead {
-  display: none;
+@property --scan-oval-cy {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
 }
 
 .scan-page--fullscreen {
@@ -45,6 +42,9 @@
   flex-direction: column;
   width: 100%;
   max-width: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
   margin: 0;
   background: #0f172a;
   box-sizing: border-box;
@@ -52,18 +52,29 @@
     var(--mm-touch-min) + var(--mm-space-4) + var(--mm-space-4) + env(safe-area-inset-bottom, 0px)
   );
 
-  /* Овал по центру области видео — совпадает с центром кадра, который отдаёт <video> в SDK. */
-  --scan-oval-rx: clamp(8.5rem, 44vmin, 14rem);
-  --scan-oval-ry: clamp(11rem, 56vmin, 17rem);
-  --scan-oval-cy: 50%;
-  /* Отступ плашки «Лицо и свет» над верхом овала (только вёрстка, не SDK). */
-  --scan-frame-pill-gap: var(--mm-space-2);
+  /* Овал: одна геометрия на превью и замер (ry > rx, не круг) */
+  --scan-oval-rx: clamp(7.75rem, min(40vmin, 38vw), 12.5rem);
+  --scan-oval-ry: clamp(10rem, min(52vmin, 30svh), 15.5rem);
+  --scan-oval-cy: 41%;
+  --scan-frame-pill-gap: var(--mm-space-3);
+  --scan-dock-gap: clamp(0.375rem, 1.75vmin, 0.625rem);
 }
 
-@supports (height: 1svh) {
-  .scan-page--fullscreen {
-    --scan-oval-cy: 50%;
-  }
+/* Компактная шапка сразу — как во время замера */
+.scan-page--fullscreen .scan-page-overlay--top {
+  top: 0;
+  padding: max(var(--mm-space-3), env(safe-area-inset-top, 0px)) max(var(--mm-space-4), env(safe-area-inset-right, 0px))
+    var(--mm-space-2) max(var(--mm-space-4), env(safe-area-inset-left, 0px));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.35) 55%, transparent 100%);
+}
+
+.scan-page--fullscreen .scan-page-title {
+  margin-bottom: 0;
+  font-size: clamp(1.125rem, 4.5vw, 1.375rem);
+}
+
+.scan-page--fullscreen .scan-page-lead {
+  display: none;
 }
 
 .scan-page--fullscreen .scan-viewport-wrap {
@@ -118,6 +129,12 @@
   object-fit: cover;
   object-position: center center;
   transform: scaleX(-1);
+  opacity: 0;
+  transition: opacity var(--mm-motion-scan) var(--mm-ease-out);
+}
+
+.scan-page--camera-visible .scan-video {
+  opacity: 1;
 }
 
 .scan-mask-layer {
@@ -242,19 +259,12 @@
 }
 
 .scan-page-overlay {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   z-index: 2;
   pointer-events: none;
   box-sizing: border-box;
-}
-
-.scan-page-overlay--top {
-  top: 0;
-  padding: max(var(--mm-space-3), env(safe-area-inset-top, 0px)) max(var(--mm-space-4), env(safe-area-inset-right, 0px))
-    var(--mm-space-3) max(var(--mm-space-4), env(safe-area-inset-left, 0px));
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.2) 70%, transparent 100%);
 }
 
 .scan-page-title {
@@ -317,11 +327,12 @@
   justify-content: center;
 }
 
-/* Плашка сразу над овалом (как scan-hud-below-oval снизу), не под шапкой */
+/* Плашка над верхом овала (без transform — иначе ломается анимацией scan-ui-in) */
 .scan-page--fullscreen .scan-hud--frame-status {
-  top: calc(var(--scan-oval-cy) - var(--scan-oval-ry));
+  top: calc(var(--scan-oval-cy) - var(--scan-oval-ry) - var(--scan-frame-pill-gap));
   padding-top: 0;
-  transform: translateY(calc(-100% - var(--scan-frame-pill-gap)));
+  margin-top: 0;
+  transform: translateY(-100%);
   justify-content: center;
 }
 
@@ -357,6 +368,10 @@
   line-height: 1.35;
   text-align: center;
   backdrop-filter: blur(10px);
+  transition:
+    opacity var(--mm-motion-page) var(--mm-ease-standard),
+    background-color var(--mm-motion-page) var(--mm-ease-standard),
+    color var(--mm-motion-page) var(--mm-ease-standard);
 }
 
 /* Подсказка вне дока — только превью */
@@ -434,6 +449,49 @@
   background: linear-gradient(0deg, rgba(15, 23, 42, 0.88) 40%, transparent 100%);
   box-sizing: border-box;
   gap: var(--mm-space-3);
+  animation: scan-footer-in var(--mm-motion-scan) var(--mm-ease-out) both;
+}
+
+@keyframes scan-footer-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scan-ui-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.scan-measuring-dock {
+  animation: scan-ui-in var(--mm-motion-scan) var(--mm-ease-out) both;
+}
+
+.scan-page--fullscreen .scan-hud--frame-status {
+  animation: scan-ui-fade-in var(--mm-motion-scan) var(--mm-ease-out) both;
+}
+
+@keyframes scan-ui-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .scan-footer--overlay.scan-footer--single {
@@ -463,24 +521,19 @@
 }
 
 /*
- * Пульс + подсказка сразу над футером (высота по контенту, без пустой полосы посередине).
- * max-height не даёт залезть на овал.
+ * Пульс + подсказка сразу под овалом; снизу ограничены футером (без пустой полосы посередине).
  */
 .scan-measuring-dock {
   position: fixed;
   left: max(var(--mm-space-3), env(safe-area-inset-left, 0px));
   right: max(var(--mm-space-3), env(safe-area-inset-right, 0px));
-  top: auto;
+  top: calc(var(--scan-oval-cy) + var(--scan-oval-ry) + var(--scan-dock-gap));
   bottom: var(--scan-footer-stack);
-  max-height: calc(
-    100dvh - var(--scan-oval-cy) - var(--scan-oval-ry) - var(--scan-oval-bleed) - var(--scan-dock-gap) -
-      var(--scan-footer-stack)
-  );
   z-index: 6;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: var(--mm-space-2);
   min-height: 0;
   pointer-events: none;
@@ -702,18 +755,8 @@
   color: rgba(226, 232, 240, 0.75);
 }
 
-/* Превью на узких экранах — компактнее шапка */
 @media (max-width: 380px) {
-  .scan-page--fullscreen:not(.scan-page--active-scan) .scan-page-title {
-    font-size: clamp(1.125rem, 5vw, 1.375rem);
-  }
-
-  .scan-page--fullscreen:not(.scan-page--active-scan) .scan-page-lead {
-    font-size: var(--mm-font-size-xs);
-    line-height: 1.4;
-  }
-
-  .scan-page--fullscreen:not(.scan-page--active-scan) {
+  .scan-page--fullscreen {
     --scan-footer-stack: calc(6.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
@@ -740,10 +783,13 @@
 }
 
 @media (max-height: 700px) {
-  .scan-page--fullscreen.scan-page--active-scan {
+  .scan-page--fullscreen {
     --scan-oval-cy: 40%;
-    --scan-oval-rx: clamp(7.25rem, 38vmin, 11.5rem);
-    --scan-oval-ry: clamp(9.25rem, 48vmin, 13.5rem);
+    --scan-oval-rx: clamp(7.25rem, min(38vmin, 36vw), 11.5rem);
+    --scan-oval-ry: clamp(9.25rem, min(48vmin, 28svh), 13.5rem);
+  }
+
+  .scan-page--active-scan {
     --scan-dock-gap: 0.375rem;
   }
 
@@ -755,15 +801,12 @@
 
 @media (max-height: 640px) {
   .scan-page--fullscreen {
-    --scan-oval-rx: clamp(7.25rem, 38vmin, 11.5rem);
-    --scan-oval-ry: clamp(9rem, 46vmin, 13rem);
-    --scan-oval-cy: 50%;
+    --scan-oval-cy: 39%;
+    --scan-oval-rx: clamp(6.75rem, min(36vmin, 34vw), 10.5rem);
+    --scan-oval-ry: clamp(8.5rem, min(44vmin, 26svh), 12rem);
   }
 
-  .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 39%;
-    --scan-oval-rx: clamp(6.75rem, 36vmin, 10.5rem);
-    --scan-oval-ry: clamp(8.5rem, 44vmin, 12rem);
+  .scan-page--active-scan {
     --scan-hint-area: clamp(2.65rem, 11svh, 3.5rem);
     --scan-dock-gap: 0.25rem;
   }
@@ -771,14 +814,12 @@
 
 @media (max-height: 560px) {
   .scan-page--fullscreen {
-    --scan-oval-ry: clamp(8rem, 42vmin, 12rem);
-    --scan-oval-cy: 50%;
+    --scan-oval-cy: 37%;
+    --scan-oval-rx: clamp(6.25rem, min(34vmin, 32vw), 9.5rem);
+    --scan-oval-ry: clamp(7.75rem, min(40vmin, 24svh), 10.5rem);
   }
 
-  .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 37%;
-    --scan-oval-rx: clamp(6.25rem, 34vmin, 9.5rem);
-    --scan-oval-ry: clamp(7.75rem, 40vmin, 10.5rem);
+  .scan-page--active-scan {
     --scan-hint-area: 2.5rem;
     --scan-dock-gap: 0.125rem;
   }
@@ -789,21 +830,28 @@
   }
 }
 
-@supports (height: 1svh) {
-  @media (max-height: 640px) {
-    .scan-page--fullscreen {
-      --scan-oval-cy: 50%;
-    }
-  }
-
-  @media (max-height: 560px) {
-    .scan-page--fullscreen {
-      --scan-oval-cy: 50%;
-    }
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
+  .scan-page--fullscreen {
+    transition: none;
+  }
+
+  .scan-video,
+  .scan-oval-frame,
+  .scan-hint,
+  .scan-page--fullscreen .scan-hud--frame-status {
+    transition: none;
+  }
+
+  .scan-page--camera-visible .scan-video {
+    opacity: 1;
+  }
+
+  .scan-footer--overlay,
+  .scan-measuring-dock,
+  .scan-page--fullscreen .scan-hud--frame-status {
+    animation: none;
+  }
+
   .scan-oval-ring {
     animation: none;
   }

@@ -1,13 +1,14 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { ensureAuthSession } from './api/auth.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
+import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { WelcomePage } from './pages/WelcomePage.jsx'
 import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
+import { ResultsPage } from './pages/ResultsPage.jsx'
 const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
-import { ResultsPage } from './pages/ResultsPage.jsx'
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
 import { APP_STEPS, readPersistedStep, writePersistedStep } from './utils/appStepStorage.js'
 import './App.css'
@@ -39,6 +40,12 @@ export default function App() {
 
   useEffect(() => {
     writePersistedStep(step)
+  }, [step])
+
+  useEffect(() => {
+    if (step === 'instruction') {
+      void import('./pages/ScanPage.jsx')
+    }
   }, [step])
 
   useEffect(() => {
@@ -90,9 +97,9 @@ export default function App() {
     })
   }, [])
 
-  return (
-    <div className="app-root">
-      {step === 'welcome' && (
+  const renderStep = (activeStep) => (
+    <>
+      {activeStep === 'welcome' && (
         <WelcomePage
           authStatus={authStatus}
           authError={authError}
@@ -100,7 +107,7 @@ export default function App() {
           onContinue={goNext}
         />
       )}
-      {step === 'userData' && (
+      {activeStep === 'userData' && (
         <UserDataPage
           value={userForm}
           onFormChange={patchUserForm}
@@ -109,11 +116,11 @@ export default function App() {
           profileHint={userDataHint}
         />
       )}
-      {step === 'instruction' && (
+      {activeStep === 'instruction' && (
         <ScanInstructionPage onBack={goBack} onContinue={goNext} />
       )}
-      {step === 'scan' && (
-        <Suspense fallback={<div className="app-loading">Загрузка сканирования…</div>}>
+      {activeStep === 'scan' && (
+        <Suspense fallback={<div className="app-loading app-loading--fade">Загрузка сканирования…</div>}>
           <ScanPage
             userForm={userForm}
             onBack={goBack}
@@ -122,13 +129,19 @@ export default function App() {
           />
         </Suspense>
       )}
-      {step === 'results' && (
+      {activeStep === 'results' && (
         <ResultsPage
           onGoHome={() => setStep('welcome')}
           onMeasureAgain={() => setStep('instruction')}
           scanSummary={scanSummary}
         />
       )}
+    </>
+  )
+
+  return (
+    <div className="app-root">
+      <AppStepTransition step={step}>{renderStep}</AppStepTransition>
     </div>
   )
 }

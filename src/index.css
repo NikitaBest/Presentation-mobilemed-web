@@ -38,6 +38,11 @@ body {
   background: var(--mm-bg-surface);
 }
 
+#root:has(.scan-page--fullscreen),
+body:has(.scan-page--fullscreen) {
+  background: #0f172a;
+}
+
 /* Заголовки по умолчанию — единая шкала */
 h1,
 h2,

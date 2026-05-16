@@ -18,11 +18,7 @@ const packageDir = path.join(vendorDir, 'package')
 const srcDir = path.join(packageDir, 'dist')
 const publicDir = path.join(root, 'public')
 
-const SKIP_ROOT = new Set([
-  'main.js',
-  'postinstall.js',
-  'main.js.LICENSE.txt',
-])
+const SKIP_ROOT = new Set(['postinstall.js', 'main.js.LICENSE.txt'])
 
 function ensureVendorDist() {
   if (fs.existsSync(srcDir)) return

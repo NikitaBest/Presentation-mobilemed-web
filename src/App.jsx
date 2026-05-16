@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { ensureAuthSession } from './api/auth.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
 import { WelcomePage } from './pages/WelcomePage.jsx'
 import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
-import { ScanPage } from './pages/ScanPage.jsx'
+const ScanPage = lazy(() =>
+  import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
+)
 import { ResultsPage } from './pages/ResultsPage.jsx'
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
 import { APP_STEPS, readPersistedStep, writePersistedStep } from './utils/appStepStorage.js'
@@ -111,12 +113,14 @@ export default function App() {
         <ScanInstructionPage onBack={goBack} onContinue={goNext} />
       )}
       {step === 'scan' && (
-        <ScanPage
-          userForm={userForm}
-          onBack={goBack}
-          onContinue={goNext}
-          onSaved={setScanSummary}
-        />
+        <Suspense fallback={<div className="app-loading">Загрузка сканирования…</div>}>
+          <ScanPage
+            userForm={userForm}
+            onBack={goBack}
+            onContinue={goNext}
+            onSaved={setScanSummary}
+          />
+        </Suspense>
       )}
       {step === 'results' && (
         <ResultsPage

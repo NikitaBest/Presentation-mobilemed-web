@@ -1,5 +1,5 @@
-import healthMonitorManager from '@biosensesignal/web-sdk'
 import { DeviceOrientation, ImageValidity, Sex, SmokingStatus } from './biosenseEnums.js'
+import { getHealthMonitorManager } from './loadBiosenseSdk.js'
 import { scanSdkDebug } from './scanSdkDebug.js'
 import { normalizeUserInformationForm } from './userInformation.js'
 
@@ -100,10 +100,12 @@ export function ensureSdkInitialized() {
       },
     },
   }
-  sdkInitPromise = healthMonitorManager.initialize(opts).catch((e) => {
-    sdkInitPromise = null
-    throw e
-  })
+  sdkInitPromise = getHealthMonitorManager()
+    .then((healthMonitorManager) => healthMonitorManager.initialize(opts))
+    .catch((e) => {
+      sdkInitPromise = null
+      throw e
+    })
   return sdkInitPromise
 }
 
@@ -188,4 +190,4 @@ export function imageValidityShortPillLabel(validity) {
   }
 }
 
-export { healthMonitorManager }
+export { getHealthMonitorManager }

@@ -5,7 +5,7 @@ import { scanSdkDebug } from '../sdk/scanSdkDebug.js'
 import {
   DEFAULT_PROCESSING_SECONDS,
   ensureSdkInitialized,
-  healthMonitorManager,
+  getHealthMonitorManager,
   imageValidityShortPillLabel,
   imageValidityToUserMessage,
   mapFormToSdkUserInformation,
@@ -554,6 +554,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           typeof window !== 'undefined' ? window.screen?.orientation?.type : undefined,
       })
 
+      const healthMonitorManager = await getHealthMonitorManager()
       const session = await healthMonitorManager.createFaceSession({
         input: video,
         cameraDeviceId,

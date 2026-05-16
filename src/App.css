@@ -1,5 +1,12 @@
 /* Макет приложения — только токены --mm-* */
 
+.app-loading {
+  padding: var(--mm-space-6) 0;
+  text-align: center;
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-text-muted);
+}
+
 .app-root {
   --mm-pad-inline-start: max(var(--mm-space-5), env(safe-area-inset-left, 0px));
   --mm-pad-inline-end: max(var(--mm-space-5), env(safe-area-inset-right, 0px));

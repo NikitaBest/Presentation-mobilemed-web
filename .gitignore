@@ -28,6 +28,7 @@ dist-ssr
 *.sw?
 
 # BioSense Web SDK: копия runtime из vendor (scripts/sync-biosense-assets.mjs, postinstall/predev/prebuild)
+/public/main.js
 /public/799.js
 /public/a.js
 /public/a.wasm.gz

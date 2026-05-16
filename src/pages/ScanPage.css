@@ -4,9 +4,30 @@
   --mm-scan-dim: rgba(15, 23, 42, 0.58);
   --mm-scan-ring: rgba(52, 211, 153, 0.92);
   --scan-footer-stack: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  --scan-hint-area: 4.5rem;
 
   width: 100%;
   min-height: 0;
+}
+
+/* Замер: компактная шапка, зона снизу — подсказка → пульс → кнопки */
+.scan-page--active-scan {
+  --scan-hint-area: clamp(3rem, 13svh, 4.25rem);
+  --scan-footer-stack: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.scan-page--active-scan .scan-page-overlay--top {
+  padding-bottom: var(--mm-space-2);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.35) 55%, transparent 100%);
+}
+
+.scan-page--active-scan .scan-page-title {
+  margin-bottom: 0;
+  font-size: clamp(1.125rem, 4.5vw, 1.375rem);
+}
+
+.scan-page--active-scan .scan-page-lead {
+  display: none;
 }
 
 .scan-page--fullscreen {
@@ -319,13 +340,30 @@
   left: var(--mm-space-3);
   right: var(--mm-space-3);
   bottom: var(--scan-footer-stack);
-  z-index: 2;
+  z-index: 3;
   padding: var(--mm-space-2) var(--mm-space-3);
   border-radius: var(--mm-radius-md);
   font-size: var(--mm-font-size-sm);
   line-height: 1.35;
   text-align: center;
   backdrop-filter: blur(10px);
+}
+
+.scan-page--active-scan .scan-hint {
+  position: fixed;
+  left: max(var(--mm-space-3), env(safe-area-inset-left, 0px));
+  right: max(var(--mm-space-3), env(safe-area-inset-right, 0px));
+  bottom: var(--scan-footer-stack);
+  z-index: 3;
+  max-height: var(--scan-hint-area);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: var(--mm-font-size-xs);
+  line-height: 1.3;
+  padding: 0.5rem var(--mm-space-2);
 }
 
 .scan-hint--neutral {
@@ -359,8 +397,8 @@
   position: fixed;
   left: max(var(--mm-space-4), env(safe-area-inset-left, 0px));
   right: max(var(--mm-space-4), env(safe-area-inset-right, 0px));
-  bottom: calc(var(--scan-footer-stack) + 4.5rem);
-  z-index: 4;
+  bottom: calc(var(--scan-footer-stack) + var(--scan-hint-area) + var(--mm-space-2));
+  z-index: 6;
   padding: var(--mm-space-2) var(--mm-space-3);
   border-radius: var(--mm-radius-md);
   background: rgba(254, 242, 242, 0.95);
@@ -378,7 +416,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 3;
+  z-index: 5;
   padding: var(--mm-space-3) max(var(--mm-space-4), env(safe-area-inset-right, 0px))
     max(var(--mm-space-4), env(safe-area-inset-bottom, 0px)) max(var(--mm-space-4), env(safe-area-inset-left, 0px));
   padding-top: var(--mm-space-4);
@@ -404,6 +442,18 @@
   top: calc(var(--scan-oval-cy) + var(--scan-oval-ry) + var(--mm-space-3));
   z-index: 2;
   pointer-events: none;
+  max-width: calc(100% - 2 * var(--mm-space-3));
+}
+
+/* Пульс над подсказкой и футером — не перекрывается hint на узких экранах */
+.scan-page--measuring .scan-hud-below-oval {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: calc(var(--scan-footer-stack) + var(--scan-hint-area) + var(--mm-space-2));
+  transform: translateX(-50%);
+  z-index: 4;
 }
 
 /* Пульс во время замера: сердце + линия ЭКГ + значение (только UI, не SDK) */
@@ -589,11 +639,47 @@
   color: rgba(226, 232, 240, 0.75);
 }
 
-/* Узкие экраны: компактнее овал; центр по-прежнему 50% (совпадение с ROI SDK) */
+/* Превью на узких экранах — компактнее шапка */
+@media (max-width: 380px) {
+  .scan-page--fullscreen:not(.scan-page--active-scan) .scan-page-title {
+    font-size: clamp(1.125rem, 5vw, 1.375rem);
+  }
+
+  .scan-page--fullscreen:not(.scan-page--active-scan) .scan-page-lead {
+    font-size: var(--mm-font-size-xs);
+    line-height: 1.4;
+  }
+
+  .scan-page--fullscreen:not(.scan-page--active-scan) {
+    --scan-footer-stack: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Узкие экраны: компактнее овал и нижний стек */
 @media (max-width: 360px) {
   .scan-page--fullscreen {
     --scan-oval-rx: clamp(7.5rem, 40vmin, 12rem);
     --scan-oval-ry: clamp(9.5rem, 50vmin, 14.5rem);
+  }
+
+  .scan-page--active-scan {
+    --scan-hint-area: clamp(2.75rem, 12svh, 3.75rem);
+  }
+
+  .scan-pulse-card {
+    padding: 0.35rem 0.65rem 0.35rem 0.55rem;
+    gap: 0.4rem;
+  }
+
+  .scan-pulse-value {
+    font-size: 1rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .scan-page--fullscreen.scan-page--active-scan {
+    --scan-oval-cy: 46%;
+    --scan-oval-ry: clamp(9rem, 48vmin, 14rem);
   }
 }
 
@@ -603,12 +689,27 @@
     --scan-oval-ry: clamp(9rem, 46vmin, 13rem);
     --scan-oval-cy: 50%;
   }
+
+  .scan-page--fullscreen.scan-page--active-scan {
+    --scan-oval-cy: 44%;
+    --scan-hint-area: clamp(2.65rem, 11svh, 3.5rem);
+  }
 }
 
 @media (max-height: 560px) {
   .scan-page--fullscreen {
     --scan-oval-ry: clamp(8rem, 42vmin, 12rem);
     --scan-oval-cy: 50%;
+  }
+
+  .scan-page--fullscreen.scan-page--active-scan {
+    --scan-oval-cy: 42%;
+    --scan-hint-area: 2.5rem;
+  }
+
+  .scan-page--active-scan .scan-hint {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
 }
 

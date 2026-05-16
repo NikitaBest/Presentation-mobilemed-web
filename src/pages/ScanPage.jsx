@@ -645,7 +645,18 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const primaryDisabled = phase === 'preview-loading' || phase === 'saving'
 
   return (
-    <div className="scan-page scan-page--fullscreen" role="application" aria-label="Сканирование лица">
+    <div
+      className={[
+        'scan-page',
+        'scan-page--fullscreen',
+        phase === 'measuring' || phase === 'running' ? 'scan-page--active-scan' : '',
+        phase === 'measuring' ? 'scan-page--measuring' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      role="application"
+      aria-label="Сканирование лица"
+    >
       <div className="scan-viewport-wrap">
         <div className="scan-viewport">
           <video

@@ -1,0 +1,138 @@
+.metric-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.metric-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(17, 24, 39, 0.45);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.metric-sheet__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: min(88dvh, 640px);
+  padding: var(--mm-space-3) var(--mm-space-5) max(var(--mm-space-5), env(safe-area-inset-bottom, 0px));
+  background: var(--mm-bg-surface);
+  border-radius: var(--mm-radius-xl) var(--mm-radius-xl) 0 0;
+  box-shadow: 0 -8px 32px rgba(17, 24, 39, 0.12);
+  overflow-y: auto;
+  pointer-events: auto;
+  animation: metric-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes metric-sheet-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.metric-sheet__handle {
+  width: 2.5rem;
+  height: 4px;
+  margin: 0 auto var(--mm-space-4);
+  border-radius: var(--mm-radius-pill);
+  background: var(--mm-border-strong);
+}
+
+.metric-sheet__title {
+  margin: 0 0 var(--mm-space-3);
+  font-size: var(--mm-font-size-h3);
+  font-weight: var(--mm-font-weight-bold);
+  text-align: center;
+  color: var(--mm-text-heading);
+}
+
+.metric-sheet__value-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem 0.4rem;
+  margin: 0 0 var(--mm-space-3);
+}
+
+.metric-sheet__value {
+  font-size: 2.25rem;
+  font-weight: var(--mm-font-weight-bold);
+  color: var(--mm-text-heading);
+  line-height: 1.1;
+}
+
+.metric-sheet__unit {
+  font-size: var(--mm-font-size-body);
+  font-weight: var(--mm-font-weight-medium);
+  color: var(--mm-text-muted);
+}
+
+.metric-sheet__status-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 var(--mm-space-4);
+}
+
+.metric-sheet__comment {
+  margin: 0 0 var(--mm-space-2);
+  font-size: var(--mm-font-size-sm);
+  line-height: var(--mm-line-relaxed);
+  text-align: center;
+  color: var(--mm-text);
+}
+
+.metric-sheet__description {
+  margin: 0 0 var(--mm-space-5);
+  font-size: var(--mm-font-size-sm);
+  line-height: var(--mm-line-relaxed);
+  color: var(--mm-text-heading);
+}
+
+.metric-sheet__btn {
+  display: block;
+  width: 100%;
+  min-height: var(--mm-touch-min);
+  margin-bottom: var(--mm-space-4);
+  padding: 0 var(--mm-space-6);
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-font-size-body);
+  font-weight: var(--mm-font-weight-semibold);
+  color: var(--mm-text-on-primary);
+  background: var(--mm-secondary);
+  border: none;
+  border-radius: var(--mm-radius-pill);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.2s ease;
+}
+
+.metric-sheet__btn:hover {
+  background: var(--mm-secondary-bright);
+}
+
+.metric-sheet__btn:active {
+  opacity: 0.92;
+}
+
+.metric-sheet__disclaimer {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  line-height: var(--mm-line-relaxed);
+  text-align: center;
+  color: var(--mm-text-muted);
+}

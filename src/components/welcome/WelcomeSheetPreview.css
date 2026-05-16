@@ -1,0 +1,104 @@
+.welcome-sheet-preview {
+  margin-top: var(--mm-space-3);
+}
+
+.welcome-sheet-preview__caption {
+  margin: 0 0 var(--mm-space-2);
+  font-size: 0.65rem;
+  font-weight: var(--mm-font-weight-semibold);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--mm-text-muted);
+}
+
+.welcome-sheet-preview__panel {
+  padding: var(--mm-space-2) var(--mm-space-3) var(--mm-space-3);
+  background: var(--mm-bg-surface);
+  border: 1px solid var(--mm-border);
+  border-radius: var(--mm-radius-lg) var(--mm-radius-lg) var(--mm-radius-md)
+    var(--mm-radius-md);
+  box-shadow: var(--mm-shadow-card);
+}
+
+.welcome-sheet-preview__handle {
+  width: 2rem;
+  height: 3px;
+  margin: 0 auto var(--mm-space-2);
+  border-radius: var(--mm-radius-pill);
+  background: var(--mm-border-strong);
+}
+
+.welcome-sheet-preview__title {
+  margin: 0 0 var(--mm-space-1);
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-bold);
+  text-align: center;
+  color: var(--mm-text-heading);
+}
+
+.welcome-sheet-preview__value-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem 0.35rem;
+  margin: 0 0 var(--mm-space-1);
+}
+
+.welcome-sheet-preview__value {
+  font-size: 1.5rem;
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1.1;
+  color: var(--mm-text-heading);
+}
+
+.welcome-sheet-preview__unit {
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-medium);
+  color: var(--mm-text-muted);
+}
+
+.welcome-sheet-preview__status {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 var(--mm-space-2);
+}
+
+.welcome-sheet-preview__comment {
+  margin: 0 0 var(--mm-space-2);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--mm-text);
+}
+
+.welcome-sheet-preview__scale {
+  margin-bottom: var(--mm-space-2);
+  transform: scale(0.92);
+  transform-origin: center top;
+}
+
+.welcome-sheet-preview__scale .metric-scale__labels {
+  font-size: 0.6rem;
+}
+
+.welcome-sheet-preview__description {
+  margin: 0 0 var(--mm-space-2);
+  font-size: 0.65rem;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--mm-text-muted);
+}
+
+.welcome-sheet-preview__btn {
+  display: block;
+  width: 100%;
+  padding: 0.45rem;
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-semibold);
+  text-align: center;
+  color: var(--mm-text-on-primary);
+  background: var(--mm-primary);
+  border-radius: var(--mm-radius-pill);
+}

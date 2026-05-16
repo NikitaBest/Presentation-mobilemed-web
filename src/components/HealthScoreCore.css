@@ -1,0 +1,423 @@
+/* Показатель здоровья: center (демо) и hero (экран результатов) */
+
+.health-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--mm-space-2) 0;
+  animation: health-core-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* --- Hero: компактный блок с вау-эффектом --- */
+.health-core--hero {
+  width: 100%;
+  padding: var(--mm-space-2) 0 var(--mm-space-1);
+  text-align: center;
+  animation: health-core-hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.health-core--hero {
+  position: relative;
+  z-index: 0;
+}
+
+.health-core__hero-visual {
+  position: relative;
+  width: clamp(7.5rem, 34vw, 8.75rem);
+  height: clamp(7.5rem, 34vw, 8.75rem);
+  margin: 0 auto var(--mm-space-2);
+  display: grid;
+  place-items: center;
+}
+
+.health-core__hero-aura {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--hc-glow) 0%, transparent 72%);
+  opacity: 0.55;
+  animation: health-core-hero-aura 3s ease-in-out infinite;
+}
+
+.health-core__hero-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--hc-ring);
+  opacity: 0;
+  animation: health-core-hero-pulse 2.8s ease-out infinite;
+}
+
+.health-core__hero-pulse--a {
+  animation-delay: 0s;
+}
+
+.health-core__hero-pulse--b {
+  animation-delay: 1.4s;
+}
+
+.health-core__hero-svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.health-core__hero-track {
+  fill: none;
+  stroke: rgba(15, 23, 42, 0.06);
+  stroke-width: 7;
+}
+
+.health-core__hero-progress {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 326.73;
+  stroke-dashoffset: 326.73;
+  animation: health-core-hero-draw 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+}
+
+.health-core--hero[style*='--hc-offset'] .health-core__hero-progress {
+  animation-name: health-core-hero-draw;
+}
+
+@keyframes health-core-hero-draw {
+  from {
+    stroke-dashoffset: 326.73;
+  }
+  to {
+    stroke-dashoffset: var(--hc-offset, 326.73);
+  }
+}
+
+.health-core__hero-score {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  animation: health-core-hero-score-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+.health-core__hero-value {
+  font-family: var(--mm-font-sans);
+  font-size: clamp(2rem, 9vw, 2.35rem);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mm-text-heading);
+}
+
+.health-core__hero-of {
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+  font-weight: var(--mm-font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mm-text-muted);
+}
+
+.health-core__hero-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mm-space-2);
+  animation: health-core-hero-meta-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
+.health-core__hero-label {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-semibold);
+  color: var(--mm-text-heading);
+}
+
+.health-core__pill {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-semibold);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--mm-radius-pill);
+  line-height: 1.3;
+}
+
+.health-core__pill--green {
+  color: #166534;
+  background: rgba(34, 197, 94, 0.2);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
+}
+
+.health-core__pill--yellow {
+  color: #854d0e;
+  background: rgba(234, 179, 8, 0.24);
+  box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.18);
+}
+
+.health-core__pill--red {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.18);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12);
+}
+
+.health-core__pill--unknown {
+  color: var(--mm-text-muted);
+  background: var(--mm-bg-muted);
+}
+
+/* --- Цвета по уровню --- */
+.health-core--green {
+  --hc-core: #22c55e;
+  --hc-core-light: #4ade80;
+  --hc-core-dark: #16a34a;
+  --hc-glow: rgba(34, 197, 94, 0.45);
+  --hc-ring: rgba(74, 222, 128, 0.35);
+}
+
+.health-core--yellow {
+  --hc-core: #eab308;
+  --hc-core-light: #facc15;
+  --hc-core-dark: #ca8a04;
+  --hc-glow: rgba(234, 179, 8, 0.42);
+  --hc-ring: rgba(250, 204, 21, 0.38);
+}
+
+.health-core--red {
+  --hc-core: #ef4444;
+  --hc-core-light: #f87171;
+  --hc-core-dark: #dc2626;
+  --hc-glow: rgba(239, 68, 68, 0.42);
+  --hc-ring: rgba(248, 113, 113, 0.38);
+}
+
+.health-core--unknown {
+  --hc-core: #94a3b8;
+  --hc-core-light: #cbd5e1;
+  --hc-core-dark: #64748b;
+  --hc-glow: rgba(148, 163, 184, 0.35);
+  --hc-ring: rgba(203, 213, 225, 0.3);
+}
+
+/* --- Center (полноэкранное ядро) --- */
+.health-core__stage {
+  position: relative;
+  width: clamp(9.5rem, 42vw, 11.5rem);
+  height: clamp(9.5rem, 42vw, 11.5rem);
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--mm-space-3);
+}
+
+.health-core__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--hc-ring);
+  opacity: 0;
+  animation: health-core-ring 3.2s ease-out infinite;
+}
+
+.health-core__ring--a {
+  animation-delay: 0s;
+}
+
+.health-core__ring--b {
+  animation-delay: 1.05s;
+}
+
+.health-core__ring--c {
+  animation-delay: 2.1s;
+}
+
+.health-core__glow {
+  position: absolute;
+  width: 72%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--hc-glow) 0%, transparent 70%);
+  animation: health-core-glow 2.8s ease-in-out infinite;
+}
+
+.health-core__orb {
+  position: relative;
+  z-index: 1;
+  width: 68%;
+  height: 68%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 35% 30%,
+    var(--hc-core-light) 0%,
+    var(--hc-core) 45%,
+    var(--hc-core-dark) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+    0 8px 32px var(--hc-glow),
+    0 2px 12px rgba(15, 23, 42, 0.12);
+  animation: health-core-orb 2.4s ease-in-out infinite;
+}
+
+.health-core__value {
+  font-family: var(--mm-font-sans);
+  font-size: clamp(2.5rem, 11vw, 3.25rem);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1;
+  letter-spacing: var(--mm-letter-tight);
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(15, 23, 42, 0.25);
+  animation: health-core-value-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.health-core__label {
+  margin: 0 0 var(--mm-space-1);
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-semibold);
+  color: var(--mm-text-heading);
+}
+
+.health-core__caption {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-text-muted);
+}
+
+@keyframes health-core-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes health-core-hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes health-core-hero-aura {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes health-core-hero-pulse {
+  0% {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 0;
+  }
+}
+
+@keyframes health-core-hero-score-in {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes health-core-hero-meta-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes health-core-ring {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.65;
+  }
+  70% {
+    opacity: 0.12;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes health-core-glow {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes health-core-orb {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes health-core-value-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .health-core,
+  .health-core__ring,
+  .health-core__glow,
+  .health-core__orb,
+  .health-core__value,
+  .health-core__hero-progress,
+  .health-core__hero-aura,
+  .health-core__hero-pulse,
+  .health-core__hero-score,
+  .health-core__hero-meta {
+    animation: none !important;
+  }
+
+  .health-core--hero[style*='--hc-offset'] .health-core__hero-progress {
+    stroke-dashoffset: var(--hc-offset, 326.73);
+  }
+}

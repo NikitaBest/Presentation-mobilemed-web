@@ -1,0 +1,87 @@
+/* Минималистичный чип выбора — токены --mm-* */
+
+.choice-card {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  min-height: 2.25rem;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--mm-border);
+  border-radius: var(--mm-radius-sm);
+  background: transparent;
+  color: var(--mm-text-heading);
+  transition:
+    border-color 0.12s ease,
+    background-color 0.12s ease,
+    color 0.12s ease;
+  touch-action: manipulation;
+}
+
+.choice-card:hover {
+  border-color: var(--mm-border-strong);
+  background: var(--mm-bg-muted);
+}
+
+.choice-card:focus-visible {
+  outline: none;
+  border-color: var(--mm-primary);
+  box-shadow: 0 0 0 2px var(--mm-bg-primary-soft);
+}
+
+.choice-card--selected {
+  border-color: var(--mm-primary);
+  background: var(--mm-bg-primary-soft);
+  color: var(--mm-text-heading);
+}
+
+.choice-card__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--mm-primary);
+  opacity: 0.9;
+}
+
+.choice-card__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.choice-card--selected .choice-card__icon {
+  color: var(--mm-primary-hover);
+  opacity: 1;
+}
+
+.choice-card__label {
+  font-size: 0.75rem;
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 359px) {
+  .choice-card {
+    padding: 5px 6px;
+    gap: 4px;
+    min-height: 2rem;
+  }
+
+  .choice-card__icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .choice-card__label {
+    font-size: 0.7rem;
+  }
+}

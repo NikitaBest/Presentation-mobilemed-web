@@ -1,0 +1,86 @@
+@import './styles/tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  min-height: 100svh;
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-font-size-body);
+  font-weight: var(--mm-font-weight-regular);
+  line-height: var(--mm-line-body);
+  color: var(--mm-text);
+  background: var(--mm-bg-page);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Одна мобильная колонка по центру на планшетах/десктопе */
+#root {
+  width: 100%;
+  max-width: var(--mm-app-max-width);
+  min-height: 100dvh;
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--mm-bg-surface);
+}
+
+/* Заголовки по умолчанию — единая шкала */
+h1,
+h2,
+h3 {
+  font-family: var(--mm-font-sans);
+  color: var(--mm-text-heading);
+  letter-spacing: var(--mm-letter-tight);
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--mm-font-size-display);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: var(--mm-line-tight);
+}
+
+h2 {
+  font-size: var(--mm-font-size-h2);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: var(--mm-line-tight);
+}
+
+h3 {
+  font-size: var(--mm-font-size-h3);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: var(--mm-line-tight);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--mm-primary);
+  text-decoration: none;
+  font-weight: var(--mm-font-weight-medium);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--mm-focus-ring);
+  outline-offset: 2px;
+}

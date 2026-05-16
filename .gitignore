@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+.env
+.env.*
+!.env.example
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# BioSense Web SDK: копия runtime из vendor (scripts/sync-biosense-assets.mjs, postinstall/predev/prebuild)
+/public/799.js
+/public/a.js
+/public/a.wasm.gz
+/public/a.worker.js
+/public/ajs-destination.js
+/public/auto-track.js
+/public/legacyVideos.js
+/public/queryString.js
+/public/remoteMiddleware.js
+/public/schemaFilter.js
+/public/tsub-middleware.js
+/public/tsub-middleware.js.LICENSE.txt
+/public/models/

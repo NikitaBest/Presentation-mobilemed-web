@@ -1,0 +1,221 @@
+/* Экран подготовки к сканированию — по референсу Preparation, токены --mm-* */
+
+.scan-prep-header {
+  flex-shrink: 0;
+  margin-bottom: var(--mm-space-3);
+}
+
+.scan-prep-screen-title {
+  margin: 0 0 var(--mm-space-1);
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-font-size-h3);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: var(--mm-line-tight);
+  color: var(--mm-text-heading);
+  text-align: left;
+}
+
+.scan-prep-lead {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  line-height: 1.45;
+  color: var(--mm-text-muted);
+}
+
+.scan-prep-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-4);
+  width: 100%;
+  padding-bottom: 5rem;
+}
+
+.scan-prep-info-cards {
+  display: flex;
+  gap: var(--mm-space-2);
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.scan-prep-info-card {
+  box-sizing: border-box;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mm-space-2) var(--mm-space-1);
+  gap: 4px;
+  min-height: 3.75rem;
+  border: 1px solid var(--mm-secondary);
+  border-radius: var(--mm-radius-md);
+  background: var(--mm-bg-surface);
+  color: var(--mm-secondary);
+}
+
+.scan-prep-info-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.scan-prep-info-text {
+  font-size: clamp(0.5625rem, 2.4vw, 0.75rem);
+  font-weight: var(--mm-font-weight-regular);
+  color: var(--mm-text-heading);
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .scan-prep-info-card {
+    padding: 8px 6px;
+    min-height: 3.25rem;
+  }
+
+  .scan-prep-info-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scan-prep-info-text {
+    font-size: clamp(0.625rem, 3vw, 0.6875rem);
+  }
+}
+
+.scan-prep-important-title {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1.3;
+  text-align: left;
+  color: var(--mm-text-heading);
+}
+
+.scan-prep-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-2);
+  width: 100%;
+}
+
+.scan-prep-req-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: var(--mm-space-2) var(--mm-space-2);
+  gap: var(--mm-space-2);
+  width: 100%;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: var(--mm-radius-md);
+}
+
+.scan-prep-req-icon-wrap {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  color: var(--mm-secondary);
+}
+
+.scan-prep-req-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.scan-prep-req-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scan-prep-req-title {
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.35;
+  color: var(--mm-text-heading);
+  margin: 0;
+  text-align: left;
+}
+
+.scan-prep-req-desc {
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-regular);
+  line-height: 1.4;
+  color: var(--mm-text);
+  margin: 0;
+  text-align: left;
+}
+
+.scan-prep-req-desc--extra {
+  margin-top: 4px;
+}
+
+.scan-prep-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--mm-space-3);
+}
+
+.scan-prep-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mm-space-2);
+  margin-top: var(--mm-space-1);
+  font-size: var(--mm-font-size-xs);
+  color: var(--mm-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.scan-prep-confirm input[type='checkbox'] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  border: 1.5px solid var(--mm-border-strong);
+  border-radius: 4px;
+  background-color: var(--mm-bg-surface);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.scan-prep-confirm input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--mm-focus-ring);
+  outline-offset: 2px;
+}
+
+.scan-prep-confirm input[type='checkbox']:checked {
+  background-color: var(--mm-secondary);
+  border-color: var(--mm-secondary);
+}
+
+.scan-prep-confirm input[type='checkbox']:checked::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  width: 8px;
+  height: 12px;
+  border-right: 2px solid var(--mm-text-on-primary);
+  border-bottom: 2px solid var(--mm-text-on-primary);
+  transform: rotate(45deg);
+}
+
+.scan-prep-confirm-text {
+  flex: 1;
+  line-height: 1.35;
+}
+

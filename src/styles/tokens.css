@@ -1,0 +1,127 @@
+/**
+ * Дизайн-токены MobileMed.AI
+ * Новые страницы и блоки: используйте только переменные --mm-*,
+ * не задавайте «сырые» hex/rgb в компонентах без необходимости.
+ */
+:root {
+  /* --- Бренд --- */
+  --mm-primary: #3b82f6;
+  --mm-primary-hover: #2563eb;
+  --mm-primary-active: #1d4ed8;
+  --mm-secondary: #10b981;
+  --mm-secondary-bright: #34d399;
+
+  /* Градиент (плашки, акценты, не обязательно на основной кнопке) */
+  --mm-gradient-brand: linear-gradient(
+    90deg,
+    var(--mm-primary) 0%,
+    var(--mm-secondary) 100%
+  );
+  --mm-gradient-brand-vertical: linear-gradient(
+    180deg,
+    var(--mm-primary) 0%,
+    var(--mm-secondary) 100%
+  );
+
+  /* --- Текст --- */
+  --mm-text: #4b5563;
+  --mm-text-muted: #6b7280;
+  --mm-text-heading: #111827;
+  --mm-text-on-primary: #ffffff;
+  --mm-text-on-gradient: #ffffff;
+
+  /* --- Поверхности --- */
+  --mm-bg-page: #f9fafb;
+  --mm-bg-surface: #ffffff;
+  --mm-bg-muted: #f3f4f6;
+  --mm-bg-primary-soft: rgba(59, 130, 246, 0.1);
+
+  --mm-border: #e5e7eb;
+  --mm-border-strong: #d1d5db;
+
+  /* --- Фокус / outline --- */
+  --mm-focus-ring: #3b82f6;
+
+  /* --- Ошибки ввода --- */
+  --mm-error: #dc2626;
+  --mm-error-soft: rgba(220, 38, 38, 0.1);
+
+  /* --- Скругления --- */
+  --mm-radius-sm: 8px;
+  --mm-radius-md: 12px;
+  --mm-radius-lg: 24px;
+  --mm-radius-xl: 28px;
+  --mm-radius-pill: 9999px;
+
+  /* --- Тени (карточки) --- */
+  --mm-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.05);
+  --mm-shadow-card:
+    0 4px 6px -1px rgba(17, 24, 39, 0.07),
+    0 12px 24px -4px rgba(17, 24, 39, 0.06);
+
+  /* --- Типографика --- */
+  --mm-font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mm-font-size-xs: 0.8125rem;
+  --mm-font-size-sm: 0.875rem;
+  --mm-font-size-body: 1rem;
+  --mm-font-size-lg: 1.125rem;
+  --mm-font-size-h3: 1.25rem;
+  --mm-font-size-h2: 1.5rem;
+  --mm-font-size-h1: 1.875rem;
+  --mm-font-size-display: 2rem;
+
+  --mm-font-weight-regular: 400;
+  --mm-font-weight-medium: 500;
+  --mm-font-weight-semibold: 600;
+  --mm-font-weight-bold: 700;
+
+  --mm-line-tight: 1.2;
+  --mm-line-body: 1.55;
+  --mm-line-relaxed: 1.65;
+  --mm-letter-tight: -0.02em;
+
+  /* --- Отступы (шаг сетки 4px) --- */
+  --mm-space-1: 0.25rem;
+  --mm-space-2: 0.5rem;
+  --mm-space-3: 0.75rem;
+  --mm-space-4: 1rem;
+  --mm-space-5: 1.25rem;
+  --mm-space-6: 1.5rem;
+  --mm-space-8: 2rem;
+  --mm-space-10: 2.5rem;
+
+  /* --- Кнопки (минимальная зона нажатия) --- */
+  --mm-touch-min: 48px;
+
+  /**
+   * Вёрстка только под телефон: на широких экранах колонка не растягивается
+   * шире типичного смартфона (как в превью устройства).
+   */
+  --mm-app-max-width: 430px;
+}
+
+/* Узкие экраны (старые / компактные телефоны) — чуть компактнее заголовок */
+@media (max-width: 359px) {
+  :root {
+    --mm-font-size-h1: 1.625rem;
+    --mm-font-size-display: 1.75rem;
+  }
+}
+
+/* --- Утилиты (новые блоки — по возможности через классы, не инлайн-стили) --- */
+.mm-text-muted {
+  color: var(--mm-text-muted);
+}
+
+.mm-text-heading {
+  color: var(--mm-text-heading);
+}
+
+.mm-gradient-strip {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--mm-radius-pill);
+  background: var(--mm-gradient-brand);
+}

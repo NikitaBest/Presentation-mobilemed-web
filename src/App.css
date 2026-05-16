@@ -1,0 +1,249 @@
+/* Макет приложения — только токены --mm-* */
+
+.app-root {
+  --mm-pad-inline-start: max(var(--mm-space-5), env(safe-area-inset-left, 0px));
+  --mm-pad-inline-end: max(var(--mm-space-5), env(safe-area-inset-right, 0px));
+
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  padding-top: max(var(--mm-space-4), env(safe-area-inset-top, 0px));
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.app-step-hint {
+  margin: 0;
+  padding: var(--mm-space-2) max(var(--mm-space-5), env(safe-area-inset-right, 0px))
+    max(var(--mm-space-4), env(safe-area-inset-bottom, 0px))
+    max(var(--mm-space-5), env(safe-area-inset-left, 0px));
+  text-align: center;
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-text-muted);
+  font-weight: var(--mm-font-weight-medium);
+}
+
+/* Контент экрана на всю ширину колонки (#root), без вложенной «карточки» */
+.app-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--mm-space-4) var(--mm-pad-inline-end) var(--mm-space-2) var(--mm-pad-inline-start);
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: var(--mm-space-4);
+}
+
+.page-title {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-font-size-h1);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: var(--mm-line-tight);
+  letter-spacing: var(--mm-letter-tight);
+  color: var(--mm-text-heading);
+  margin: 0 0 var(--mm-space-3);
+}
+
+.page-lead {
+  margin: 0;
+  font-size: var(--mm-font-size-body);
+  line-height: var(--mm-line-relaxed);
+  color: var(--mm-text);
+  font-weight: var(--mm-font-weight-regular);
+}
+
+.page-body {
+  flex: 1;
+  margin-top: var(--mm-space-2);
+}
+
+.page-text {
+  margin: 0;
+  line-height: var(--mm-line-relaxed);
+  color: var(--mm-text);
+  font-size: var(--mm-font-size-body);
+}
+
+.page-text--note {
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-text-muted);
+}
+
+.page-text--error {
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-error);
+  margin-top: var(--mm-space-3);
+}
+
+.page-footer {
+  margin-top: auto;
+  padding-top: var(--mm-space-6);
+}
+
+.page-footer--row {
+  display: flex;
+  gap: var(--mm-space-3);
+}
+
+.page-footer--row .btn-primary,
+.page-footer--row .btn-secondary {
+  flex: 1;
+}
+
+/* --- Кнопки (паттерн бренда) --- */
+.btn-primary,
+.btn-secondary {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-font-size-body);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1;
+  padding: 0 var(--mm-space-6);
+  min-height: var(--mm-touch-min);
+  border-radius: var(--mm-radius-pill);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.15s ease;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  opacity: 0.92;
+}
+
+/* Основная: сплошной primary (как на лендинге) */
+.btn-primary {
+  width: 100%;
+  color: var(--mm-text-on-primary);
+  background: var(--mm-primary);
+  border: none;
+  box-shadow: var(--mm-shadow-sm);
+}
+
+.btn-primary:hover {
+  background: var(--mm-primary-hover);
+}
+
+.btn-primary:active {
+  background: var(--mm-primary-active);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Вторичная: «призрак» — синий текст, без заливки */
+.btn-secondary {
+  color: var(--mm-primary);
+  background: transparent;
+  border: 2px solid transparent;
+}
+
+.btn-secondary:hover {
+  background: var(--mm-bg-primary-soft);
+  border-color: transparent;
+}
+
+.btn-secondary:active {
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.page-footer:not(.page-footer--row) .btn-secondary {
+  width: 100%;
+}
+
+/* Оболочка экрана: прокрутка контента + панель кнопок внизу */
+.page-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.page-shell__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--mm-space-4);
+}
+
+.page-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  flex-shrink: 0;
+  margin-top: auto;
+  box-sizing: border-box;
+  width: calc(100% + var(--mm-pad-inline-start) + var(--mm-pad-inline-end));
+  max-width: none;
+  margin-left: calc(-1 * var(--mm-pad-inline-start));
+  margin-right: calc(-1 * var(--mm-pad-inline-end));
+  padding: var(--mm-space-4) var(--mm-pad-inline-end)
+    max(var(--mm-space-3), env(safe-area-inset-bottom, 0px)) var(--mm-pad-inline-start);
+  background: var(--mm-bg-surface);
+  border-top: 1px solid var(--mm-border);
+  box-shadow: 0 -10px 28px rgba(17, 24, 39, 0.08);
+}
+
+.page-dock__disclaimer {
+  margin: 0 0 var(--mm-space-3);
+  padding: 0 0.25rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.page-dock .page-footer--row,
+.page-dock.page-footer--row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--mm-space-3);
+  margin-top: 0;
+  width: 100%;
+}
+
+.page-dock > .btn-primary {
+  width: 100%;
+  min-height: 3.25rem;
+  border-radius: var(--mm-radius-xl);
+}
+
+.page-dock.page-footer--row > .btn-primary,
+.page-dock.page-footer--row > .btn-secondary,
+.page-dock .page-footer--row .btn-primary,
+.page-dock .page-footer--row .btn-secondary {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  min-height: 3.25rem;
+  border-radius: var(--mm-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-dock.page-footer--row > .btn-secondary,
+.page-dock .page-footer--row .btn-secondary {
+  background: var(--mm-bg-surface);
+  border: 2px solid var(--mm-primary);
+  box-shadow: none;
+}

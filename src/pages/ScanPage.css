@@ -10,10 +10,12 @@
   min-height: 0;
 }
 
-/* Замер: компактная шапка, зона снизу — подсказка → пульс → кнопки */
+/* Замер: компактная шапка; снизу овал → пульс → подсказка → кнопки */
 .scan-page--active-scan {
   --scan-hint-area: clamp(3rem, 13svh, 4.25rem);
   --scan-footer-stack: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  --scan-pulse-gap: var(--mm-space-2);
+  --scan-pulse-band: 2.75rem;
 }
 
 .scan-page--active-scan .scan-page-overlay--top {
@@ -445,13 +447,22 @@
   max-width: calc(100% - 2 * var(--mm-space-3));
 }
 
-/* Пульс над подсказкой и футером — не перекрывается hint на узких экранах */
+/*
+ * Пульс строго под овалом (те же --scan-oval-cy/ry), над подсказкой.
+ * Не привязываем к bottom экрана — иначе заезжает на овал.
+ */
 .scan-page--measuring .scan-hud-below-oval {
   position: fixed;
   left: 50%;
   right: auto;
-  top: auto;
-  bottom: calc(var(--scan-footer-stack) + var(--scan-hint-area) + var(--mm-space-2));
+  top: min(
+    calc(var(--scan-oval-cy) + var(--scan-oval-ry) + var(--scan-pulse-gap)),
+    calc(
+      100dvh - var(--scan-footer-stack) - var(--scan-hint-area) - var(--scan-pulse-band) -
+        var(--scan-pulse-gap)
+    )
+  );
+  bottom: auto;
   transform: translateX(-50%);
   z-index: 4;
 }
@@ -678,8 +689,9 @@
 
 @media (max-height: 700px) {
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 46%;
-    --scan-oval-ry: clamp(9rem, 48vmin, 14rem);
+    --scan-oval-cy: 44%;
+    --scan-oval-ry: clamp(8.5rem, 46vmin, 13rem);
+    --scan-pulse-gap: var(--mm-space-1);
   }
 }
 
@@ -691,8 +703,10 @@
   }
 
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 44%;
+    --scan-oval-cy: 42%;
+    --scan-oval-ry: clamp(8rem, 44vmin, 12rem);
     --scan-hint-area: clamp(2.65rem, 11svh, 3.5rem);
+    --scan-pulse-band: 2.5rem;
   }
 }
 
@@ -703,8 +717,10 @@
   }
 
   .scan-page--fullscreen.scan-page--active-scan {
-    --scan-oval-cy: 42%;
+    --scan-oval-cy: 40%;
+    --scan-oval-ry: clamp(7.5rem, 40vmin, 11rem);
     --scan-hint-area: 2.5rem;
+    --scan-pulse-band: 2.35rem;
   }
 
   .scan-page--active-scan .scan-hint {

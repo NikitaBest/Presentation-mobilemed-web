@@ -715,8 +715,10 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             </div>
           )}
 
-          {phase === 'measuring' ? (
-            <div className="scan-hud-below-oval">
+          {phase === 'running' || phase === 'measuring' ? (
+            <div className="scan-measuring-dock">
+              {phase === 'measuring' ? (
+                <div className="scan-hud-below-oval">
               <div
                 className={`scan-pulse-card${livePulse != null ? ' scan-pulse-card--live' : ''}`}
                 style={
@@ -762,11 +764,20 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
                 </span>
               </div>
             </div>
-          ) : null}
-
-          <div className={`scan-hint scan-hint--${hintTone}`} role="status" aria-live="polite">
-            {hint}
-          </div>
+              ) : null}
+              <div
+                className={`scan-hint scan-hint--in-dock scan-hint--${hintTone}`}
+                role="status"
+                aria-live="polite"
+              >
+                {hint}
+              </div>
+            </div>
+          ) : (
+            <div className={`scan-hint scan-hint--${hintTone}`} role="status" aria-live="polite">
+              {hint}
+            </div>
+          )}
         </div>
       </div>
 

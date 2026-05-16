@@ -687,7 +687,11 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             </p>
           </header>
 
-          {sessionState !== null && phase !== 'running' && phase !== 'measuring' ? (
+          {sessionState !== null &&
+          phase !== 'preview' &&
+          phase !== 'preview-loading' &&
+          phase !== 'running' &&
+          phase !== 'measuring' ? (
             <div className="scan-hud scan-hud--top">
               <div className="scan-pill">{sessionStateLabel(sessionState)}</div>
             </div>

@@ -6,26 +6,26 @@
 
 | Параметр | Значение | Где |
 |----------|----------|-----|
-| Камера | `facingMode: 'user'`, `aspectRatio: { ideal: 9/16 }`, `width/height ideal 720×1280` | `ScanPage.jsx` → `FACE_CAMERA_VIDEO_CONSTRAINTS` |
-| Превью | один `<video>`, `object-fit: cover`, зеркало `scaleX(-1)` | `ScanPage.css` → `.scan-video` |
-| Ориентация сессии | `resolveSdkDeviceOrientation()` (не хардкод `PORTRAIT`) | `ScanPage.jsx` → `createFaceSession` |
-| Строгий режим | `strictMeasurementGuidance: false` (дефолт SDK) | `ScanPage.jsx` |
-| Вход SDK | тот же `<video ref>` → `input` в `createFaceSession` | `ScanPage.jsx` |
-| WASM / потоки | COOP/COEP в `vite.config.js`, ассеты в `public/` через `sync-biosense-assets` | см. `docs/SDK.md` |
-| Лицензия | `VITE_BIOSENSESIGNAL_LICENSE_KEY`, опционально `VITE_BIOSENSESIGNAL_PRODUCT_ID` | `.env` |
+| Камера | `facingMode: { ideal: 'user' }` (как Camera.jsx) | `ScanPage.jsx` |
+| Превью | тот же `<video>`, `object-fit: cover`, зеркало `scaleX(-1)` | `ScanPage.css` |
+| SDK до «Начать» | `createFaceSession` при входе на экран, **без** `session.start()` | `ScanPage.jsx` → `previewOnly` |
+| Старт замера | только по кнопке «Начать» → `session.start()` | `userStartRequestedRef` |
+| Ориентация сессии | `resolveSdkDeviceOrientation()` | `createFaceSession` |
+| Строгий режим | `strictMeasurementGuidance: false` | `ScanPage.jsx` |
+| Вход SDK | тот же `<video ref>` → `input` | `ScanPage.jsx` |
+| WASM / потоки | COOP/COEP, `sync-biosense-assets` | `docs/SDK.md` |
+| Лицензия | `VITE_BIOSENSESIGNAL_*` | `.env` |
 
-## Превью на мобильном
+## Превью = тот же кадр, что при замере
 
-- Экран `.scan-page--fullscreen`: viewport на весь `100dvh`, видео `cover` по центру.
-- До «Начать» и во время замера — **один и тот же** поток и стили (без отдельной логики превью).
-- **SDK** берёт кадры из буфера `<video>` (`videoWidth` × `videoHeight`), не из CSS.
+До «Начать» и во время замера один поток камеры и одна SDK-сессия. Раньше камера работала без SDK → на телефоне другой crop/zoom; после `createFaceSession` картинка менялась. Теперь сессия создаётся сразу, `start()` — только по кнопке.
 
 ## ImageValidity
 
-- `INVALID_ROI` в доке = «SDK не распознал лицо», не «овалы не совпали».
-- Подсказки: `onImageData` в `MEASURING`; колбэк в `ACTIVE` часто не вызывается (Web SDK).
+- `INVALID_ROI` = SDK не распознал лицо.
+- Подсказки в `MEASURING` через `onImageData`.
 
 ## Отладка
 
-- Dev: логи `[Scan SDK]` из `scanSdkDebug.js`.
-- Prod: `VITE_SCAN_SDK_DEBUG=1` в `.env`.
+- Dev: `[Scan SDK]` в `scanSdkDebug.js`.
+- Prod: `VITE_SCAN_SDK_DEBUG=1`.

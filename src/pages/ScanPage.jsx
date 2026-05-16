@@ -15,12 +15,9 @@ import {
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
 import './ScanPage.css'
 
-/** Камера и превью — см. docs/SCAN.md. Один поток до и во время сканирования. */
+/** Камера — как Camera.jsx; портрет/ROI настраивает SDK после createFaceSession. */
 const FACE_CAMERA_VIDEO_CONSTRAINTS = {
-  facingMode: 'user',
-  aspectRatio: { ideal: 9 / 16 },
-  width: { ideal: 720, max: 1920 },
-  height: { ideal: 1280, max: 1920 },
+  facingMode: { ideal: 'user' },
 }
 
 async function acquireCameraStream() {
@@ -150,6 +147,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
+  /** true после «Начать» — до этого SDK-сессия в ACTIVE, но без session.start(). */
+  const userStartRequestedRef = useRef(false)
+  const scheduleBeginAfterActiveRef = useRef(null)
 
   const [phase, setPhase] = useState('preview-loading')
   const [sessionState, setSessionState] = useState(null)
@@ -225,51 +225,11 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     return () => window.clearInterval(id)
   }, [phase])
 
-  const openPreviewCamera = useCallback(async () => {
-    const video = videoRef.current
-    if (!video) throw new Error('Нет элемента видео')
-    const stream = await acquireCameraStream()
-    streamRef.current = stream
-    await bindStreamToVideo(video, stream)
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    /* eslint-disable react-hooks/set-state-in-effect -- включение камеры при входе на экран сканирования */
-    setPhase('preview-loading')
-    setHint('Включаем камеру…')
-    setHintTone('neutral')
-    setErrorText('')
-    ;(async () => {
-      try {
-        await openPreviewCamera()
-        if (cancelled) {
-          teardownStream()
-          return
-        }
-        setPhase('preview')
-        setHint('Поместите лицо в овал. Нажмите «Начать», когда будете готовы.')
-        setHintTone('neutral')
-      } catch (e) {
-        if (!cancelled) {
-          const msg =
-            e instanceof Error ? e.message : 'Не удалось получить доступ к камере'
-          setErrorText(msg)
-          setPhase('error')
-          setHintTone('error')
-          setHint(msg)
-          teardownStream()
-        }
-      }
-    })()
-    /* eslint-enable react-hooks/set-state-in-effect */
-    return () => {
-      cancelled = true
-    }
-  }, [openPreviewCamera, teardownStream])
-
   const runScanPipeline = useCallback(
-    async ({ reuseStream = false } = {}) => {
+    async ({ reuseStream = false, previewOnly = false } = {}) => {
+      if (previewOnly) {
+        userStartRequestedRef.current = false
+      }
       /* Одна сессия одновременно: перед createFaceSession завершаем предыдущую (док. «Быстрый старт»). */
       teardownSession()
       setErrorText('')
@@ -370,6 +330,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       }
 
       function scheduleBeginAfterActive() {
+        if (!userStartRequestedRef.current) return
         if (startedRef.current) return
         const session = sessionRef.current
         if (!session || session.getState?.() !== SessionState.ACTIVE) return
@@ -465,10 +426,12 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           setSessionState(state)
         }
 
-        if (state === SessionState.ACTIVE) {
+        if (state === SessionState.ACTIVE && userStartRequestedRef.current) {
           scheduleBeginAfterActive()
         }
       }
+
+      scheduleBeginAfterActiveRef.current = scheduleBeginAfterActive
 
       const onVitalSign = (vs) => {
         const pulse = extractPulseBpm(vs)
@@ -576,12 +539,13 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         stateName: sessionStateName(session.getState?.()),
       })
 
-      /* Редкий случай: ACTIVE до onStateChange — планируем start(); microtask — если колбэк шёл до присвоения ref */
-      if (session.getState?.() === SessionState.ACTIVE) {
+      /* Редкий случай: ACTIVE до onStateChange — start только если пользователь нажал «Начать» */
+      if (userStartRequestedRef.current && session.getState?.() === SessionState.ACTIVE) {
         scheduleBeginAfterActive()
       }
       queueMicrotask(() => {
         if (
+          userStartRequestedRef.current &&
           sessionRef.current === session &&
           session.getState?.() === SessionState.ACTIVE &&
           !startedRef.current
@@ -589,6 +553,14 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           scheduleBeginAfterActive()
         }
       })
+
+      if (previewOnly) {
+        setPhase('preview')
+        lastHintKeyRef.current = ''
+        setHint('Поместите лицо в овал. Нажмите «Начать», когда будете готовы.')
+        setHintTone('neutral')
+        return
+      }
 
       setPhase('running')
       lastHintKeyRef.current = ''
@@ -600,59 +572,76 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     [onContinue, onSaved, teardownSession, teardownStream, userForm],
   )
 
-  const handleStart = useCallback(() => {
-    runScanPipeline({ reuseStream: true }).catch((e) => {
-      const msg = e instanceof Error ? e.message : 'Не удалось запустить измерение'
+  const preparePreview = useCallback(() => {
+    setPhase('preview-loading')
+    setHint('Включаем камеру и алгоритм…')
+    setHintTone('neutral')
+    setErrorText('')
+    return runScanPipeline({ previewOnly: true })
+  }, [runScanPipeline])
+
+  useEffect(() => {
+    let cancelled = false
+    void preparePreview().catch((e) => {
+      if (cancelled) return
+      const msg = e instanceof Error ? e.message : 'Не удалось подготовить сканирование'
       setErrorText(msg)
       setPhase('error')
       setHintTone('error')
       setHint(msg)
-      setFrameValidity(null)
-      lastHintKeyRef.current = ''
       teardownSession()
+      teardownStream()
     })
-  }, [runScanPipeline, teardownSession])
+    return () => {
+      cancelled = true
+    }
+  }, [preparePreview, teardownSession, teardownStream])
+
+  const handleStart = useCallback(() => {
+    userStartRequestedRef.current = true
+    const session = sessionRef.current
+    if (session?.getState?.() === SessionState.ACTIVE && !startedRef.current) {
+      scheduleBeginAfterActiveRef.current?.()
+      return
+    }
+    setPhase('running')
+    setHint('Подготовка к замеру…')
+    setHintTone('neutral')
+  }, [])
 
   const handleRetry = useCallback(() => {
+    userStartRequestedRef.current = false
     teardownSession()
     teardownStream()
     lastImageValidityLogRef.current = null
     lastImageLogAtRef.current = 0
     lastVitalLogAtRef.current = 0
-    setPhase('preview-loading')
     setErrorText('')
     setProgress(0)
     setLivePulse(null)
     setSessionState(null)
     setFrameValidity(null)
     lastHintKeyRef.current = ''
-    setHint('Включаем камеру…')
-    setHintTone('neutral')
-    void (async () => {
-      try {
-        await openPreviewCamera()
-        setPhase('preview')
-        setHint('Поместите лицо в овал. Нажмите «Начать», когда будете готовы.')
-        setHintTone('neutral')
-      } catch (e) {
-        const msg =
-          e instanceof Error ? e.message : 'Не удалось получить доступ к камере'
-        setErrorText(msg)
-        setPhase('error')
-        setHintTone('error')
-        setHint(msg)
-        teardownStream()
-      }
-    })()
-  }, [openPreviewCamera, teardownSession, teardownStream])
+    void preparePreview().catch((e) => {
+      const msg = e instanceof Error ? e.message : 'Не удалось подготовить сканирование'
+      setErrorText(msg)
+      setPhase('error')
+      setHintTone('error')
+      setHint(msg)
+      teardownStream()
+    })
+  }, [preparePreview, teardownSession, teardownStream])
 
   /** Отмена замера → экран «Подготовка» (шаг instruction в App). */
   const handleCancelScan = useCallback(() => {
+    userStartRequestedRef.current = false
     teardownSession()
     teardownStream()
     onBack()
   }, [teardownSession, teardownStream, onBack])
 
+  const canStartScan =
+    phase === 'preview' && sessionState === SessionState.ACTIVE && !startedRef.current
   const primaryDisabled = phase === 'preview-loading' || phase === 'saving'
 
   return (
@@ -793,8 +782,13 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
               Повторить
             </button>
           ) : phase === 'preview' ? (
-            <button type="button" className="btn-primary" onClick={handleStart}>
-              Начать
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={!canStartScan}
+              onClick={handleStart}
+            >
+              {canStartScan ? 'Начать' : 'Подготовка…'}
             </button>
           ) : (
             <button type="button" className="btn-primary" disabled={primaryDisabled}>

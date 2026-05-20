@@ -146,47 +146,57 @@ export function mapFormToSdkUserInformation(form) {
  * Тексты под ImageValidity из onImageData (docs/SDK.md — «Достоверность изображения», таблица причин).
  * Покрыты: VALID, INVALID_DEVICE_ORIENTATION, INVALID_ROI, TILTED_HEAD, FACE_TOO_FAR, UNEVEN_LIGHT.
  * FACE_TOO_FAR: в веб-версии по доке часто не используется; строка оставлена на случай ответа SDK.
+ * @param {number | null | undefined} validity
+ * @param {(key: string) => string} [t] — ключи scan.iv.*
  */
-export function imageValidityToUserMessage(validity) {
+export function imageValidityToUserMessage(validity, t) {
+  const tr = (key) => (typeof t === 'function' ? t(key) : '')
   switch (validity) {
     case ImageValidity.VALID:
-      return 'Лицо в кадре — можно не двигаться'
+      return tr('scan.iv.valid') || 'Лицо в кадре — можно не двигаться'
     case ImageValidity.INVALID_DEVICE_ORIENTATION:
-      return 'Поверните устройство так же, как при нажатии «Начать» (ориентация сессии)'
+      return (
+        tr('scan.iv.orientation') ||
+        'Поверните устройство так же, как при нажатии «Начать» (ориентация сессии)'
+      )
     case ImageValidity.INVALID_ROI:
-      return 'Алгоритм не видит лицо в кадре — чуть ближе, ровный свет, смотрите прямо в камеру'
+      return (
+        tr('scan.iv.roi') ||
+        'Алгоритм не видит лицо в кадре — чуть ближе, ровный свет, смотрите прямо в камеру'
+      )
     case ImageValidity.TILTED_HEAD:
-      return 'Не наклоняйте голову'
+      return tr('scan.iv.tilt') || 'Не наклоняйте голову'
     case ImageValidity.FACE_TOO_FAR:
-      return 'Подойдите ближе к камере'
+      return tr('scan.iv.far') || 'Подойдите ближе к камере'
     case ImageValidity.UNEVEN_LIGHT:
-      return 'Свет на лице должен быть ровнее'
+      return tr('scan.iv.light') || 'Свет на лице должен быть ровнее'
     default:
-      return 'Настройте положение лица'
+      return tr('scan.iv.default') || 'Настройте положение лица'
   }
 }
 
 /**
  * Короткая подпись для HUD (onImageData / ImageValidity — docs/SDK.md).
  * @param {number | null | undefined} validity
- * @returns {string}
+ * @param {(key: string) => string} [t] — ключи scan.pill.*
  */
-export function imageValidityShortPillLabel(validity) {
+export function imageValidityShortPillLabel(validity, t) {
+  const tr = (key) => (typeof t === 'function' ? t(key) : '')
   switch (validity) {
     case ImageValidity.VALID:
-      return 'Лицо и свет — OK'
+      return tr('scan.pill.valid') || 'Лицо и свет — OK'
     case ImageValidity.INVALID_ROI:
-      return 'Лицо не распознано'
+      return tr('scan.pill.roi') || 'Лицо не распознано'
     case ImageValidity.UNEVEN_LIGHT:
-      return 'Свет неровный'
+      return tr('scan.pill.light') || 'Свет неровный'
     case ImageValidity.TILTED_HEAD:
-      return 'Голова наклонена'
+      return tr('scan.pill.tilt') || 'Голова наклонена'
     case ImageValidity.INVALID_DEVICE_ORIENTATION:
-      return 'Сменилась ориентация'
+      return tr('scan.pill.orientation') || 'Сменилась ориентация'
     case ImageValidity.FACE_TOO_FAR:
-      return 'Дальше к камере'
+      return tr('scan.pill.far') || 'Дальше к камере'
     default:
-      return 'Кадр проверяется…'
+      return tr('scan.pill.pending') || 'Кадр проверяется…'
   }
 }
 

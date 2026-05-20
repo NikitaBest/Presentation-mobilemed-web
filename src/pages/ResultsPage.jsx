@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HealthScoreCore } from '../components/HealthScoreCore.jsx'
+import { LanguageSwitch } from '../components/LanguageSwitch.jsx'
 import { MetricCardsGrid } from '../components/metrics/MetricCardsGrid.jsx'
 import { MetricDetailSheet } from '../components/metrics/MetricDetailSheet.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
+import { useI18n } from '../i18n/useI18n.js'
+import { readLocaleForApp } from '../i18n/locale.js'
+import { formatMessage } from '../i18n/messages.js'
 import { filterDisplayableTranscripts } from '../utils/metricTranscript.js'
 import './ResultsPage.css'
 
@@ -22,6 +26,7 @@ function selectScanRow(response, preferredScanId) {
  * Итог после сканирования: POST /scan/save-rppg + расшифровка из GET /scan/get.
  */
 export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
+  const { locale, setLocale, t } = useI18n()
   const preferredScanId =
     scanSummary?.value?.scan?.id ?? scanSummary?.value?.rppgScanId ?? null
   const saveOk = scanSummary && scanSummary.isSuccess !== false
@@ -33,6 +38,8 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
   const [selectedTranscript, setSelectedTranscript] = useState(null)
   const [tapHintActive, setTapHintActive] = useState(false)
   const [tapHintExiting, setTapHintExiting] = useState(false)
+  const [settingsBusy, setSettingsBusy] = useState(false)
+  const [settingsError, setSettingsError] = useState('')
 
   const load = useCallback(async () => {
     setPhase('loading')
@@ -45,7 +52,7 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
       setPhase(next ? 'ready' : 'empty')
     } catch (e) {
       setPhase('error')
-      setFetchError(e instanceof Error ? e.message : 'Не удалось загрузить результаты')
+      setFetchError(e instanceof Error ? e.message : formatMessage(readLocaleForApp(), 'results.loadError'))
       setRow(null)
     }
   }, [preferredScanId])
@@ -64,6 +71,7 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
   )
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- тайминг подсказки «тап по карточке» */
     if (phase !== 'ready' || displayTranscripts.length === 0) {
       setTapHintActive(false)
       setTapHintExiting(false)
@@ -83,6 +91,7 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
       clearTimeout(exitTimer)
       clearTimeout(hideTimer)
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [phase, displayTranscripts.length])
 
   const dismissTapHint = useCallback(() => {
@@ -99,99 +108,127 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
     setTapHintExiting(false)
   }, [])
 
+  const handleLocaleChange = useCallback(
+    async (next) => {
+      if (next === locale) return
+      setSettingsError('')
+      setSettingsBusy(true)
+      try {
+        await setLocale(next)
+        await load()
+      } catch (e) {
+        setSettingsError(e instanceof Error ? e.message : t('results.localeError'))
+      } finally {
+        setSettingsBusy(false)
+      }
+    },
+    [locale, setLocale, load, t],
+  )
+
   return (
     <AppLayout>
       <div
         className={`results-page${tapHintActive ? ' results-page--tap-hint' : ''}${tapHintExiting ? ' results-page--tap-hint-exit' : ''}`}
       >
         <header className="results-page__header">
-          <span className="results-page__brand">MobileMed</span>
+          <span className="results-page__brand">{t('results.brand')}</span>
           <div className="results-page__header-main">
-            <h1 className="results-page__title">Результаты</h1>
+            <h1 className="results-page__title">{t('results.title')}</h1>
             <p className="results-page__lead">
-              {saveOk
-                ? 'Сводка по последнему сканированию: общая оценка и детали по каждому показателю.'
-                : 'Данные последнего скана не сохранены — при необходимости пройдите измерение заново.'}
+              {saveOk ? t('results.leadOk') : t('results.leadSaveFail')}
             </p>
           </div>
         </header>
 
-        <div className="results-page__scroll page-body">
-        {phase === 'loading' ? (
-          <p className="results-loading">Загружаем расшифровку…</p>
-        ) : null}
-
-        {phase === 'error' ? (
-          <div className="results-error">
-            <p className="results-error-text">{fetchError}</p>
-            <button type="button" className="btn-secondary results-error-retry" onClick={load}>
-              Повторить
-            </button>
+        <section className="results-settings" aria-labelledby="results-settings-title">
+          <h2 id="results-settings-title" className="results-settings__title">
+            {t('results.settingsTitle')}
+          </h2>
+          <p className="results-settings__desc">{t('results.settingsLang')}</p>
+          <p className="results-settings__hint">{t('results.settingsLangHint')}</p>
+          <div className="results-settings__row">
+            <span className="results-settings__label" id="results-lang-label">
+              {t('welcome.langLabel')}
+            </span>
+            <LanguageSwitch
+              value={locale}
+              onChange={handleLocaleChange}
+              disabled={settingsBusy || phase === 'loading'}
+              labels={{ ru: t('lang.ru'), en: t('lang.en') }}
+              aria-labelledby="results-lang-label"
+            />
           </div>
-        ) : null}
+          {settingsError ? (
+            <p className="results-settings__error" role="alert">
+              {settingsError}
+            </p>
+          ) : null}
+        </section>
 
-        {phase === 'empty' ? (
-          <p className="results-empty">
-            В истории пока нет сканов с расшифровкой. После успешного сохранения измерения данные
-            появятся здесь.
-          </p>
-        ) : null}
+        <div className="results-page__scroll page-body">
+          {phase === 'loading' ? (
+            <p className="results-loading">{t('results.loading')}</p>
+          ) : null}
 
-        {phase === 'ready' && row ? (
-          <>
-            {preferredScanId && !matchedPreferred ? (
-              <p className="page-text page-text--note results-id-mismatch">
-                Расшифровка только что сохранённого скана ещё не в списке — показан последний доступный
-                скан. Обновите страницу через несколько секунд или нажмите «Повторить».
-              </p>
-            ) : null}
+          {phase === 'error' ? (
+            <div className="results-error">
+              <p className="results-error-text">{fetchError}</p>
+              <button type="button" className="btn-secondary results-error-retry" onClick={() => void load()}>
+                {t('results.retry')}
+              </button>
+            </div>
+          ) : null}
 
-            <section className="results-hero" aria-label="Общий показатель здоровья">
-              <HealthScoreCore score={healthScore} layout="hero" />
-            </section>
+          {phase === 'empty' ? <p className="results-empty">{t('results.empty')}</p> : null}
 
-            {displayTranscripts.length > 0 ? (
-              <section className="results-metrics" aria-label="Все показатели">
-                <h2 className="results-section-title">Все показатели</h2>
-                <MetricCardsGrid
-                  transcripts={displayTranscripts}
-                  onSelect={handleMetricSelect}
-                  tapHintActive={tapHintActive}
-                  tapHintExiting={tapHintExiting}
-                  onTapHintDismiss={dismissTapHint}
-                />
+          {phase === 'ready' && row ? (
+            <>
+              {preferredScanId && !matchedPreferred ? (
+                <p className="page-text page-text--note results-id-mismatch">{t('results.idMismatch')}</p>
+              ) : null}
+
+              <section className="results-hero" aria-label={t('results.heroAria')}>
+                <HealthScoreCore score={healthScore} layout="hero" />
               </section>
-            ) : (
-              <p className="page-text page-text--note">
-                Расшифровка показателей пока пуста. Данные могут появиться после обработки на сервере.
-              </p>
-            )}
-          </>
-        ) : null}
+
+              {displayTranscripts.length > 0 ? (
+                <section className="results-metrics" aria-label={t('results.metricsAria')}>
+                  <h2 className="results-section-title">{t('results.metricsTitle')}</h2>
+                  <MetricCardsGrid
+                    transcripts={displayTranscripts}
+                    onSelect={handleMetricSelect}
+                    tapHintActive={tapHintActive}
+                    tapHintExiting={tapHintExiting}
+                    onTapHintDismiss={dismissTapHint}
+                  />
+                </section>
+              ) : (
+                <p className="page-text page-text--note">{t('results.transcriptsEmpty')}</p>
+              )}
+            </>
+          ) : null}
         </div>
 
         <MetricDetailSheet transcript={selectedTranscript} onClose={() => setSelectedTranscript(null)} />
 
-        <footer className="page-dock results-page__dock" aria-label="Действия">
+        <footer className="page-dock results-page__dock" aria-label={t('results.actionsAria')}>
           <div className="results-page__dock-inner">
             <button
               type="button"
               className="results-page__btn results-page__btn--primary"
               onClick={onMeasureAgain}
             >
-              Измерить снова
+              {t('results.measureAgain')}
             </button>
             <button
               type="button"
               className="results-page__btn results-page__btn--outline"
               onClick={onGoHome}
             >
-              На главную
+              {t('results.home')}
             </button>
           </div>
-          <p className="results-page__disclaimer">
-            Данный анализ не заменяет медицинскую консультацию.
-          </p>
+          <p className="results-page__disclaimer">{t('results.disclaimer')}</p>
         </footer>
       </div>
     </AppLayout>

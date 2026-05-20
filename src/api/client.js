@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../config.js'
+import { getAcceptLanguageHeader } from '../i18n/locale.js'
 import { getStoredToken } from './session.js'
 
 /**
@@ -11,6 +12,9 @@ export async function apiFetch(path, options = {}) {
   }
   const url = `${base}${path.startsWith('/') ? path : `/${path}`}`
   const headers = new Headers(options.headers ?? {})
+  if (!headers.has('Accept-Language')) {
+    headers.set('Accept-Language', getAcceptLanguageHeader())
+  }
   const token = getStoredToken()
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)

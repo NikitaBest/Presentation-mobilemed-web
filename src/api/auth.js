@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../config.js'
+import { getAcceptLanguageHeader, getApiLocale } from '../i18n/locale.js'
 import {
   clearSession,
   getStoredToken,
@@ -108,13 +109,25 @@ function consumeForceReauthFromUrl() {
 }
 
 function buildLoginBody() {
-  const body = {}
+  const body = { locale: getApiLocale() }
   const utm = getUtmForLogin()
   if (utm) body.utm = utm
   const existingUserId = getStoredUserId()
   const existingToken = getStoredToken()
   if (existingUserId && !existingToken) body.id = existingUserId
   return body
+}
+
+/**
+ * Повторный login с текущей локалью (storage) — новый JWT с claim Locale.
+ * Сохраняйте userId до вызова clearSession (см. docs/API.md).
+ */
+export async function reauthenticateWithCurrentLocale() {
+  const userId = getStoredUserId()
+  clearSession()
+  const data = await postAuthLogin(userId ? { id: userId } : {})
+  const uid = resolveLoginUserId(data, data.token)
+  setSessionFromLogin({ token: data.token, userId: uid })
 }
 
 /**
@@ -126,14 +139,16 @@ export async function postAuthLogin(body) {
     throw new Error('Не задан VITE_API_BASE_URL')
   }
 
-  const headers = { 'Content-Type': 'application/json' }
+  const merged = { ...buildLoginBody(), ...(body && typeof body === 'object' ? body : {}) }
+
+  const headers = { 'Content-Type': 'application/json', 'Accept-Language': getAcceptLanguageHeader() }
   const bearer = getLoginBearer()
   if (bearer) headers.Authorization = `Bearer ${bearer}`
 
   const res = await fetch(`${base}${LOGIN_PATH}`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(body ?? {}),
+    body: JSON.stringify(merged),
   })
 
   const text = await res.text()

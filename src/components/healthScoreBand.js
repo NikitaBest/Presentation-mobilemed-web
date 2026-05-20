@@ -8,13 +8,3 @@ export function healthScoreBand(score) {
   return 'red'
 }
 
-export const HEALTH_SCORE_CAPTION = {
-  green: 'Хороший уровень',
-  yellow: 'Средний уровень',
-  red: 'Требует внимания',
-  unknown: 'Нет данных',
-}
-
-export function healthScoreCaption(score) {
-  return HEALTH_SCORE_CAPTION[healthScoreBand(score)]
-}

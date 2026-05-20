@@ -5,14 +5,16 @@ import {
   metricStatusClass,
   transcriptColorKey,
 } from '../../utils/metricTranscript.js'
+import { useI18n } from '../../i18n/useI18n.js'
 import './MetricDetailSheet.css'
 
 /**
  * @param {{ transcript: object | null, onClose: () => void }} props
  */
-export function MetricDetailSheet({ transcript: t, onClose }) {
+export function MetricDetailSheet({ transcript, onClose }) {
+  const { t } = useI18n()
   const titleId = useId()
-  const open = t != null
+  const open = transcript != null
 
   useEffect(() => {
     if (!open) return undefined
@@ -30,11 +32,11 @@ export function MetricDetailSheet({ transcript: t, onClose }) {
 
   if (!open) return null
 
-  const color = transcriptColorKey(t)
+  const color = transcriptColorKey(transcript)
 
   return (
     <div className="metric-sheet" role="presentation">
-      <button type="button" className="metric-sheet__backdrop" aria-label="Закрыть" onClick={onClose} />
+      <button type="button" className="metric-sheet__backdrop" aria-label={t('common.close')} onClick={onClose} />
       <div
         className="metric-sheet__panel"
         role="dialog"
@@ -44,35 +46,33 @@ export function MetricDetailSheet({ transcript: t, onClose }) {
         <div className="metric-sheet__handle" aria-hidden />
 
         <h2 id={titleId} className="metric-sheet__title">
-          {t.name}
+          {transcript.name}
         </h2>
 
         <p className="metric-sheet__value-row">
-          <span className="metric-sheet__value">{formatTranscriptValue(t)}</span>
-          {t.unit ? <span className="metric-sheet__unit">{t.unit}</span> : null}
+          <span className="metric-sheet__value">{formatTranscriptValue(transcript)}</span>
+          {transcript.unit ? <span className="metric-sheet__unit">{transcript.unit}</span> : null}
         </p>
 
-        {t.status ? (
+        {transcript.status ? (
           <p className="metric-sheet__status-wrap">
-            <span className={metricStatusClass(color)}>{t.status}</span>
+            <span className={metricStatusClass(color)}>{transcript.status}</span>
           </p>
         ) : null}
 
-        {t.commentUser ? <p className="metric-sheet__comment">{t.commentUser}</p> : null}
+        {transcript.commentUser ? <p className="metric-sheet__comment">{transcript.commentUser}</p> : null}
 
-        {t.scaleMetadata ? <MetricScaleBar scaleMetadata={t.scaleMetadata} /> : null}
+        {transcript.scaleMetadata ? <MetricScaleBar scaleMetadata={transcript.scaleMetadata} /> : null}
 
-        {t.descriptionUser ? (
-          <p className="metric-sheet__description">{t.descriptionUser}</p>
+        {transcript.descriptionUser ? (
+          <p className="metric-sheet__description">{transcript.descriptionUser}</p>
         ) : null}
 
         <button type="button" className="metric-sheet__btn" onClick={onClose}>
-          Понятно
+          {t('metricSheet.ok')}
         </button>
 
-        <p className="metric-sheet__disclaimer">
-          Не является медицинским диагнозом. Необходима консультация специалиста.
-        </p>
+        <p className="metric-sheet__disclaimer">{t('metricSheet.disclaimer')}</p>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { MetricCard } from './MetricCard.jsx'
+import { useI18n } from '../../i18n/useI18n.js'
 import './MetricCardsGrid.css'
 
 /**
@@ -17,6 +18,7 @@ export function MetricCardsGrid({
   tapHintExiting = false,
   onTapHintDismiss,
 }) {
+  const { t } = useI18n()
   if (!transcripts.length) return null
 
   const wrapClass = [
@@ -33,7 +35,7 @@ export function MetricCardsGrid({
         <button
           type="button"
           className="metric-grid-backdrop"
-          aria-label="Закрыть подсказку"
+          aria-label={t('common.closeHint')}
           onClick={onTapHintDismiss}
         />
       ) : null}
@@ -41,26 +43,26 @@ export function MetricCardsGrid({
       {tapHintActive ? (
         <div className="metric-tap-hint-anchor" aria-hidden>
           <p className="metric-tap-hint" role="status">
-            Нажмите, чтобы узнать больше
+            {t('metricGrid.tapHint')}
           </p>
         </div>
       ) : null}
 
       <div className="metric-grid" role="list">
-        {transcripts.map((t, index) => {
+        {transcripts.map((item, index) => {
           const isTarget = tapHintActive && index === 0
           return (
             <div
-              key={t.key}
+              key={item.key}
               className={`metric-grid__cell${isTarget ? ' metric-grid__cell--hint' : ''}`}
               role="listitem"
             >
               <MetricCard
-                transcript={t}
+                transcript={item}
                 highlighted={isTarget}
-                onSelect={(item) => {
+                onSelect={(selected) => {
                   if (isTarget) onTapHintDismiss?.()
-                  onSelect(item)
+                  onSelect(selected)
                 }}
               />
             </div>

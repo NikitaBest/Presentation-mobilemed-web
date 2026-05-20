@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { postSaveRppgScan } from '../api/scan.js'
+import { useI18n } from '../i18n/useI18n.js'
 import { ImageValidity, SessionState } from '../sdk/biosenseEnums.js'
 import { scanSdkDebug } from '../sdk/scanSdkDebug.js'
 import {
@@ -35,20 +36,20 @@ async function bindStreamToVideo(video, stream) {
   await waitForVideoReady(video)
 }
 
-function sessionStateLabel(state) {
+function sessionStateLabel(state, t) {
   switch (state) {
     case SessionState.INIT:
-      return 'Инициализация…'
+      return t('scan.session.init')
     case SessionState.ACTIVE:
-      return 'Готовность'
+      return t('scan.session.active')
     case SessionState.MEASURING:
-      return 'Измерение'
+      return t('scan.session.measuring')
     case SessionState.STOPPING:
-      return 'Обработка'
+      return t('scan.session.stopping')
     case SessionState.TERMINATED:
-      return 'Завершено'
+      return t('scan.session.terminated')
     default:
-      return 'Подготовка'
+      return t('scan.session.default')
   }
 }
 
@@ -65,22 +66,22 @@ function imageValidityName(validity) {
 }
 
 /** Во время MEASURING — подсказки по тем же ImageValidity, что в docs/SDK.md (onImageData). */
-function hintWhileMeasuring(imageValidity) {
+function hintWhileMeasuring(imageValidity, t) {
   switch (imageValidity) {
     case ImageValidity.VALID:
-      return 'Кадр хороший — не двигайтесь. Пульс появится в плашке, когда алгоритм стабилизирует кадр.'
+      return t('scan.hintMeasuringValid')
     case ImageValidity.INVALID_ROI:
-      return 'Идёт измерение — SDK не видит лицо в кадре: ближе к камере, ровный свет, смотрите прямо'
+      return t('scan.hintMeasuringRoi')
     case ImageValidity.INVALID_DEVICE_ORIENTATION:
-      return 'Идёт измерение — удержите ту же ориентацию устройства, что при «Начать»'
+      return t('scan.hintMeasuringOrientation')
     case ImageValidity.TILTED_HEAD:
-      return 'Идёт измерение — выпрямите голову, без резких движений'
+      return t('scan.hintMeasuringTilt')
     case ImageValidity.FACE_TOO_FAR:
-      return 'Идёт измерение — подойдите чуть ближе к камере'
+      return t('scan.hintMeasuringFar')
     case ImageValidity.UNEVEN_LIGHT:
-      return 'Идёт измерение — сделайте свет на лице ровнее'
+      return t('scan.hintMeasuringLight')
     default:
-      return 'Идёт измерение — сохраняйте лицо в овале и не двигайтесь'
+      return t('scan.hintMeasuringDefault')
   }
 }
 
@@ -103,7 +104,11 @@ function extractPulseBpm(vs) {
 }
 
 /** Ждём размеры кадра и readyState — как в Camera.jsx перед createFaceSession (docs/SDK.md). */
-async function waitForVideoReady(video, timeoutMs = 8000) {
+async function waitForVideoReady(video, timeoutMs = 8000, noFrameMessage) {
+  const msg =
+    typeof noFrameMessage === 'string' && noFrameMessage
+      ? noFrameMessage
+      : 'Камера не передала кадр. Проверьте разрешения и попробуйте снова.'
   const ok = () =>
     video.videoWidth > 0 &&
     video.videoHeight > 0 &&
@@ -114,9 +119,7 @@ async function waitForVideoReady(video, timeoutMs = 8000) {
   await new Promise((resolve, reject) => {
     const to = window.setTimeout(() => {
       cleanup()
-      reject(
-        new Error('Камера не передала кадр. Проверьте разрешения и попробуйте снова.'),
-      )
+      reject(new Error(msg))
     }, timeoutMs)
     const cleanup = () => {
       window.clearTimeout(to)
@@ -142,6 +145,7 @@ async function waitForVideoReady(video, timeoutMs = 8000) {
  * Камера включается при входе на экран; полноэкранное превью с овалом и кнопками поверх кадра.
  */
 export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
+  const { t } = useI18n()
   const ecgCycleId = `scan-ecg-cycle-${useId().replace(/:/g, '')}`
   const videoRef = useRef(null)
   const sessionRef = useRef(null)
@@ -153,7 +157,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
 
   const [phase, setPhase] = useState('preview-loading')
   const [sessionState, setSessionState] = useState(null)
-  const [hint, setHint] = useState('Включаем камеру…')
+  const [hint, setHint] = useState(() => t('scan.hintCameraOn'))
   const [hintTone, setHintTone] = useState('neutral')
   const [livePulse, setLivePulse] = useState(null)
   const [progress, setProgress] = useState(0)
@@ -250,24 +254,24 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       lastImageValidityRef.current = null
 
       const video = videoRef.current
-      if (!video) throw new Error('Нет элемента видео')
+      if (!video) throw new Error(t('scan.errNoVideo'))
 
       let stream = streamRef.current
       if (!reuseStream) {
         setPhase('camera')
-        setHint('Запрашиваем доступ к камере…')
+        setHint(t('scan.hintCameraRequest'))
         setHintTone('neutral')
         stream = await acquireCameraStream()
         streamRef.current = stream
         await bindStreamToVideo(video, stream)
       } else {
         if (!stream?.getVideoTracks().some((t) => t.readyState === 'live')) {
-          throw new Error('Камера недоступна. Нажмите «Повторить».')
+          throw new Error(t('scan.errCameraRetry'))
         }
         if (video.paused) await video.play()
       }
 
-      await waitForVideoReady(video)
+      await waitForVideoReady(video, 8000, t('scan.errVideoTimeout'))
       scanSdkDebug('видео перед createFaceSession', {
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight,
@@ -281,7 +285,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         href: typeof window !== 'undefined' ? window.location?.href : undefined,
       })
 
-      setHint('Загрузка алгоритма…')
+      setHint(t('scan.hintSdkLoad'))
       await ensureSdkInitialized()
       scanSdkDebug('initialize завершён')
 
@@ -325,7 +329,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         setPhase('measuring')
         setProgress(0)
         lastHintKeyRef.current = ''
-        setHint('Идёт замер — следуйте подсказкам по кадру (лицо, свет, овал)')
+        setHint(t('scan.hintMeasuring'))
         setHintTone('neutral')
         try {
           scanSdkDebug('session.start()')
@@ -333,7 +337,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         } catch (e) {
           startedRef.current = false
           scanSdkDebug('session.start() ошибка', e)
-          setErrorText(e instanceof Error ? e.message : 'Не удалось начать измерение')
+          setErrorText(e instanceof Error ? e.message : t('scan.errStartMeasure'))
           setPhase('error')
         }
       }
@@ -370,8 +374,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
 
         const hintText =
           sdkState === SessionState.MEASURING
-            ? hintWhileMeasuring(imageValidity)
-            : imageValidityToUserMessage(imageValidity)
+            ? hintWhileMeasuring(imageValidity, t)
+            : imageValidityToUserMessage(imageValidity, t)
         const hintKey = `${sessionStateName(sdkState)}:${imageValidity}`
         if (lastHintKeyRef.current !== hintKey) {
           lastHintKeyRef.current = hintKey
@@ -418,7 +422,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
               pendingStartTimerRef.current = null
             }
             if (startedRef.current) {
-              setHint('Обработка результатов…')
+              setHint(t('scan.hintProcessing'))
               setHintTone('neutral')
             }
             break
@@ -461,7 +465,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         scanSdkDebug('onFinalResults', { hasResults: !!vitalSignsResults?.results })
         setProgress(1)
         setPhase('saving')
-        setHint('Сохраняем результат на сервер…')
+        setHint(t('scan.hintSaving'))
         setHintTone('neutral')
         const scanResult = buildSaveRppgScanResult(vitalSignsResults)
         scanSdkDebug('save-rppg payload', {
@@ -475,9 +479,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           teardownSession()
           onContinue()
         } catch (e) {
-          setErrorText(e instanceof Error ? e.message : 'Ошибка сохранения')
+          setErrorText(e instanceof Error ? e.message : t('scan.errSave'))
           setPhase('error')
-          setHint('Не удалось отправить данные')
+          setHint(t('scan.hintSaveFail'))
           setHintTone('error')
         }
       }
@@ -490,10 +494,10 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         }
         scanSdkDebug('onError', alertData)
         const code = alertData?.code ?? '?'
-        setErrorText(`Ошибка SDK (код ${code}). Попробуйте ещё раз.`)
+        setErrorText(t('scan.errSdk', { code: String(code) }))
         setPhase('error')
         setHintTone('error')
-        setHint(`Ошибка измерения (код ${code})`)
+        setHint(t('scan.hintSdkErr', { code: String(code) }))
         setFrameValidity(null)
         lastHintKeyRef.current = ''
         try {
@@ -508,7 +512,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       const onWarning = (alertData) => {
         scanSdkDebug('onWarning', alertData)
         const code = alertData?.code ?? '?'
-        setHint(`Предупреждение ${code}: при возможности улучшите кадр`)
+        setHint(t('scan.hintSdkWarn', { code: String(code) }))
         setHintTone('warn')
       }
 
@@ -566,34 +570,33 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       if (previewOnly) {
         setPhase('preview')
         lastHintKeyRef.current = ''
-        setHint('Поместите лицо в овал. Нажмите «Начать», когда будете готовы.')
+        setHint(t('scan.hintPreview'))
         setHintTone('neutral')
         return
       }
 
       setPhase('running')
       lastHintKeyRef.current = ''
-      setHint(
-        'Сессия готова. Через секунду начнётся замер — подсказки по кадру (ImageValidity) появятся в процессе измерения (Web SDK). Держите лицо в овале.',
-      )
+      setHint(t('scan.hintRunning'))
       setHintTone('neutral')
     },
-    [onContinue, onSaved, teardownSession, teardownStream, userForm],
+    [onContinue, onSaved, teardownSession, teardownStream, userForm, t],
   )
 
   const preparePreview = useCallback(() => {
     setPhase('preview-loading')
-    setHint('Включаем камеру и алгоритм…')
+    setHint(t('scan.hintPrepare'))
     setHintTone('neutral')
     setErrorText('')
     return runScanPipeline({ previewOnly: true })
-  }, [runScanPipeline])
+  }, [runScanPipeline, t])
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async preparePreview при монтировании
     void preparePreview().catch((e) => {
       if (cancelled) return
-      const msg = e instanceof Error ? e.message : 'Не удалось подготовить сканирование'
+      const msg = e instanceof Error ? e.message : t('scan.errPrepare')
       setErrorText(msg)
       setPhase('error')
       setHintTone('error')
@@ -604,7 +607,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     return () => {
       cancelled = true
     }
-  }, [preparePreview, teardownSession, teardownStream])
+  }, [preparePreview, teardownSession, teardownStream, t])
 
   const handleStart = useCallback(() => {
     userStartRequestedRef.current = true
@@ -614,9 +617,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       return
     }
     setPhase('running')
-    setHint('Подготовка к замеру…')
+    setHint(t('scan.hintPrepareRun'))
     setHintTone('neutral')
-  }, [])
+  }, [t])
 
   const handleRetry = useCallback(() => {
     userStartRequestedRef.current = false
@@ -632,14 +635,14 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     setFrameValidity(null)
     lastHintKeyRef.current = ''
     void preparePreview().catch((e) => {
-      const msg = e instanceof Error ? e.message : 'Не удалось подготовить сканирование'
+      const msg = e instanceof Error ? e.message : t('scan.errPrepare')
       setErrorText(msg)
       setPhase('error')
       setHintTone('error')
       setHint(msg)
       teardownStream()
     })
-  }, [preparePreview, teardownSession, teardownStream])
+  }, [preparePreview, teardownSession, teardownStream, t])
 
   /** Отмена замера → экран «Подготовка» (шаг instruction в App). */
   const handleCancelScan = useCallback(() => {
@@ -649,6 +652,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     onBack()
   }, [teardownSession, teardownStream, onBack])
 
+  /* eslint-disable react-hooks/refs -- startedRef для синхронизации с SDK-сессией (кнопка «Начать») */
   const canStartScan =
     phase === 'preview' && sessionState === SessionState.ACTIVE && !startedRef.current
   const primaryDisabled = phase === 'preview-loading' || phase === 'saving'
@@ -678,7 +682,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         .filter(Boolean)
         .join(' ')}
       role="application"
-      aria-label="Сканирование лица"
+      aria-label={t('scan.ariaApp')}
     >
       <div className="scan-viewport-wrap">
         <div className="scan-viewport">
@@ -704,10 +708,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           </div>
 
           <header className="scan-page-overlay scan-page-overlay--top">
-            <h1 className="scan-page-title">Сканирование</h1>
-            <p className="scan-page-lead">
-              Анализ на телефоне. После замера откройте «Результаты» — там итог и расшифровка.
-            </p>
+            <h1 className="scan-page-title">{t('scan.title')}</h1>
+            <p className="scan-page-lead">{t('scan.lead')}</p>
           </header>
 
           {sessionState !== null &&
@@ -716,7 +718,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           phase !== 'running' &&
           phase !== 'measuring' ? (
             <div className="scan-hud scan-hud--top">
-              <div className="scan-pill">{sessionStateLabel(sessionState)}</div>
+              <div className="scan-pill">{sessionStateLabel(sessionState, t)}</div>
             </div>
           ) : null}
 
@@ -732,8 +734,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
                 }`}
               >
                 {frameValidity == null
-                  ? 'Кадр: ожидание…'
-                  : imageValidityShortPillLabel(frameValidity)}
+                  ? t('scan.framePending')
+                  : imageValidityShortPillLabel(frameValidity, t)}
               </div>
             </div>
           )}
@@ -779,10 +781,10 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
                   {livePulse != null ? (
                     <>
                       <span className="scan-pulse-value">{livePulse}</span>
-                      <span className="scan-pulse-unit">уд/мин</span>
+                      <span className="scan-pulse-unit">{t('scan.pulseBpmUnit')}</span>
                     </>
                   ) : (
-                    <span className="scan-pulse-waiting">Пульс…</span>
+                    <span className="scan-pulse-waiting">{t('scan.pulseWait')}</span>
                   )}
                 </span>
               </div>
@@ -813,7 +815,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       {phase === 'running' || phase === 'measuring' ? (
         <footer className="scan-footer scan-footer--overlay scan-footer--single">
           <button type="button" className="btn-secondary scan-footer-cancel" onClick={handleCancelScan}>
-            Отменить
+            {t('scan.btnCancel')}
           </button>
         </footer>
       ) : (
@@ -824,11 +826,11 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             onClick={onBack}
             disabled={phase === 'saving'}
           >
-            Назад
+            {t('common.back')}
           </button>
           {phase === 'error' ? (
             <button type="button" className="btn-primary" onClick={handleRetry}>
-              Повторить
+              {t('scan.btnRetry')}
             </button>
           ) : phase === 'preview' ? (
             <button
@@ -837,15 +839,20 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
               disabled={!canStartScan}
               onClick={handleStart}
             >
-              {canStartScan ? 'Начать' : 'Подготовка…'}
+              {canStartScan ? t('scan.btnStart') : t('scan.btnPreparing')}
             </button>
           ) : (
             <button type="button" className="btn-primary" disabled={primaryDisabled}>
-              {phase === 'preview-loading' ? 'Камера…' : phase === 'saving' ? 'Сохранение…' : 'Подождите…'}
+              {phase === 'preview-loading'
+                ? t('scan.btnCamera')
+                : phase === 'saving'
+                  ? t('scan.btnSaving')
+                  : t('scan.btnWait')}
             </button>
           )}
         </footer>
       )}
     </div>
   )
+  /* eslint-enable react-hooks/refs */
 }

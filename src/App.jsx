@@ -11,9 +11,11 @@ const ScanPage = lazy(() =>
 )
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
 import { APP_STEPS, readPersistedStep, writePersistedStep } from './utils/appStepStorage.js'
+import { useI18n } from './i18n/useI18n.js'
 import './App.css'
 
 export default function App() {
+  const { t } = useI18n()
   const [step, setStep] = useState(() => readPersistedStep())
   const [userForm, setUserForm] = useState(() => ({ ...USER_FORM_INITIAL }))
   const [scanSummary, setScanSummary] = useState(null)
@@ -29,9 +31,9 @@ export default function App() {
       setAuthStatus('ready')
     } catch (e) {
       setAuthStatus('error')
-      setAuthError(e instanceof Error ? e.message : 'Ошибка подключения')
+      setAuthError(e instanceof Error ? e.message : t('app.authError'))
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- инициализация сессии при монтировании
@@ -66,7 +68,7 @@ export default function App() {
           setUserDataHint(
             e instanceof Error
               ? e.message
-              : 'Не удалось загрузить сохранённые данные',
+              : t('app.profileLoadError'),
           )
         }
       }
@@ -75,7 +77,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [step])
+  }, [step, t])
 
   const patchUserForm = useCallback((patch) => {
     setUserForm((prev) => ({ ...prev, ...patch }))
@@ -120,7 +122,7 @@ export default function App() {
         <ScanInstructionPage onBack={goBack} onContinue={goNext} />
       )}
       {activeStep === 'scan' && (
-        <Suspense fallback={<div className="app-loading app-loading--fade">Загрузка сканирования…</div>}>
+        <Suspense fallback={<div className="app-loading app-loading--fade">{t('app.scanLoading')}</div>}>
           <ScanPage
             userForm={userForm}
             onBack={goBack}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
+import { useI18n } from '../i18n/useI18n.js'
 import './ScanInstructionPage.css'
 
 function IconLock() {
@@ -63,35 +64,34 @@ function IconRequirement() {
  * Инструкция перед сканированием (по референсу Preparation).
  */
 export function ScanInstructionPage({ onBack, onContinue }) {
+  const { t } = useI18n()
   const [ready, setReady] = useState(false)
 
   return (
     <AppLayout>
       <div className="scan-prep page-shell">
         <header className="scan-prep-header">
-          <h1 className="scan-prep-screen-title">Подготовка</h1>
-          <p className="scan-prep-lead">
-            Подготовьтесь к сканированию. Следуйте рекомендациям для точного результата.
-          </p>
+          <h1 className="scan-prep-screen-title">{t('instruction.title')}</h1>
+          <p className="scan-prep-lead">{t('instruction.lead')}</p>
         </header>
 
         <div className="scan-prep-content page-shell__scroll">
           <div className="scan-prep-info-cards">
             <div className="scan-prep-info-card">
               <IconLock />
-              <span className="scan-prep-info-text">Приватно</span>
+              <span className="scan-prep-info-text">{t('instruction.cardPrivate')}</span>
             </div>
             <div className="scan-prep-info-card">
               <IconClock />
-              <span className="scan-prep-info-text">~60 секунд</span>
+              <span className="scan-prep-info-text">{t('instruction.cardTime')}</span>
             </div>
             <div className="scan-prep-info-card">
               <IconDoc />
-              <span className="scan-prep-info-text">Не диагноз</span>
+              <span className="scan-prep-info-text">{t('instruction.cardNotDiag')}</span>
             </div>
           </div>
 
-          <h2 className="scan-prep-important-title">Важные рекомендации</h2>
+          <h2 className="scan-prep-important-title">{t('instruction.important')}</h2>
 
           <div className="scan-prep-requirements">
             <div className="scan-prep-req-item">
@@ -99,10 +99,8 @@ export function ScanInstructionPage({ onBack, onContinue }) {
                 <IconRequirement />
               </div>
               <div className="scan-prep-req-body">
-                <h3 className="scan-prep-req-title">Хорошее освещение</h3>
-                <p className="scan-prep-req-desc">
-                  Убедитесь, что лицо хорошо освещено. Избегайте сильных теней на лице.
-                </p>
+                <h3 className="scan-prep-req-title">{t('instruction.req1Title')}</h3>
+                <p className="scan-prep-req-desc">{t('instruction.req1Text')}</p>
               </div>
             </div>
 
@@ -111,11 +109,8 @@ export function ScanInstructionPage({ onBack, onContinue }) {
                 <IconRequirement />
               </div>
               <div className="scan-prep-req-body">
-                <h3 className="scan-prep-req-title">Не двигайтесь</h3>
-                <p className="scan-prep-req-desc">
-                  Сядьте, держите устройство на расстоянии 20–30 см, не говорите во время
-                  сканирования.
-                </p>
+                <h3 className="scan-prep-req-title">{t('instruction.req2Title')}</h3>
+                <p className="scan-prep-req-desc">{t('instruction.req2Text')}</p>
               </div>
             </div>
 
@@ -124,12 +119,10 @@ export function ScanInstructionPage({ onBack, onContinue }) {
                 <IconRequirement />
               </div>
               <div className="scan-prep-req-body">
-                <h3 className="scan-prep-req-title">Доступность</h3>
-                <p className="scan-prep-req-desc">
-                  Снимите очки и головной убор — они мешают сканированию.
-                </p>
+                <h3 className="scan-prep-req-title">{t('instruction.req3Title')}</h3>
+                <p className="scan-prep-req-desc">{t('instruction.req3Text')}</p>
                 <p className="scan-prep-req-desc scan-prep-req-desc--extra">
-                  Не проводите сканирование при заряде батареи менее 20%.
+                  {t('instruction.req3Extra')}
                 </p>
               </div>
             </div>
@@ -139,10 +132,8 @@ export function ScanInstructionPage({ onBack, onContinue }) {
                 <IconRequirement />
               </div>
               <div className="scan-prep-req-body">
-                <h3 className="scan-prep-req-title">Спокойствие</h3>
-                <p className="scan-prep-req-desc">
-                  Не занимайтесь интенсивной активностью прямо перед сканированием, не курите.
-                </p>
+                <h3 className="scan-prep-req-title">{t('instruction.req4Title')}</h3>
+                <p className="scan-prep-req-desc">{t('instruction.req4Text')}</p>
               </div>
             </div>
           </div>
@@ -153,14 +144,14 @@ export function ScanInstructionPage({ onBack, onContinue }) {
               checked={ready}
               onChange={(e) => setReady(e.target.checked)}
             />
-            <span className="scan-prep-confirm-text">Понятно, я готов(а) к сканированию</span>
+            <span className="scan-prep-confirm-text">{t('instruction.confirm')}</span>
           </label>
         </div>
 
         <footer className="page-dock scan-prep-footer">
           <div className="page-footer--row">
             <button type="button" className="btn-secondary" onClick={onBack}>
-              Назад
+              {t('common.back')}
             </button>
             <button
               type="button"
@@ -168,7 +159,7 @@ export function ScanInstructionPage({ onBack, onContinue }) {
               disabled={!ready}
               onClick={onContinue}
             >
-              Начать сканирование
+              {t('instruction.startScan')}
             </button>
           </div>
         </footer>

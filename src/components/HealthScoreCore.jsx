@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import './HealthScoreCore.css'
-import { healthScoreBand, HEALTH_SCORE_CAPTION } from './healthScoreBand.js'
+import { healthScoreBand } from './healthScoreBand.js'
+import { useI18n } from '../i18n/useI18n.js'
 
 const GAUGE_R = 52
 const GAUGE_C = 2 * Math.PI * GAUGE_R
@@ -9,6 +10,7 @@ const GAUGE_C = 2 * Math.PI * GAUGE_R
  * @param {{ score: number | string | null | undefined, layout?: 'center' | 'hero' }} props
  */
 export function HealthScoreCore({ score, layout = 'center' }) {
+  const { t } = useI18n()
   const band = healthScoreBand(score)
   const uid = useId().replace(/:/g, '')
   const gradId = `hc-grad-${uid}`
@@ -16,13 +18,13 @@ export function HealthScoreCore({ score, layout = 'center' }) {
 
   const n = score != null && score !== '' ? Number(score) : NaN
   const display = Number.isFinite(n) ? String(Math.round(n)) : '—'
-  const caption = HEALTH_SCORE_CAPTION[band]
+  const caption = t(`healthScore.band.${band}`)
   const progress = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0
   const dashOffset = GAUGE_C * (1 - progress / 100)
 
   const ariaLabel = Number.isFinite(n)
-    ? `Показатель здоровья ${display} из 100, ${caption}`
-    : 'Показатель здоровья недоступен'
+    ? t('healthScore.aria', { score: display, caption })
+    : t('healthScore.ariaNA')
 
   if (layout === 'hero') {
     return (
@@ -70,7 +72,7 @@ export function HealthScoreCore({ score, layout = 'center' }) {
           </div>
         </div>
         <div className="health-core__hero-meta">
-          <p className="health-core__hero-label">Показатель здоровья</p>
+          <p className="health-core__hero-label">{t('healthScore.label')}</p>
           <p className={`health-core__pill health-core__pill--${band}`}>{caption}</p>
         </div>
       </div>
@@ -88,7 +90,7 @@ export function HealthScoreCore({ score, layout = 'center' }) {
           <span className="health-core__value">{display}</span>
         </span>
       </div>
-      <p className="health-core__label">Показатель здоровья</p>
+      <p className="health-core__label">{t('healthScore.label')}</p>
       <p className="health-core__caption">{caption}</p>
     </div>
   )

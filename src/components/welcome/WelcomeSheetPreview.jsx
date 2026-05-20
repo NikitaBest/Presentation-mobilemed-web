@@ -1,5 +1,6 @@
 import { MetricScaleBar } from '../metrics/MetricScaleBar.jsx'
 import { metricStatusClass, transcriptColorKey } from '../../utils/metricTranscript.js'
+import { useI18n } from '../../i18n/useI18n.js'
 import './WelcomeSheetPreview.css'
 
 /**
@@ -7,11 +8,12 @@ import './WelcomeSheetPreview.css'
  * @param {{ detail: object }} props
  */
 export function WelcomeSheetPreview({ detail }) {
+  const { t } = useI18n()
   const color = transcriptColorKey(detail)
 
   return (
     <div className="welcome-sheet-preview" aria-hidden>
-      <p className="welcome-sheet-preview__caption">После нажатия на карточку</p>
+      <p className="welcome-sheet-preview__caption">{t('welcome.sheetCaption')}</p>
       <div className="welcome-sheet-preview__panel">
         <div className="welcome-sheet-preview__handle" />
         <h3 className="welcome-sheet-preview__title">{detail.name}</h3>
@@ -37,7 +39,7 @@ export function WelcomeSheetPreview({ detail }) {
         {detail.descriptionUser ? (
           <p className="welcome-sheet-preview__description">{detail.descriptionUser}</p>
         ) : null}
-        <span className="welcome-sheet-preview__btn">Понятно</span>
+        <span className="welcome-sheet-preview__btn">{t('welcome.sheetOk')}</span>
       </div>
     </div>
   )

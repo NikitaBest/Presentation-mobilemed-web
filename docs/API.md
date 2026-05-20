@@ -3,11 +3,12 @@
   "openapi": "3.0.0",
   "info": {
     "title": "X5 MobileMed API",
+    "description": "Локализация ru/en: login locale → JWT; анонимные GET — Accept-Language. docs/localization_locale_contract.md",
     "version": "v1"
   },
   "servers": [
     {
-      "url": "https://dev-backend.scan.mobilemed.ai"
+      "url": "https://retail-backend-app.mobilemed.ai"
     }
   ],
   "paths": {
@@ -17,8 +18,45 @@
           "Scan"
         ],
         "summary": "Тест: текстовый отчёт по скану RPPG",
-        "description": "По ИД скана возвращает plain text с расшифровкой показателей и зон (норма, погранично, выше/ниже нормы).",
+        "description": "Возвращает JSON с culture из скана и plain text отчёта на языке скана (переводы биомаркеров). Для plain text: GET .../report-text/plain",
         "operationId": "ApiEndpointsScanGetRppgScanReportTextGetRppgScanReportTextEndpoint",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedContractsResultOfRppgScanReportResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/scan/rppg-scan/{scanId}/report-text/plain": {
+      "get": {
+        "tags": [
+          "Scan"
+        ],
+        "summary": "Тест: plain text отчёт по скану RPPG",
+        "operationId": "ApiEndpointsScanGetRppgScanReportTextGetRppgScanReportTextPlainEndpoint",
         "parameters": [
           {
             "name": "scanId",
@@ -48,7 +86,7 @@
           "Scan"
         ],
         "summary": "Получение истории сканов пользователя",
-        "description": "Возвращает пагинированный список сканов с расшифровкой Transcripts и HealthScore.",
+        "description": "Список сканов с Transcripts и HealthScore. В Scan — culture скана (фиксируется при сохранении). См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsScanGetLastScanGetScansEndpoint",
         "parameters": [
           {
@@ -277,7 +315,7 @@
           "Ration"
         ],
         "summary": "Рацион по скану",
-        "description": "Возвращает последний сохранённый рацион для скана (слоты с продуктами и заменами из БД).",
+        "description": "Последний сохранённый рацион для скана. Поле culture — язык генерации; названия товаров по week_rations.culture.",
         "operationId": "ApiEndpointsRationGetByScanGetWeekRationByScanEndpoint",
         "parameters": [
           {
@@ -563,7 +601,7 @@
           "Exclude-Products"
         ],
         "summary": "Получение списка продуктов-исключений",
-        "description": "Возвращает список продуктов из справочника с возможностью поиска по названию",
+        "description": "Справочник с поиском по названию. Язык — JWT claim Locale. См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsUserGetExcludeProductsGetExcludeProductsEndpoint",
         "parameters": [
           {
@@ -601,7 +639,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfPagedListOfExcludeProductEntity"
+                  "$ref": "#/components/schemas/SharedContractsResultOfPagedListOfExcludeProductDto"
                 }
               }
             }
@@ -626,7 +664,7 @@
           "Auth"
         ],
         "summary": "Обновление JWT токена",
-        "description": "Обновляет JWT токен на основе текущего аутентифицированного пользователя.",
+        "description": "Обновляет JWT; claim Locale берётся из текущего токена. Чтобы сменить язык, выполните login с новым locale. См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAuthenticationRefreshRefreshTokenEndpoint",
         "responses": {
           "200": {
@@ -659,7 +697,7 @@
           "Auth"
         ],
         "summary": "Авторизация пользователя по ИД сессии",
-        "description": "",
+        "description": "В теле запроса передайте locale: ru или en — значение попадёт в JWT (claim Locale) и определяет язык ответов API для авторизованных запросов. Подробнее: docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAuthenticationLoginLoginEndpoint",
         "requestBody": {
           "x-name": "LoginRequest",
@@ -750,7 +788,7 @@
           "Assortment"
         ],
         "summary": "Получение товаров с фильтрацией",
-        "description": "Возвращает товары с возможностью фильтрации по категориям.",
+        "description": "Анонимный endpoint: язык ответа задаётся заголовком Accept-Language (ru/en), при отсутствии — ru. Авторизованные клиенты могут передавать Bearer JWT (claim Locale). См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAssortmentGetProductsGetProductsEndpoint",
         "parameters": [
           {
@@ -794,7 +832,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfPagedListOfProductEntity"
+                  "$ref": "#/components/schemas/SharedContractsResultOfPagedListOfProductDto"
                 }
               }
             }
@@ -813,7 +851,7 @@
           "Assortment"
         ],
         "summary": "Получение категорий с товарами",
-        "description": "Возвращает все категории, для которых есть активные товары",
+        "description": "Анонимный endpoint: язык — Accept-Language (ru/en), иначе ru. См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAssortmentGetCategoriesGetCategoriesEndpoint",
         "responses": {
           "200": {
@@ -821,7 +859,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfListOfCategoryEntity"
+                  "$ref": "#/components/schemas/SharedContractsResultOfListOfCategoryDto"
                 }
               }
             }
@@ -886,7 +924,7 @@
           "Scan"
         ],
         "summary": "Сохранение результата сканирования Rppg",
-        "description": "Сохраняет результат сканирования от Binah SDK и возвращает с расшифровкой Transcripts. Тело запроса — JSON-объект с полями takenAt, source, metrics, sdkRaw.",
+        "description": "Сохраняет результат Binah SDK; culture скана — из JWT (claim Locale). См. docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAppSaveRppgScanSaveRppgScanEndpoint",
         "requestBody": {
           "x-name": "SaveRppgScanRequest",
@@ -957,15 +995,9 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
           }
         },
         "security": [
-          {
-            "JWTBearerAuth": []
-          },
           {
             "Bearer": []
           }
@@ -1180,6 +1212,56 @@
   },
   "components": {
     "schemas": {
+      "SharedContractsResultOfRppgScanReportResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SharedContractsResult"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ApplicationModelsRppgScanRppgScanReportResponse"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ApplicationModelsRppgScanRppgScanReportResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scanId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "culture": {
+            "type": "string"
+          },
+          "reportText": {
+            "type": "string"
+          }
+        }
+      },
+      "SharedContractsResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ApiEndpointsScanGetRppgScanReportTextGetRppgScanReportTextRequest": {
         "type": "object",
         "additionalProperties": false
@@ -1482,19 +1564,6 @@
           }
         }
       },
-      "SharedContractsResult": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "isSuccess": {
-            "type": "boolean"
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "ApplicationModelsRppgScanGetScansHistoryRequest": {
         "allOf": [
           {
@@ -1674,18 +1743,11 @@
             "type": "string",
             "maxLength": 32
           },
-          "title": {
-            "type": "string"
-          },
           "images": {
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "labels": {
-            "type": "string",
-            "nullable": true
           },
           "rating": {
             "type": "integer",
@@ -1712,37 +1774,9 @@
             "format": "decimal",
             "nullable": true
           },
-          "allergens": {
-            "type": "string",
-            "nullable": true
-          },
-          "mainIngrediants": {
-            "type": "string",
-            "nullable": true
-          },
-          "fullIngrediants": {
-            "type": "string",
-            "nullable": true
-          },
           "price": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "productType": {
-            "type": "string",
-            "nullable": true
-          },
-          "manufacturer": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "country": {
-            "type": "string",
             "nullable": true
           },
           "shelfLifeDays": {
@@ -1753,11 +1787,6 @@
           "weightG": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "unitName": {
-            "type": "string",
-            "maxLength": 32,
             "nullable": true
           },
           "volumeMl": {
@@ -1783,6 +1812,51 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "string",
+            "nullable": true
+          },
+          "allergens": {
+            "type": "string",
+            "nullable": true
+          },
+          "mainIngrediants": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullIngrediants": {
+            "type": "string",
+            "nullable": true
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductFeatureDto"
+            }
+          },
+          "productType": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacturer": {
+            "type": "string",
+            "nullable": true
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitName": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -1799,12 +1873,27 @@
             "format": "int32",
             "nullable": true
           },
-          "title": {
-            "type": "string"
-          },
           "imageUrl": {
             "type": "string",
             "nullable": true
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "InfrastructureDbAppEntitiesProductFeatureDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "displayValues": {
+            "type": "string"
           }
         }
       },
@@ -2111,6 +2200,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "culture": {
+            "type": "string"
+          },
           "status": {
             "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationGenerationStatus"
           },
@@ -2343,7 +2435,7 @@
           }
         ]
       },
-      "SharedContractsResultOfPagedListOfExcludeProductEntity": {
+      "SharedContractsResultOfPagedListOfExcludeProductDto": {
         "allOf": [
           {
             "$ref": "#/components/schemas/SharedContractsResult"
@@ -2356,7 +2448,7 @@
                 "nullable": true,
                 "oneOf": [
                   {
-                    "$ref": "#/components/schemas/InfrastructureModelsPagedListOfExcludeProductEntity"
+                    "$ref": "#/components/schemas/InfrastructureModelsPagedListOfExcludeProductDto"
                   }
                 ]
               }
@@ -2364,7 +2456,7 @@
           }
         ]
       },
-      "InfrastructureModelsPagedListOfExcludeProductEntity": {
+      "InfrastructureModelsPagedListOfExcludeProductDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -2393,12 +2485,12 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesExcludeProductEntity"
+              "$ref": "#/components/schemas/ApplicationModelsUserExcludeProductsExcludeProductDto"
             }
           }
         }
       },
-      "InfrastructureDbAppEntitiesExcludeProductEntity": {
+      "ApplicationModelsUserExcludeProductsExcludeProductDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -2407,8 +2499,7 @@
             "format": "guid"
           },
           "productName": {
-            "type": "string",
-            "maxLength": 200
+            "type": "string"
           }
         }
       },
@@ -2455,6 +2546,10 @@
           "utm": {
             "type": "string",
             "nullable": true
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -2483,7 +2578,7 @@
           }
         }
       },
-      "SharedContractsResultOfPagedListOfProductEntity": {
+      "SharedContractsResultOfPagedListOfProductDto": {
         "allOf": [
           {
             "$ref": "#/components/schemas/SharedContractsResult"
@@ -2496,7 +2591,7 @@
                 "nullable": true,
                 "oneOf": [
                   {
-                    "$ref": "#/components/schemas/InfrastructureModelsPagedListOfProductEntity"
+                    "$ref": "#/components/schemas/InfrastructureModelsPagedListOfProductDto"
                   }
                 ]
               }
@@ -2504,7 +2599,7 @@
           }
         ]
       },
-      "InfrastructureModelsPagedListOfProductEntity": {
+      "InfrastructureModelsPagedListOfProductDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -2533,8 +2628,165 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductEntity"
+              "$ref": "#/components/schemas/ApplicationModelsAssortmentProductDto"
             }
+          }
+        }
+      },
+      "ApplicationModelsAssortmentProductDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "categoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ApplicationModelsAssortmentCategoryDto"
+          },
+          "plu": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "string",
+            "nullable": true
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "kcalPer100G": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "proteinsGPer100G": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "fatsGPer100G": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "carbsGPer100G": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "allergens": {
+            "type": "string",
+            "nullable": true
+          },
+          "mainIngrediants": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullIngrediants": {
+            "type": "string",
+            "nullable": true
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductFeatureDto"
+            }
+          },
+          "price": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "productType": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacturer": {
+            "type": "string",
+            "nullable": true
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "shelfLifeDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weightG": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "unitName": {
+            "type": "string",
+            "nullable": true
+          },
+          "volumeMl": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "isAlcohol": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isTobacco": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isAdultContent": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApplicationModelsAssortmentCategoryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -2549,7 +2801,7 @@
           }
         ]
       },
-      "SharedContractsResultOfListOfCategoryEntity": {
+      "SharedContractsResultOfListOfCategoryDto": {
         "allOf": [
           {
             "$ref": "#/components/schemas/SharedContractsResult"
@@ -2562,7 +2814,7 @@
                 "type": "array",
                 "nullable": true,
                 "items": {
-                  "$ref": "#/components/schemas/InfrastructureDbAppEntitiesCategoryEntity"
+                  "$ref": "#/components/schemas/ApplicationModelsAssortmentCategoryDto"
                 }
               }
             }

@@ -1,12 +1,15 @@
+import { useCallback, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HealthScoreCore } from '../components/HealthScoreCore.jsx'
+import { LanguageSwitch } from '../components/LanguageSwitch.jsx'
 import { MetricCard } from '../components/metrics/MetricCard.jsx'
 import { WelcomeSheetPreview } from '../components/welcome/WelcomeSheetPreview.jsx'
+import { useI18n } from '../i18n/useI18n.js'
 import {
-  WELCOME_DEMO_DETAIL,
-  WELCOME_DEMO_METRICS,
+  getWelcomeDemoDetail,
+  getWelcomeDemoMetrics,
+  getWelcomeSteps,
   WELCOME_DEMO_SCORE,
-  WELCOME_STEPS,
 } from './welcomeDemoData.js'
 import './WelcomePage.css'
 
@@ -19,27 +22,63 @@ export function WelcomePage({
   onRetryAuth,
   onContinue,
 }) {
+  const { locale, setLocale, t } = useI18n()
+  const [localeError, setLocaleError] = useState('')
   const loading = authStatus === 'loading'
   const failed = authStatus === 'error'
+
+  const welcomeSteps = getWelcomeSteps(locale)
+  const demoMetrics = getWelcomeDemoMetrics(locale)
+  const demoDetail = getWelcomeDemoDetail(locale)
+
+  const handleLocaleChange = useCallback(
+    async (next) => {
+      if (next === locale) return
+      setLocaleError('')
+      try {
+        await setLocale(next)
+      } catch (e) {
+        setLocaleError(e instanceof Error ? e.message : t('welcome.localeError'))
+      }
+    },
+    [locale, setLocale, t],
+  )
 
   return (
     <AppLayout>
       <div className="welcome-page page-shell">
         <header className="welcome-page__header">
-          <span className="welcome-page__brand">MobileMed</span>
-          <h1 className="welcome-page__title">Оценка здоровья по лицу</h1>
-          <p className="welcome-page__lead">
-            Сканирование через камеру телефона — без отдельного приложения, прямо в браузере.
-          </p>
+          <div className="welcome-page__toolbar">
+            <span className="welcome-page__brand">{t('welcome.brand')}</span>
+            <div className="welcome-page__lang">
+              <span className="welcome-page__lang-label" id="welcome-lang-label">
+                {t('welcome.langLabel')}
+              </span>
+              <LanguageSwitch
+                value={locale}
+                onChange={handleLocaleChange}
+                disabled={loading}
+                labels={{ ru: t('lang.ru'), en: t('lang.en') }}
+                aria-labelledby="welcome-lang-label"
+              />
+            </div>
+          </div>
+          <h1 className="welcome-page__title">{t('welcome.title')}</h1>
+          <p className="welcome-page__lead">{t('welcome.lead')}</p>
+          {localeError ? (
+            <p className="welcome-page__locale-error" role="alert">
+              {localeError}
+            </p>
+          ) : null}
         </header>
 
         <div className="welcome-page__scroll page-shell__scroll">
           <section className="welcome-block" aria-labelledby="welcome-steps-title">
             <h2 id="welcome-steps-title" className="welcome-block__title">
-              Как это работает
+              {t('welcome.stepsTitle')}
             </h2>
             <ol className="welcome-steps">
-              {WELCOME_STEPS.map((step, i) => (
+              {welcomeSteps.map((step, i) => (
                 <li key={step.title} className="welcome-step">
                   <span className="welcome-step__num" aria-hidden>
                     {i + 1}
@@ -55,9 +94,9 @@ export function WelcomePage({
 
           <section className="welcome-block" aria-labelledby="welcome-preview-score">
             <h2 id="welcome-preview-score" className="welcome-block__title">
-              Пример результатов
+              {t('welcome.previewScoreTitle')}
             </h2>
-            <p className="welcome-block__hint">Общий показатель после сканирования</p>
+            <p className="welcome-block__hint">{t('welcome.previewScoreHint')}</p>
             <div className="welcome-preview welcome-preview--score" aria-hidden>
               <HealthScoreCore score={WELCOME_DEMO_SCORE} layout="hero" />
             </div>
@@ -65,36 +104,36 @@ export function WelcomePage({
 
           <section className="welcome-block" aria-labelledby="welcome-preview-metrics">
             <h2 id="welcome-preview-metrics" className="welcome-block__title">
-              Показатели
+              {t('welcome.metricsTitle')}
             </h2>
             <div className="welcome-tap-flow" aria-hidden>
-              <span className="welcome-tap-flow__item">Нажмите карточку</span>
+              <span className="welcome-tap-flow__item">{t('welcome.tapFlow1')}</span>
               <span className="welcome-tap-flow__arrow" aria-hidden />
-              <span className="welcome-tap-flow__item">Окно с расшифровкой</span>
+              <span className="welcome-tap-flow__item">{t('welcome.tapFlow2')}</span>
             </div>
             <div className="welcome-metrics-demo" aria-hidden>
               <div className="welcome-metrics-demo__cards">
                 <div className="welcome-demo-hint-row">
-                  <p className="welcome-demo-hint">Нажмите, чтобы узнать больше</p>
+                  <p className="welcome-demo-hint">{t('welcome.demoHint')}</p>
                 </div>
                 <div className="welcome-demo-grid">
-                  {WELCOME_DEMO_METRICS.map((t, index) => (
+                  {demoMetrics.map((metric, index) => (
                     <MetricCard
-                      key={t.key}
-                      transcript={t}
+                      key={metric.key}
+                      transcript={metric}
                       preview
                       highlighted={index === 0}
                     />
                   ))}
                 </div>
               </div>
-              <WelcomeSheetPreview detail={WELCOME_DEMO_DETAIL} />
+              <WelcomeSheetPreview detail={demoDetail} />
             </div>
           </section>
 
           {loading ? (
             <p className="welcome-status" aria-live="polite">
-              Подключение к серверу…
+              {t('welcome.connecting')}
             </p>
           ) : null}
           {failed && authError ? (
@@ -105,12 +144,10 @@ export function WelcomePage({
         </div>
 
         <footer className="page-dock welcome-page__dock">
-          <p className="page-dock__disclaimer">
-            Нужен доступ к камере на шаге сканирования. Сервис не заменяет консультацию врача.
-          </p>
+          <p className="page-dock__disclaimer">{t('welcome.disclaimer')}</p>
           {failed && onRetryAuth ? (
             <button type="button" className="btn-primary" onClick={onRetryAuth}>
-              Повторить
+              {t('welcome.retry')}
             </button>
           ) : (
             <button
@@ -119,7 +156,7 @@ export function WelcomePage({
               onClick={onContinue}
               disabled={loading}
             >
-              {loading ? 'Подождите…' : 'Начать измерение'}
+              {loading ? t('welcome.continueWait') : t('welcome.continue')}
             </button>
           )}
         </footer>

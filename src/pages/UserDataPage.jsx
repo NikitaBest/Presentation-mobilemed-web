@@ -1,9 +1,12 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { ChoiceCard } from '../components/ChoiceCard.jsx'
+import { useI18n } from '../i18n/useI18n.js'
 import {
   validateAgeField,
   validateHeightField,
+  validateSexField,
+  validateSmokingField,
   validateWeightField,
 } from '../validation/bodyMetrics.js'
 import { mapFormToUpdateUserRequest, mapUserEntityToFormPatch, putUserUpdate } from '../api/user.js'
@@ -55,17 +58,7 @@ const IconSmoker = (
   </svg>
 )
 
-const SEX_CHOICES = [
-  { value: 'MALE', label: 'Мужской', icon: IconMale },
-  { value: 'FEMALE', label: 'Женский', icon: IconFemale },
-]
-
-const SMOKING_CHOICES = [
-  { value: 'NON_SMOKER', label: 'Не курю', icon: IconNonSmoker },
-  { value: 'SMOKER', label: 'Курю', icon: IconSmoker },
-]
-
-function getAgeWord(n) {
+function getAgeWordRu(n) {
   const lastDigit = n % 10
   const lastTwo = n % 100
   if (lastTwo >= 11 && lastTwo <= 14) return 'лет'
@@ -84,16 +77,6 @@ function parsePositiveFloat(s) {
   return Number.isFinite(n) ? n : NaN
 }
 
-function validateSexField(sex) {
-  if (sex === 'MALE' || sex === 'FEMALE') return ''
-  return 'Выберите пол'
-}
-
-function validateSmokingField(smokingStatus) {
-  if (smokingStatus === 'NON_SMOKER' || smokingStatus === 'SMOKER') return ''
-  return 'Выберите вариант про курение'
-}
-
 export function UserDataPage({
   value,
   onFormChange,
@@ -101,6 +84,7 @@ export function UserDataPage({
   onContinue,
   profileHint = '',
 }) {
+  const { t, locale } = useI18n()
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [touched, setTouched] = useState({
@@ -118,15 +102,32 @@ export function UserDataPage({
     smokingStatus: '',
   })
 
-  const runAllValidation = useCallback((v) => {
-    return {
-      age: validateAgeField(v.age, REQ),
-      height: validateHeightField(v.height, REQ),
-      weight: validateWeightField(v.weight, REQ),
-      sex: validateSexField(v.sex),
-      smokingStatus: validateSmokingField(v.smokingStatus),
-    }
-  }, [])
+  const sexChoices = useMemo(
+    () => [
+      { value: 'MALE', label: t('userData.sexMale'), icon: IconMale },
+      { value: 'FEMALE', label: t('userData.sexFemale'), icon: IconFemale },
+    ],
+    [t],
+  )
+
+  const smokingChoices = useMemo(
+    () => [
+      { value: 'NON_SMOKER', label: t('userData.smokingNon'), icon: IconNonSmoker },
+      { value: 'SMOKER', label: t('userData.smokingYes'), icon: IconSmoker },
+    ],
+    [t],
+  )
+
+  const runAllValidation = useCallback(
+    (v) => ({
+      age: validateAgeField(v.age, { ...REQ, t }),
+      height: validateHeightField(v.height, { ...REQ, t }),
+      weight: validateWeightField(v.weight, { ...REQ, t }),
+      sex: validateSexField(v.sex, t),
+      smokingStatus: validateSmokingField(v.smokingStatus, t),
+    }),
+    [t],
+  )
 
   const ageNum = parsePositiveInt(value.age)
   const ageOk =
@@ -167,28 +168,27 @@ export function UserDataPage({
       setErrors((prev) => {
         const next = { ...prev }
         if ('age' in patch && touched.age) {
-          next.age = validateAgeField(merged.age, REQ)
+          next.age = validateAgeField(merged.age, { ...REQ, t })
         }
         if ('height' in patch && touched.height) {
-          next.height = validateHeightField(merged.height, REQ)
+          next.height = validateHeightField(merged.height, { ...REQ, t })
         }
         if ('weight' in patch && touched.weight) {
-          next.weight = validateWeightField(merged.weight, REQ)
+          next.weight = validateWeightField(merged.weight, { ...REQ, t })
         }
         return next
       })
     },
-    [onFormChange, touched.age, touched.height, touched.weight, value],
+    [onFormChange, touched.age, touched.height, touched.weight, value, t],
   )
 
   return (
     <AppLayout>
       <div className="user-data-page page-shell">
         <header className="user-data-header">
-          <h1 className="user-data-title">Ваши данные</h1>
+          <h1 className="user-data-title">{t('userData.title')}</h1>
           <p className="user-data-lead">
-            При заполнении анкеты в разборе после сканирования можно получить
-            больше данных.
+            {t('userData.lead')}
           </p>
           {profileHint ? (
             <p className="user-data-lead user-data-lead--warn" role="status">
@@ -234,7 +234,7 @@ export function UserDataPage({
               onContinue()
             } catch (err) {
               setSaveError(
-                err instanceof Error ? err.message : 'Не удалось сохранить данные',
+                err instanceof Error ? err.message : t('userData.saveError'),
               )
             } finally {
               setSaving(false)
@@ -243,10 +243,10 @@ export function UserDataPage({
         >
           <section className="user-data-section" aria-labelledby="uds-sex">
             <h2 className="user-data-section-title" id="uds-sex">
-              Ваш пол
+              {t('userData.sexTitle')}
             </h2>
             <p className="user-data-section-subtitle">
-              Нужен, чтобы учитывать особенности организма
+              {t('userData.sexSubtitle')}
             </p>
             <div
               className={`user-data-choice-row${errors.sex ? ' user-data-choice-row--error' : ''}`}
@@ -255,7 +255,7 @@ export function UserDataPage({
               aria-invalid={Boolean(errors.sex)}
               aria-describedby={errors.sex ? 'uds-sex-error' : undefined}
             >
-              {SEX_CHOICES.map((opt) => (
+              {sexChoices.map((opt) => (
                 <ChoiceCard
                   key={opt.value}
                   label={opt.label}
@@ -282,17 +282,17 @@ export function UserDataPage({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>Сохраним и используем при разборе результата</span>
+                <span>{t('userData.sexNote')}</span>
               </div>
             )}
           </section>
 
           <section className="user-data-section" aria-labelledby="uds-age">
             <h2 className="user-data-section-title" id="uds-age">
-              Возраст
+              {t('userData.ageTitle')}
             </h2>
             <p className="user-data-section-subtitle">
-              Укажите полное количество лет
+              {t('userData.ageSubtitle')}
             </p>
             <input
               id="user-age"
@@ -300,7 +300,7 @@ export function UserDataPage({
               type="text"
               inputMode="numeric"
               autoComplete="bday-year"
-              placeholder="Например, 42"
+              placeholder={t('userData.agePlaceholder')}
               value={value.age}
               aria-invalid={Boolean(errors.age)}
               aria-describedby={errors.age ? 'user-age-error' : undefined}
@@ -309,7 +309,7 @@ export function UserDataPage({
                 setTouched((t) => ({ ...t, age: true }))
                 setErrors((prev) => ({
                   ...prev,
-                  age: validateAgeField(e.target.value, REQ),
+                  age: validateAgeField(e.target.value, { ...REQ, t }),
                 }))
               }}
             />
@@ -330,7 +330,12 @@ export function UserDataPage({
                   />
                 </svg>
                 <span>
-                  {ageNum} {getAgeWord(ageNum)} — записали
+                  {locale === 'en'
+                    ? t('userData.ageLineEn', {
+                        count: String(ageNum),
+                        years: ageNum === 1 ? 'year' : 'years',
+                      })
+                    : `${ageNum} ${getAgeWordRu(ageNum)} ${t('userData.ageSavedSuffix')}`}
                 </span>
               </div>
             )}
@@ -338,15 +343,15 @@ export function UserDataPage({
 
           <section className="user-data-section" aria-labelledby="uds-body">
             <h2 className="user-data-section-title" id="uds-body">
-              Рост и вес
+              {t('userData.heightWeightTitle')}
             </h2>
             <p className="user-data-section-subtitle">
-              В сантиметрах и килограммах.
+              {t('userData.heightWeightSubtitle')}
             </p>
             <div className="user-data-physical">
               <div className="user-data-physical-field">
                 <label className="user-data-field-label" htmlFor="user-height">
-                  Рост, см
+                  {t('userData.heightLabel')}
                 </label>
                 <input
                   id="user-height"
@@ -366,7 +371,7 @@ export function UserDataPage({
                     setTouched((t) => ({ ...t, height: true }))
                     setErrors((prev) => ({
                       ...prev,
-                      height: validateHeightField(e.target.value, REQ),
+                      height: validateHeightField(e.target.value, { ...REQ, t }),
                     }))
                   }}
                 />
@@ -382,7 +387,7 @@ export function UserDataPage({
               </div>
               <div className="user-data-physical-field">
                 <label className="user-data-field-label" htmlFor="user-weight">
-                  Вес, кг
+                  {t('userData.weightLabel')}
                 </label>
                 <input
                   id="user-weight"
@@ -402,7 +407,7 @@ export function UserDataPage({
                     setTouched((t) => ({ ...t, weight: true }))
                     setErrors((prev) => ({
                       ...prev,
-                      weight: validateWeightField(e.target.value, REQ),
+                      weight: validateWeightField(e.target.value, { ...REQ, t }),
                     }))
                   }}
                 />
@@ -431,17 +436,17 @@ export function UserDataPage({
                       strokeLinejoin="round"
                     />
                   </svg>
-                  <span>Рост и вес указаны — записали</span>
+                  <span>{t('userData.heightOk')}</span>
                 </div>
               )}
           </section>
 
           <section className="user-data-section" aria-labelledby="uds-smoke">
             <h2 className="user-data-section-title" id="uds-smoke">
-              Курение
+              {t('userData.smokingTitle')}
             </h2>
             <p className="user-data-section-subtitle">
-              Честный ответ помогает точнее оценить влияние привычек на здоровье
+              {t('userData.smokingSubtitle')}
             </p>
             <div
               className={`user-data-choice-row${errors.smokingStatus ? ' user-data-choice-row--error' : ''}`}
@@ -452,7 +457,7 @@ export function UserDataPage({
                 errors.smokingStatus ? 'uds-smoke-error' : undefined
               }
             >
-              {SMOKING_CHOICES.map((opt) => (
+              {smokingChoices.map((opt) => (
                 <ChoiceCard
                   key={opt.value}
                   label={opt.label}
@@ -483,7 +488,7 @@ export function UserDataPage({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>Запомним для отчёта</span>
+                <span>{t('userData.smokingNoteNon')}</span>
               </div>
             )}
             {value.smokingStatus === 'SMOKER' && (
@@ -497,7 +502,7 @@ export function UserDataPage({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span>Учтём при разборе результата</span>
+                <span>{t('userData.smokingNoteYes')}</span>
               </div>
             )}
           </section>
@@ -516,7 +521,7 @@ export function UserDataPage({
               onClick={onBack}
               disabled={saving}
             >
-              Назад
+              {t('common.back')}
             </button>
             <button
               type="submit"
@@ -524,12 +529,11 @@ export function UserDataPage({
               form="user-data-form"
               disabled={saving}
             >
-              {saving ? 'Сохранение…' : 'Далее'}
+              {saving ? t('userData.saving') : t('userData.next')}
             </button>
           </div>
           <p className="user-data-footer-hint">
-            Все поля обязательны. По кнопке «Далее» анкета отправляется на сервер
-            (user/update), подтверждение политики и документов — да.
+            {t('userData.footerHint')}
           </p>
         </footer>
       </div>

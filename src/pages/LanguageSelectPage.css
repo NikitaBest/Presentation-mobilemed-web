@@ -60,9 +60,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: var(--mm-space-4);
-  padding-bottom: var(--mm-space-6);
 }
 
 .lang-select__options {
@@ -108,9 +106,10 @@
   opacity: 0.85;
 }
 
-.lang-select__option--pending {
+.lang-select__option--selected {
   border-color: var(--mm-primary);
   background: var(--mm-bg-primary-soft);
+  box-shadow: 0 0 0 1px var(--mm-primary);
 }
 
 .lang-select__option-label {
@@ -120,13 +119,6 @@
 }
 
 .lang-select__option-hint {
-  font-size: var(--mm-font-size-sm);
-  color: var(--mm-text-muted);
-}
-
-.lang-select__status {
-  margin: 0;
-  text-align: center;
   font-size: var(--mm-font-size-sm);
   color: var(--mm-text-muted);
 }

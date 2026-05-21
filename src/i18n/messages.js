@@ -13,6 +13,11 @@ export const MESSAGES = {
     'lang.ru': 'Русский',
     'lang.en': 'English',
 
+    'languageSelect.continue': 'Продолжить',
+    'languageSelect.continueBilingual': 'Продолжить / Continue',
+    'languageSelect.continueWait': 'Подождите…',
+    'languageSelect.error': 'Не удалось применить язык. Попробуйте ещё раз.',
+
     'welcome.brand': 'MobileMed',
     'welcome.title': 'Оценка здоровья по лицу',
     'welcome.lead':
@@ -218,6 +223,11 @@ export const MESSAGES = {
   en: {
     'lang.ru': 'Русский',
     'lang.en': 'English',
+
+    'languageSelect.continue': 'Continue',
+    'languageSelect.continueBilingual': 'Продолжить / Continue',
+    'languageSelect.continueWait': 'Please wait…',
+    'languageSelect.error': 'Could not apply language. Please try again.',
 
     'welcome.brand': 'MobileMed',
     'welcome.title': 'Face-based health check',

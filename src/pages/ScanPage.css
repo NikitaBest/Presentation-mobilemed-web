@@ -203,7 +203,9 @@
   box-sizing: border-box;
   pointer-events: none;
   z-index: 1;
-  transition: --scan-turn 0.65s cubic-bezier(0.25, 0.85, 0.35, 1);
+  transition:
+    --scan-turn 0.12s linear,
+    opacity 0.2s ease;
   background: conic-gradient(
     from 0deg,
     #34d399 0deg,
@@ -224,6 +226,15 @@
     #000 calc(100% - 0.5px),
     transparent 100%
   );
+}
+
+.scan-oval-progress--paused {
+  opacity: 0.45;
+}
+
+.scan-oval-frame:has(.scan-oval-progress--paused) .scan-oval-ring {
+  border-color: rgba(234, 179, 8, 0.55);
+  animation: none;
 }
 
 /* Пока идёт дуга — статичное кольцо приглушаем, чтобы не было «двойного» контура */

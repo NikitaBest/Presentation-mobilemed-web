@@ -25,6 +25,11 @@
 - `INVALID_ROI` = SDK не распознал лицо.
 - Подсказки в `MEASURING` через `onImageData`.
 
+## Прогресс овала (гибрид)
+
+- База: `elapsed / processingTime` от `MEASURING` до `STOPPING` (таймер SDK).
+- Пауза визуала: при `ImageValidity !== VALID` дольше 400 ms дуга не растёт (SDK-сессия не останавливается).
+
 ## Отладка
 
 - Dev: `[Scan SDK]` в `scanSdkDebug.js`.

@@ -103,8 +103,12 @@ function extractPulseBpm(vs) {
   return null
 }
 
-/** Пауза визуала овала при невалидном кадре — не дёргать на одном кадре. */
-const PROGRESS_PAUSE_DEBOUNCE_MS = 400
+/** Тон овала = плашка кадра: pending | ok | warn (docs/SDK.md ImageValidity). */
+function getOvalFrameTone(validity) {
+  if (validity === ImageValidity.VALID) return 'ok'
+  if (validity == null) return 'pending'
+  return 'warn'
+}
 
 /** Ждём размеры кадра и readyState — как в Camera.jsx перед createFaceSession (docs/SDK.md). */
 async function waitForVideoReady(video, timeoutMs = 8000, noFrameMessage) {
@@ -174,11 +178,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const lastImageValidityRef = useRef(null)
   /** Время входа SDK в MEASURING — прогресс овала = elapsed / processingTime (docs/SDK.md). */
   const measurementStartTimeRef = useRef(null)
-  /** Пауза визуала овала при плохом кадре (SDK-таймер не трогаем). */
-  const totalPausedMsRef = useRef(0)
-  const pauseStartedAtRef = useRef(null)
-  const invalidSinceRef = useRef(null)
-  const [ovalProgressPaused, setOvalProgressPaused] = useState(false)
   const [measurementProgressEpoch, setMeasurementProgressEpoch] = useState(0)
   const lastImageValidityLogRef = useRef(null)
   const lastImageLogAtRef = useRef(0)
@@ -194,38 +193,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     if (v) v.srcObject = null
   }, [])
 
-  const resetOvalProgressPause = useCallback(() => {
-    totalPausedMsRef.current = 0
-    pauseStartedAtRef.current = null
-    invalidSinceRef.current = null
-    setOvalProgressPaused(false)
-  }, [])
-
-  const syncOvalProgressPause = useCallback((imageValidity, sdkState) => {
-    if (sdkState !== SessionState.MEASURING) return
-    const now = Date.now()
-    const valid = imageValidity === ImageValidity.VALID
-    if (valid) {
-      invalidSinceRef.current = null
-      if (pauseStartedAtRef.current != null) {
-        totalPausedMsRef.current += now - pauseStartedAtRef.current
-        pauseStartedAtRef.current = null
-        setOvalProgressPaused(false)
-      }
-      return
-    }
-    if (invalidSinceRef.current == null) {
-      invalidSinceRef.current = now
-    }
-    if (
-      pauseStartedAtRef.current == null &&
-      now - invalidSinceRef.current >= PROGRESS_PAUSE_DEBOUNCE_MS
-    ) {
-      pauseStartedAtRef.current = now
-      setOvalProgressPaused(true)
-    }
-  }, [])
-
   const teardownSession = useCallback(() => {
     if (pendingStartTimerRef.current != null) {
       window.clearTimeout(pendingStartTimerRef.current)
@@ -236,7 +203,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     sessionRef.current = null
     startedRef.current = false
     measurementStartTimeRef.current = null
-    resetOvalProgressPause()
     if (session) {
       try {
         session.terminate()
@@ -244,7 +210,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         /* ignore */
       }
     }
-  }, [resetOvalProgressPause])
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -262,21 +228,14 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     }
   }, [])
 
-  /**
-   * Гибрид: elapsed / processingTime (SDK), минус паузы визуала на невалидном кадре (onImageData).
-   */
+  /** Прогресс овала = elapsed / processingTime (SDK); цвет — по ImageValidity (см. getOvalFrameTone). */
   useEffect(() => {
     if (phase !== 'measuring' || measurementStartTimeRef.current == null) return
     const durationMs = DEFAULT_PROCESSING_SECONDS * 1000
     const tick = () => {
       const start = measurementStartTimeRef.current
       if (start == null) return
-      const now = Date.now()
-      let pausedMs = totalPausedMsRef.current
-      if (pauseStartedAtRef.current != null) {
-        pausedMs += now - pauseStartedAtRef.current
-      }
-      const elapsed = Math.max(0, now - start - pausedMs)
+      const elapsed = Date.now() - start
       setProgress(Math.min(1, elapsed / durationMs))
     }
     tick()
@@ -413,8 +372,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         const session = sessionRef.current
         const sdkState = session?.getState?.()
 
-        syncOvalProgressPause(imageValidity, sdkState)
-
         if (sdkState === SessionState.MEASURING && !ok) {
           /* SDK.md / код 3500: при проблемах с детекцией не показывать промежуточные ВП */
           setLivePulse(null)
@@ -461,7 +418,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             scanSdkDebug('onStateChange: MEASURING — идёт замер')
             if (startedRef.current) {
               measurementStartTimeRef.current = Date.now()
-              resetOvalProgressPause()
               setProgress(0)
               setMeasurementProgressEpoch((n) => n + 1)
             }
@@ -477,7 +433,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             }
             if (startedRef.current) {
               measurementStartTimeRef.current = null
-              resetOvalProgressPause()
               setProgress(1)
               setHint(t('scan.hintProcessing'))
               setHintTone('neutral')
@@ -521,7 +476,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       const onFinalResults = async (vitalSignsResults) => {
         scanSdkDebug('onFinalResults', { hasResults: !!vitalSignsResults?.results })
         measurementStartTimeRef.current = null
-        resetOvalProgressPause()
         setProgress(1)
         setPhase('saving')
         setHint(t('scan.hintSaving'))
@@ -639,7 +593,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       setHint(t('scan.hintRunning'))
       setHintTone('neutral')
     },
-    [onContinue, onSaved, resetOvalProgressPause, syncOvalProgressPause, teardownSession, teardownStream, userForm, t],
+    [onContinue, onSaved, teardownSession, teardownStream, userForm, t],
   )
 
   const preparePreview = useCallback(() => {
@@ -690,7 +644,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     setErrorText('')
     setProgress(0)
     measurementStartTimeRef.current = null
-    resetOvalProgressPause()
     setMeasurementProgressEpoch(0)
     setLivePulse(null)
     setSessionState(null)
@@ -732,6 +685,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     phase === 'measuring' ||
     phase === 'saving'
 
+  const ovalFrameTone = scanLayoutLocked ? getOvalFrameTone(frameValidity) : 'ok'
+
   return (
     <div
       className={[
@@ -740,7 +695,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         cameraVisible ? 'scan-page--camera-visible' : '',
         scanLayoutLocked ? 'scan-page--active-scan' : '',
         phase === 'measuring' ? 'scan-page--measuring' : '',
-        phase === 'measuring' && ovalProgressPaused ? 'scan-page--progress-paused' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -758,15 +712,15 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           />
           <div className="scan-mask-layer" aria-hidden>
             <div className="scan-dim" />
-            <div className="scan-oval-frame">
+            <div className={`scan-oval-frame scan-oval-frame--${ovalFrameTone}`}>
               {phase === 'measuring' ? (
                 <div
-                  className={`scan-oval-progress${ovalProgressPaused ? ' scan-oval-progress--paused' : ''}`}
+                  className="scan-oval-progress"
                   style={{ '--scan-turn': String(Math.max(0, Math.min(1, progress))) }}
                   aria-hidden
                 />
               ) : null}
-              <div className="scan-oval-ring" />
+              <div className="scan-oval-ring" aria-hidden />
             </div>
           </div>
 

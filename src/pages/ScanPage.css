@@ -181,6 +181,28 @@
   height: calc(2 * var(--scan-oval-ry));
   box-sizing: border-box;
   pointer-events: none;
+  --scan-oval-ring-color: var(--mm-scan-ring);
+  --scan-oval-arc-a: #34d399;
+  --scan-oval-arc-b: #10b981;
+}
+
+/* Как scan-pill--frame-*: pending = ожидание кадра, ok = VALID, warn = поправьте положение */
+.scan-oval-frame--pending {
+  --scan-oval-ring-color: rgba(148, 163, 184, 0.88);
+  --scan-oval-arc-a: #cbd5e1;
+  --scan-oval-arc-b: #94a3b8;
+}
+
+.scan-oval-frame--ok {
+  --scan-oval-ring-color: rgba(52, 211, 153, 0.92);
+  --scan-oval-arc-a: #34d399;
+  --scan-oval-arc-b: #10b981;
+}
+
+.scan-oval-frame--warn {
+  --scan-oval-ring-color: rgba(251, 191, 36, 0.92);
+  --scan-oval-arc-a: #fcd34d;
+  --scan-oval-arc-b: #f59e0b;
 }
 
 /* Плавная интерполяция --scan-turn между тиками React (только UI) */
@@ -205,11 +227,11 @@
   z-index: 1;
   transition:
     --scan-turn 0.12s linear,
-    opacity 0.2s ease;
+    background 0.25s ease;
   background: conic-gradient(
     from 0deg,
-    #34d399 0deg,
-    #10b981 calc(var(--scan-turn) * 360deg),
+    var(--scan-oval-arc-a) 0deg,
+    var(--scan-oval-arc-b) calc(var(--scan-turn) * 360deg),
     transparent calc(var(--scan-turn) * 360deg)
   );
   -webkit-mask: radial-gradient(
@@ -228,18 +250,9 @@
   );
 }
 
-.scan-oval-progress--paused {
-  opacity: 0.45;
-}
-
-.scan-oval-frame:has(.scan-oval-progress--paused) .scan-oval-ring {
-  border-color: rgba(234, 179, 8, 0.55);
-  animation: none;
-}
-
 /* Пока идёт дуга — статичное кольцо приглушаем, чтобы не было «двойного» контура */
 .scan-oval-frame:has(.scan-oval-progress) .scan-oval-ring {
-  border-color: rgba(16, 185, 129, 0.32);
+  border-color: color-mix(in srgb, var(--scan-oval-ring-color) 38%, transparent);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   animation: none;
   opacity: 0.92;
@@ -252,11 +265,19 @@
   height: 100%;
   border-radius: 50%;
   box-sizing: border-box;
-  border: clamp(2px, 0.42vmin, 4px) solid var(--mm-scan-ring);
+  border: clamp(2px, 0.42vmin, 4px) solid var(--scan-oval-ring-color);
   box-shadow:
-    0 0 10px rgba(16, 185, 129, 0.45),
+    0 0 10px color-mix(in srgb, var(--scan-oval-ring-color) 48%, transparent),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
   animation: scan-pulse-ring 2.4s ease-in-out infinite;
+}
+
+.scan-oval-frame--warn .scan-oval-ring,
+.scan-oval-frame--pending .scan-oval-ring {
+  animation: none;
 }
 
 @keyframes scan-pulse-ring {

@@ -25,10 +25,10 @@
 - `INVALID_ROI` = SDK не распознал лицо.
 - Подсказки в `MEASURING` через `onImageData`.
 
-## Прогресс овала (гибрид)
+## Прогресс овала
 
-- База: `elapsed / processingTime` от `MEASURING` до `STOPPING` (таймер SDK).
-- Пауза визуала: при `ImageValidity !== VALID` дольше 400 ms дуга не растёт (SDK-сессия не останавливается).
+- Дуга: `elapsed / processingTime` от `MEASURING` до `STOPPING` (таймер SDK, без пауз).
+- Цвет кольца и дуги = плашка кадра: `pending` (ожидание) / `ok` (VALID) / `warn` (поправьте лицо).
 
 ## Отладка
 

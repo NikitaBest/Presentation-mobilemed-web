@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { getStoredToken, getStoredUserId } from './api/session.js'
+import { clearAuthSession } from './api/auth.js'
+import { getStoredToken } from './api/session.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
@@ -22,6 +23,7 @@ import {
   LANGUAGE_STEP,
   SETTINGS_STEP,
   SCAN_HISTORY_STEP,
+  clearPersistedStep,
   readInitialStep,
   writePersistedStep,
 } from './utils/appStepStorage.js'
@@ -84,6 +86,15 @@ export default function App() {
   const closeOverlayStep = useCallback(() => {
     setStep(returnStep)
   }, [returnStep])
+
+  const handleLogout = useCallback(() => {
+    clearAuthSession()
+    setUserForm({ ...USER_FORM_INITIAL })
+    setScanSummary(null)
+    setUserDataHint('')
+    clearPersistedStep()
+    setStep(AUTH_STEP)
+  }, [])
 
   const startScanFlow = useCallback(() => {
     setStep('welcome')
@@ -216,7 +227,7 @@ export default function App() {
         />
       )}
       {activeStep === SETTINGS_STEP && (
-        <SettingsPage onBack={closeOverlayStep} />
+        <SettingsPage onBack={closeOverlayStep} onLogout={handleLogout} />
       )}
       {activeStep === SCAN_HISTORY_STEP && (
         <ScanHistoryPage onBack={closeOverlayStep} onOpenScan={openScanFromHistory} />

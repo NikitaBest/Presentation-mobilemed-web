@@ -23,9 +23,9 @@ function IconSettings() {
 }
 
 /**
- * @param {{ onBack: () => void }} props
+ * @param {{ onBack: () => void, onLogout: () => void }} props
  */
-export function SettingsPage({ onBack }) {
+export function SettingsPage({ onBack, onLogout }) {
   const { locale, setLocale, t } = useI18n()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -77,6 +77,24 @@ export function SettingsPage({ onBack }) {
                 {error}
               </p>
             ) : null}
+          </section>
+
+          <section
+            className="settings-page__section settings-page__account"
+            aria-labelledby="settings-account-title"
+          >
+            <h2 id="settings-account-title" className="settings-page__section-title">
+              {t('results.settingsAccount')}
+            </h2>
+            <p className="settings-page__account-lead">{t('results.settingsLogoutLead')}</p>
+            <button
+              type="button"
+              className="btn-secondary settings-page__logout"
+              disabled={busy}
+              onClick={onLogout}
+            >
+              {t('results.settingsLogout')}
+            </button>
           </section>
         </div>
 

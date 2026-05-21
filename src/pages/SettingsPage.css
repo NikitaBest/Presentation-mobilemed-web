@@ -61,11 +61,42 @@
   color: var(--mm-error);
 }
 
+.settings-page__scroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-3);
+}
+
+.settings-page__account-lead {
+  margin: 0 0 var(--mm-space-3);
+  font-size: var(--mm-font-size-sm);
+  line-height: 1.4;
+  color: var(--mm-text-muted);
+}
+
+.settings-page__logout {
+  width: 100%;
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.45);
+  background: var(--mm-bg-surface);
+}
+
+.settings-page__logout:hover {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: #dc2626;
+}
+
+.settings-page__logout:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
 .settings-page.page-shell {
   flex: 1;
   min-height: 0;
 }
 
-.settings-page__scroll {
+.settings-page__scroll.page-shell__scroll {
   padding-bottom: var(--mm-space-2);
 }

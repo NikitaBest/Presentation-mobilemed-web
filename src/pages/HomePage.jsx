@@ -99,52 +99,56 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
 
         <div className="home-page__scroll page-shell__scroll">
           <section className="home-scans" aria-labelledby="home-scans-title">
-            <h2 id="home-scans-title" className="home-scans__section-title">
-              {t('home.historyTitle')}
-            </h2>
+            <div className="home-scans__panel">
+              <h2 id="home-scans-title" className="home-scans__panel-title">
+                {t('home.historyTitle')}
+              </h2>
 
-            {phase === 'loading' ? (
-              <p className="home-scans__status">{t('home.historyLoading')}</p>
-            ) : null}
+              {phase === 'loading' ? (
+                <p className="home-scans__status">{t('home.historyLoading')}</p>
+              ) : null}
 
-            {phase === 'error' ? (
-              <div className="home-scans__error-wrap">
-                <p className="home-scans__error" role="alert">
-                  {error}
-                </p>
-                <button type="button" className="btn-secondary home-scans__retry" onClick={() => void load()}>
-                  {t('home.historyRetry')}
-                </button>
-              </div>
-            ) : null}
+              {phase === 'error' ? (
+                <div className="home-scans__error-wrap">
+                  <p className="home-scans__error" role="alert">
+                    {error}
+                  </p>
+                  <button type="button" className="btn-secondary home-scans__retry" onClick={() => void load()}>
+                    {t('home.historyRetry')}
+                  </button>
+                </div>
+              ) : null}
 
-            {phase === 'empty' ? (
-              <p className="home-scans__empty">{t('home.historyEmpty')}</p>
-            ) : null}
+              {phase === 'empty' ? (
+                <p className="home-scans__empty">{t('home.historyEmpty')}</p>
+              ) : null}
 
-            {phase === 'ready' && recentRows.length > 0 ? (
-              <>
-                <ul className="home-scans__list">
-                  {recentRows.map((row) => (
-                    <li key={scanRowKey(row)}>
-                      <HomeLatestScan
-                        row={row}
-                        locale={locale}
-                        t={t}
-                        onOpen={() => onOpenScan(row)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  className="btn-secondary home-scans__all"
-                  onClick={onOpenAllScans}
-                >
-                  {t('home.allMetrics')}
-                </button>
-              </>
-            ) : null}
+              {phase === 'ready' && recentRows.length > 0 ? (
+                <>
+                  <ul className="home-scans__list" aria-label={t('home.historyRecentAria')}>
+                    {recentRows.map((row) => (
+                      <li key={scanRowKey(row)}>
+                        <HomeLatestScan
+                          row={row}
+                          locale={locale}
+                          t={t}
+                          onOpen={() => onOpenScan(row)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="home-scans__panel-foot">
+                    <button
+                      type="button"
+                      className="btn-secondary home-scans__all"
+                      onClick={onOpenAllScans}
+                    >
+                      {t('home.allMetrics')}
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </section>
 
           <button type="button" className="home-scan-card" onClick={onStartScan}>

@@ -104,7 +104,6 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
       <div className="home-page page-shell">
         <div className="home-page__body page-shell__scroll">
           <header className="home-page__header">
-            <span className="home-page__brand">{t('home.brand')}</span>
             <div className="home-page__header-top">
               <h1 className="home-page__title">{t('home.title')}</h1>
               <button
@@ -116,23 +115,52 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                 <SettingsIcon />
               </button>
             </div>
-            {quotaPhase === 'loading' ? (
-              <p className="home-page__quota home-page__quota--loading" aria-live="polite">
-                {t('home.scansLeftLoading')}
-              </p>
-            ) : null}
-            {quotaPhase === 'ready' && scansLeft != null ? (
-              <p
-                className={`home-page__quota${scansLeft === 0 ? ' home-page__quota--empty' : ''}`}
-                role="status"
-              >
-                <span className="home-page__quota-value">{scansLeft}</span>
-                <span className="home-page__quota-label">
-                  {scansLeft === 0 ? t('home.scansLeftNone') : t('home.scansLeftLabel')}
-                </span>
-              </p>
-            ) : null}
           </header>
+
+          <section className="home-page__scan-section" aria-label={t('home.scanTitle')}>
+            <button
+              type="button"
+              className={`home-page__scan-card${
+                quotaPhase === 'ready' && scansLeft === 0
+                  ? ' home-page__scan-card--disabled'
+                  : ''
+              }`}
+              disabled={quotaPhase === 'ready' && scansLeft === 0}
+              onClick={onStartScan}
+            >
+              <span className="home-page__scan-icon" aria-hidden>
+                <IconScan />
+              </span>
+              <span className="home-page__scan-body">
+                <span className="home-page__scan-label">{t('home.scanTitle')}</span>
+                <span className="home-page__scan-hint">{t('home.scanLead')}</span>
+                {quotaPhase === 'loading' ? (
+                  <span
+                    className="home-page__scan-quota home-page__scan-quota--loading"
+                    aria-live="polite"
+                  >
+                    {t('home.scansLeftLoading')}
+                  </span>
+                ) : null}
+                {quotaPhase === 'ready' && scansLeft != null ? (
+                  <span
+                    className={`home-page__scan-quota${
+                      scansLeft === 0 ? ' home-page__scan-quota--empty' : ''
+                    }`}
+                    role="status"
+                  >
+                    <span className="home-page__scan-quota-value">{scansLeft}</span>
+                    <span className="home-page__scan-quota-label">
+                      {scansLeft === 0 ? t('home.scansLeftNone') : t('home.scansLeftLabel')}
+                    </span>
+                  </span>
+                ) : null}
+              </span>
+              <span className="home-page__scan-chevron" aria-hidden>
+                ›
+              </span>
+            </button>
+          </section>
 
           <section className="home-scans" aria-labelledby="home-scans-title">
             <h2 id="home-scans-title" className="home-page__section-title">
@@ -192,24 +220,6 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                 </>
               ) : null}
             </div>
-          </section>
-
-          <section className="home-page__scan-section" aria-labelledby="home-scan-title">
-            <h2 id="home-scan-title" className="home-page__section-title">
-              {t('home.scanTitle')}
-            </h2>
-            <button type="button" className="home-page__scan-card" onClick={onStartScan}>
-              <span className="home-page__scan-icon" aria-hidden>
-                <IconScan />
-              </span>
-              <span className="home-page__scan-body">
-                <span className="home-page__scan-label">{t('home.scanTitle')}</span>
-                <span className="home-page__scan-hint">{t('home.scanLead')}</span>
-              </span>
-              <span className="home-page__scan-chevron" aria-hidden>
-                ›
-              </span>
-            </button>
           </section>
         </div>
 

@@ -2,7 +2,7 @@
   "x-generator": "NSwag v14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))",
   "openapi": "3.0.0",
   "info": {
-    "title": "MobileMed Retail API",
+    "title": "MobileMed API (Демо презентация)",
     "description": "Локализация ru/en: login locale → JWT; анонимные GET — Accept-Language. docs/localization_locale_contract.md",
     "version": "v1"
   },
@@ -74,6 +74,59 @@
           }
         },
         "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/scan/rppg-scan/{scanId}/llm-interpretation": {
+      "get": {
+        "tags": [
+          "Scan"
+        ],
+        "summary": "LLM-расшифровка скана RPPG (HTML)",
+        "description": "Возвращает HTML-расшифровку результатов скана. При первом запросе генерируется через OpenRouter и сохраняется в БД. Повторный запрос отдаёт кэш. Query regenerate=true — принудительная перегенерация.",
+        "operationId": "ApiEndpointsScanGetRppgScanLlmInterpretationGetRppgScanLlmInterpretationEndpoint",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          {
+            "name": "regenerate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedContractsResultOfRppgScanLlmInterpretationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "JWTBearerAuth": []
+          },
           {
             "Bearer": []
           }
@@ -1004,6 +1057,50 @@
         "type": "object",
         "additionalProperties": false
       },
+      "SharedContractsResultOfRppgScanLlmInterpretationResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SharedContractsResult"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ApplicationModelsRppgScanRppgScanLlmInterpretationResponse"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ApplicationModelsRppgScanRppgScanLlmInterpretationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scanId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "culture": {
+            "type": "string"
+          },
+          "html": {
+            "type": "string"
+          },
+          "fromCache": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiEndpointsScanGetRppgScanLlmInterpretationGetRppgScanLlmInterpretationRequest": {
+        "type": "object",
+        "additionalProperties": false
+      },
       "SharedContractsResultOfPagedListOfSaveRppgSсanResponse": {
         "allOf": [
           {
@@ -1134,6 +1231,10 @@
                 ]
               },
               "sdkResult": {
+                "type": "string",
+                "nullable": true
+              },
+              "llmInterpretationHtml": {
                 "type": "string",
                 "nullable": true
               },
@@ -2237,24 +2338,27 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "scanResult": {},
           "name": {
             "type": "string",
+            "default": "Никита",
             "nullable": true
           },
           "age": {
             "type": "integer",
             "format": "int32",
+            "default": 25,
             "nullable": true
           },
           "height": {
             "type": "integer",
             "format": "int32",
+            "default": 178,
             "nullable": true
           },
           "weight": {
             "type": "integer",
             "format": "int32",
+            "default": 82,
             "nullable": true
           },
           "gender": {
@@ -2266,12 +2370,16 @@
             ]
           },
           "smokeStatus": {
+            "default": 0,
             "nullable": true,
             "oneOf": [
               {
                 "$ref": "#/components/schemas/InfrastructureDbAppEntitiesSmokeStatus"
               }
             ]
+          },
+          "scanResult": {
+            "default": "{}"
           }
         }
       },

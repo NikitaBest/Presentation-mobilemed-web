@@ -83,6 +83,8 @@ export function UserDataPage({
   onBack,
   onContinue,
   profileHint = '',
+  /** @type {'flow' | 'profile'} */
+  variant = 'flow',
 }) {
   const { t, locale } = useI18n()
   const [saveError, setSaveError] = useState('')
@@ -529,12 +531,16 @@ export function UserDataPage({
               form="user-data-form"
               disabled={saving}
             >
-              {saving ? t('userData.saving') : t('userData.next')}
+              {saving
+                ? t('userData.saving')
+                : variant === 'profile'
+                  ? t('home.profileSave')
+                  : t('userData.next')}
             </button>
           </div>
-          <p className="user-data-footer-hint">
-            {t('userData.footerHint')}
-          </p>
+          {variant === 'flow' ? (
+            <p className="user-data-footer-hint">{t('userData.footerHint')}</p>
+          ) : null}
         </footer>
       </div>
     </AppLayout>

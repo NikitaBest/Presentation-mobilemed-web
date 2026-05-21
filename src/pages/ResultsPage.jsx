@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HealthScoreCore } from '../components/HealthScoreCore.jsx'
-import { LanguageSwitch } from '../components/LanguageSwitch.jsx'
 import { MetricCardsGrid } from '../components/metrics/MetricCardsGrid.jsx'
 import { MetricDetailSheet } from '../components/metrics/MetricDetailSheet.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
@@ -26,7 +25,7 @@ function selectScanRow(response, preferredScanId) {
  * Итог после сканирования: POST /scan/save-rppg + расшифровка из GET /scan/get.
  */
 export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
-  const { locale, setLocale, t } = useI18n()
+  const { t } = useI18n()
   const preferredScanId =
     scanSummary?.value?.scan?.id ?? scanSummary?.value?.rppgScanId ?? null
   const saveOk = scanSummary && scanSummary.isSuccess !== false
@@ -38,9 +37,6 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
   const [selectedTranscript, setSelectedTranscript] = useState(null)
   const [tapHintActive, setTapHintActive] = useState(false)
   const [tapHintExiting, setTapHintExiting] = useState(false)
-  const [settingsBusy, setSettingsBusy] = useState(false)
-  const [settingsError, setSettingsError] = useState('')
-
   const load = useCallback(async () => {
     setPhase('loading')
     setFetchError('')
@@ -108,23 +104,6 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
     setTapHintExiting(false)
   }, [])
 
-  const handleLocaleChange = useCallback(
-    async (next) => {
-      if (next === locale) return
-      setSettingsError('')
-      setSettingsBusy(true)
-      try {
-        await setLocale(next)
-        await load()
-      } catch (e) {
-        setSettingsError(e instanceof Error ? e.message : t('results.localeError'))
-      } finally {
-        setSettingsBusy(false)
-      }
-    },
-    [locale, setLocale, load, t],
-  )
-
   return (
     <AppLayout>
       <div
@@ -132,38 +111,11 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
       >
         <header className="results-page__header">
           <span className="results-page__brand">{t('results.brand')}</span>
-          <div className="results-page__header-main">
-            <h1 className="results-page__title">{t('results.title')}</h1>
-            <p className="results-page__lead">
-              {saveOk ? t('results.leadOk') : t('results.leadSaveFail')}
-            </p>
-          </div>
+          <h1 className="results-page__title">{t('results.title')}</h1>
+          <p className="results-page__lead">
+            {saveOk ? t('results.leadOk') : t('results.leadSaveFail')}
+          </p>
         </header>
-
-        <section className="results-settings" aria-labelledby="results-settings-title">
-          <h2 id="results-settings-title" className="results-settings__title">
-            {t('results.settingsTitle')}
-          </h2>
-          <p className="results-settings__desc">{t('results.settingsLang')}</p>
-          <p className="results-settings__hint">{t('results.settingsLangHint')}</p>
-          <div className="results-settings__row">
-            <span className="results-settings__label" id="results-lang-label">
-              {t('welcome.langLabel')}
-            </span>
-            <LanguageSwitch
-              value={locale}
-              onChange={handleLocaleChange}
-              disabled={settingsBusy || phase === 'loading'}
-              labels={{ ru: t('lang.ru'), en: t('lang.en') }}
-              aria-labelledby="results-lang-label"
-            />
-          </div>
-          {settingsError ? (
-            <p className="results-settings__error" role="alert">
-              {settingsError}
-            </p>
-          ) : null}
-        </section>
 
         <div className="results-page__scroll page-body">
           {phase === 'loading' ? (

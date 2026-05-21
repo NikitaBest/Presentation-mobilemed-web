@@ -12,14 +12,14 @@ import {
 import './WelcomePage.css'
 
 /**
- * Стартовый экран: знакомство с сервисом и переход к сценарию.
+ * Описание перед сканированием (переход с главной).
  */
 export function WelcomePage({
   authStatus = 'ready',
   authError = '',
   onRetryAuth,
   onContinue,
-  onBackToLanguage,
+  onBack,
 }) {
   const { locale, t } = useI18n()
   const loading = authStatus === 'loading'
@@ -112,7 +112,7 @@ export function WelcomePage({
         <footer className="page-dock welcome-page__dock">
           <p className="page-dock__disclaimer">{t('welcome.disclaimer')}</p>
           <div className="page-footer--row">
-            <button type="button" className="btn-secondary" onClick={onBackToLanguage}>
+            <button type="button" className="btn-secondary" onClick={onBack}>
               {t('common.back')}
             </button>
             {failed && onRetryAuth ? (

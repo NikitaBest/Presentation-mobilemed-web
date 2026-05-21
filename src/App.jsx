@@ -3,17 +3,21 @@ import { ensureAuthSession } from './api/auth.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
+import { HomePage } from './pages/HomePage.jsx'
 import { WelcomePage } from './pages/WelcomePage.jsx'
 import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
 import { ResultsPage } from './pages/ResultsPage.jsx'
+import { SettingsPage } from './pages/SettingsPage.jsx'
 const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
 import {
   APP_STEPS,
+  HOME_STEP,
   LANGUAGE_STEP,
+  SETTINGS_STEP,
   readInitialStep,
   writePersistedStep,
 } from './utils/appStepStorage.js'
@@ -28,6 +32,9 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState('loading')
   const [authError, setAuthError] = useState('')
   const [userDataHint, setUserDataHint] = useState('')
+  const [returnStep, setReturnStep] = useState(HOME_STEP)
+  /** @type {'flow' | 'profile'} */
+  const [userDataVariant, setUserDataVariant] = useState('flow')
 
   const runAuth = useCallback(async () => {
     setAuthStatus('loading')
@@ -48,16 +55,31 @@ export default function App() {
   }, [runAuth, step])
 
   useEffect(() => {
-    if (step === LANGUAGE_STEP) return
+    if (step === LANGUAGE_STEP || step === SETTINGS_STEP) return
     writePersistedStep(step)
   }, [step])
 
   const completeLanguageStep = useCallback(() => {
+    setStep(HOME_STEP)
+  }, [])
+
+  const openSettings = useCallback((fromStep = HOME_STEP) => {
+    setReturnStep(fromStep)
+    setStep(SETTINGS_STEP)
+  }, [])
+
+  const closeSettings = useCallback(() => {
+    setStep(returnStep)
+  }, [returnStep])
+
+  const startScanFlow = useCallback(() => {
     setStep('welcome')
   }, [])
 
-  const goToLanguageSelect = useCallback(() => {
-    setStep(LANGUAGE_STEP)
+  const openScanFromHistory = useCallback((row) => {
+    const scanId = row?.scan?.id ?? row?.rppgScanId ?? null
+    setScanSummary(scanId ? { value: { scan: { id: scanId } } } : null)
+    setStep('results')
   }, [])
 
   useEffect(() => {
@@ -66,34 +88,26 @@ export default function App() {
     }
   }, [step])
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- загрузка /user/me при входе на шаг */
-    if (step !== 'userData') return
-    let cancelled = false
-    setUserDataHint('')
-    ;(async () => {
-      try {
-        const user = await getUserMe()
-        if (cancelled || !user) return
-        const patch = mapUserEntityToFormPatch(user)
-        if (Object.keys(patch).length > 0) {
-          setUserForm((prev) => ({ ...prev, ...patch }))
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setUserDataHint(
-            e instanceof Error
-              ? e.message
-              : t('app.profileLoadError'),
-          )
-        }
+  const loadUserProfile = useCallback(async () => {
+    try {
+      const user = await getUserMe()
+      if (!user) return
+      const patch = mapUserEntityToFormPatch(user)
+      if (Object.keys(patch).length > 0) {
+        setUserForm((prev) => ({ ...prev, ...patch }))
       }
-    })()
-    /* eslint-enable react-hooks/set-state-in-effect */
-    return () => {
-      cancelled = true
+    } catch (e) {
+      setUserDataHint(e instanceof Error ? e.message : t('app.profileLoadError'))
     }
-  }, [step, t])
+  }, [t])
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- загрузка /user/me на главной и в анкете */
+    if (step !== HOME_STEP && step !== 'userData') return
+    setUserDataHint('')
+    void loadUserProfile()
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [step, loadUserProfile])
 
   const patchUserForm = useCallback((patch) => {
     setUserForm((prev) => ({ ...prev, ...patch }))
@@ -115,10 +129,43 @@ export default function App() {
     })
   }, [])
 
+  const goHome = useCallback(() => {
+    setStep(HOME_STEP)
+  }, [])
+
+  const openEditProfile = useCallback(() => {
+    setUserDataVariant('profile')
+    setStep('userData')
+  }, [])
+
+  const finishUserDataProfile = useCallback(() => {
+    setUserDataVariant('flow')
+    setStep(HOME_STEP)
+  }, [])
+
+  const finishUserDataFlow = useCallback(() => {
+    setUserDataVariant('flow')
+    goNext()
+  }, [goNext])
+
+  const cancelUserDataProfile = useCallback(() => {
+    setUserDataVariant('flow')
+    goHome()
+  }, [goHome])
+
   const renderStep = (activeStep) => (
     <>
       {activeStep === LANGUAGE_STEP && (
         <LanguageSelectPage onComplete={completeLanguageStep} />
+      )}
+      {activeStep === HOME_STEP && (
+        <HomePage
+          userForm={userForm}
+          onStartScan={startScanFlow}
+          onOpenSettings={() => openSettings(HOME_STEP)}
+          onOpenScan={openScanFromHistory}
+          onEditProfile={openEditProfile}
+        />
       )}
       {activeStep === 'welcome' && (
         <WelcomePage
@@ -126,15 +173,18 @@ export default function App() {
           authError={authError}
           onRetryAuth={runAuth}
           onContinue={goNext}
-          onBackToLanguage={goToLanguageSelect}
+          onBack={goHome}
         />
       )}
       {activeStep === 'userData' && (
         <UserDataPage
           value={userForm}
           onFormChange={patchUserForm}
-          onBack={goBack}
-          onContinue={goNext}
+          variant={userDataVariant}
+          onBack={userDataVariant === 'profile' ? cancelUserDataProfile : goBack}
+          onContinue={
+            userDataVariant === 'profile' ? finishUserDataProfile : finishUserDataFlow
+          }
           profileHint={userDataHint}
         />
       )}
@@ -153,10 +203,13 @@ export default function App() {
       )}
       {activeStep === 'results' && (
         <ResultsPage
-          onGoHome={() => setStep('welcome')}
+          onGoHome={goHome}
           onMeasureAgain={() => setStep('instruction')}
           scanSummary={scanSummary}
         />
+      )}
+      {activeStep === SETTINGS_STEP && (
+        <SettingsPage onBack={closeSettings} />
       )}
     </>
   )

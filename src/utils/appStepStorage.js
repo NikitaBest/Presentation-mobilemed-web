@@ -5,6 +5,13 @@ const STEP_STORAGE_KEY = 'mm_app_step'
 /** Экран выбора языка при первом входе (не в цепочке «Далее»). */
 export const LANGUAGE_STEP = 'language'
 
+/** Настройки (не в цепочке сканирования). */
+export const SETTINGS_STEP = 'settings'
+
+/** Главная после выбора языка (не в цепочке сканирования). */
+export const HOME_STEP = 'home'
+
+/** Линейный сценарий: описание → анкета → подготовка → скан → результаты. */
 export const APP_STEPS = [
   'welcome',
   'userData',
@@ -28,18 +35,20 @@ export function readInitialStep() {
 export function readPersistedStep() {
   try {
     const raw = sessionStorage.getItem(STEP_STORAGE_KEY)
-    if (raw && APP_STEPS.includes(raw)) return raw
+    if (raw && PERSISTED_STEPS.includes(raw)) return raw
   } catch {
     /* private mode / quota */
   }
-  return 'welcome'
+  return HOME_STEP
 }
+
+const PERSISTED_STEPS = [HOME_STEP, ...APP_STEPS]
 
 /**
  * @param {string} step
  */
 export function writePersistedStep(step) {
-  if (!APP_STEPS.includes(step)) return
+  if (!PERSISTED_STEPS.includes(step)) return
   try {
     sessionStorage.setItem(STEP_STORAGE_KEY, step)
   } catch {

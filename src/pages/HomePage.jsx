@@ -40,7 +40,6 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
   const [historyTotal, setHistoryTotal] = useState(0)
-  const [hasMoreHistory, setHasMoreHistory] = useState(false)
   /** @type {'loading' | 'ready' | 'hidden'} */
   const [quotaPhase, setQuotaPhase] = useState('loading')
   /** @type {number | null} */
@@ -82,16 +81,12 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
       const total = typeof value?.totalCount === 'number' ? value.totalCount : data.length
       setRows(data)
       setHistoryTotal(total)
-      setHasMoreHistory(
-        Boolean(value?.hasNext) || total > SCAN_HISTORY_HOME_PREVIEW_SIZE,
-      )
       setPhase(data.length > 0 ? 'ready' : 'empty')
     } catch (e) {
       setPhase('error')
       setError(e instanceof Error ? e.message : t('home.historyError'))
       setRows([])
       setHistoryTotal(0)
-      setHasMoreHistory(false)
     }
   }, [t])
 
@@ -182,20 +177,18 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                       </li>
                     ))}
                   </ul>
-                  {hasMoreHistory || historyTotal > SCAN_HISTORY_HOME_PREVIEW_SIZE ? (
-                    <div className="home-scans__panel-foot">
-                      <button
-                        type="button"
-                        className="home-scans__all"
-                        onClick={onOpenAllScans}
-                      >
-                        {t('home.allMetrics')}
-                        {historyTotal > SCAN_HISTORY_HOME_PREVIEW_SIZE
-                          ? ` (${historyTotal})`
-                          : ''}
-                      </button>
-                    </div>
-                  ) : null}
+                  <div className="home-scans__panel-foot">
+                    <button
+                      type="button"
+                      className="home-scans__all"
+                      onClick={onOpenAllScans}
+                    >
+                      {t('home.allHistory')}
+                      {historyTotal > recentRows.length
+                        ? ` (${historyTotal})`
+                        : ''}
+                    </button>
+                  </div>
                 </>
               ) : null}
             </div>

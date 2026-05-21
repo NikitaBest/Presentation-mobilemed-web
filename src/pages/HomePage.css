@@ -39,11 +39,6 @@
     background-color 0.15s ease;
 }
 
-.home-page__settings-btn svg {
-  width: 1.375rem;
-  height: 1.375rem;
-}
-
 .home-page__settings-btn:hover {
   color: var(--mm-primary);
   background: var(--mm-bg-primary-soft);

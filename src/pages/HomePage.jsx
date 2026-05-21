@@ -3,27 +3,10 @@ import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
 import { getAvailableRppgScansFromUser, getUserMe } from '../api/user.js'
+import { SettingsIcon } from '../components/icons/SettingsIcon.jsx'
 import { useI18n } from '../i18n/useI18n.js'
 import '../components/home/HomeLatestScan.css'
 import './HomePage.css'
-
-function IconSettings() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-      />
-      <path
-        d="M19.4 13a7.97 7.97 0 0 0 .1-2l2-1.2-2-3.4-2.3.9a8.1 8.1 0 0 0-1.7-1L15.5 2h-7L8.5 5.3a8.1 8.1 0 0 0-1.7 1L4.5 5.4l-2 3.4 2 1.2a7.97 7.97 0 0 0 0 2l-2 1.2 2 3.4 2.3-.9a8.1 8.1 0 0 0 1.7 1L8.5 22h7l.8-3.3a8.1 8.1 0 0 0 1.7-1l2.3.9 2-3.4-1.9-1.2Z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 function IconScan() {
   return (
@@ -117,7 +100,7 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
               aria-label={t('home.openSettings')}
               onClick={onOpenSettings}
             >
-              <IconSettings />
+              <SettingsIcon />
             </button>
           </div>
           <span className="home-page__brand">{t('home.brand')}</span>

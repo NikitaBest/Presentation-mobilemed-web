@@ -24,10 +24,9 @@
   color: var(--mm-text-heading);
 }
 
-.settings-page__title-icon {
+.settings-page__title-icon.settings-icon {
   width: 1.5rem;
   height: 1.5rem;
-  flex-shrink: 0;
   color: var(--mm-primary);
 }
 

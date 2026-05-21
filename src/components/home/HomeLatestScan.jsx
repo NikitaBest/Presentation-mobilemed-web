@@ -1,4 +1,4 @@
-import { getScanDisplayName } from '../../api/user.js'
+import { getScanDisplayName, getScanRowCreatedAt } from '../../api/scanHistory.js'
 import { healthScoreBand } from '../healthScoreBand.js'
 import { formatScanWhen } from '../../utils/scanDate.js'
 import '../../components/HealthScoreCore.css'
@@ -23,7 +23,7 @@ export function HomeLatestScan({ row, locale, t, onOpen, className = '' }) {
   const dashOffset = RING_C * (1 - progress)
   const caption = t(`healthScore.band.${band}`)
 
-  const when = formatScanWhen(row?.scan?.createdAt ?? row?.createdAt, locale)
+  const when = formatScanWhen(getScanRowCreatedAt(row), locale)
   const whenLabel = when.time ? `${when.date} · ${when.time}` : when.date
   const personName = getScanDisplayName(row)
   const ariaDate = personName ? `${personName}, ${whenLabel}` : whenLabel
@@ -62,7 +62,7 @@ export function HomeLatestScan({ row, locale, t, onOpen, className = '' }) {
             <p className="home-latest__name">{personName}</p>
           ) : null}
           <p className="home-latest__when">
-            <time dateTime={row?.scan?.createdAt ?? row?.createdAt ?? undefined}>
+            <time dateTime={getScanRowCreatedAt(row)}>
               {whenLabel}
             </time>
           </p>

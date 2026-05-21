@@ -18,8 +18,15 @@ export {
   mapFormToUpdateUserRequest,
   mapFormToSaveRppgRequest,
   mapUserEntityToFormPatch,
-  getScanDisplayName,
 } from './user.js'
+export {
+  getScansHistory,
+  normalizeScanHistoryRow,
+  getScanDisplayName,
+  getScanRowId,
+  getScanRowCreatedAt,
+  getScanHistoryRowKey,
+} from './scanHistory.js'
 export {
   getStoredToken,
   getStoredUserId,

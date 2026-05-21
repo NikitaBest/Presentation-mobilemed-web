@@ -3,7 +3,7 @@ import { AppLayout } from '../components/AppLayout.jsx'
 import { ResultsHealthSummary } from '../components/results/ResultsHealthSummary.jsx'
 import { MetricCardsGrid } from '../components/metrics/MetricCardsGrid.jsx'
 import { MetricDetailSheet } from '../components/metrics/MetricDetailSheet.jsx'
-import { getScansHistory } from '../api/scanHistory.js'
+import { getScanRowId, getScansHistory } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
 import { readLocaleForApp } from '../i18n/locale.js'
 import { formatMessage } from '../i18n/messages.js'
@@ -17,7 +17,7 @@ function selectScanRow(response, preferredScanId) {
   const rows = response?.value?.data
   if (!Array.isArray(rows) || rows.length === 0) return { row: null, matchedPreferred: false }
   if (preferredScanId) {
-    const hit = rows.find((r) => r?.scan?.id === preferredScanId)
+    const hit = rows.find((r) => getScanRowId(r) === preferredScanId)
     if (hit) return { row: hit, matchedPreferred: true }
     return { row: rows[0], matchedPreferred: false }
   }

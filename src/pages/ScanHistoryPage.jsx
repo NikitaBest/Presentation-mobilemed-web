@@ -1,16 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
-import { getScansHistory } from '../api/scanHistory.js'
+import { getScanHistoryRowKey, getScansHistory } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
 import '../components/home/HomeLatestScan.css'
 import './ScanHistoryPage.css'
 
 const PAGE_SIZE = 20
-
-function scanRowKey(row) {
-  return row?.scan?.id ?? row?.rppgScanId ?? `${row?.scan?.createdAt ?? row?.createdAt ?? ''}`
-}
 
 /**
  * @param {{ onBack: () => void, onOpenScan: (row: object) => void }} props
@@ -103,7 +99,7 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
             <>
               <ul className="scan-history-page__list">
                 {rows.map((row) => (
-                  <li key={scanRowKey(row)}>
+                  <li key={getScanHistoryRowKey(row)}>
                     <HomeLatestScan
                       row={row}
                       locale={locale}

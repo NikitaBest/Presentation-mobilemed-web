@@ -96,16 +96,6 @@ export function mapFormToSaveRppgRequest(scanResult, form) {
 }
 
 /**
- * Имя владельца скана из строки GET /scan/get.
- * @param {object | null | undefined} row
- * @returns {string}
- */
-export function getScanDisplayName(row) {
-  const raw = row?.scan?.name ?? row?.name
-  return typeof raw === 'string' ? raw.trim() : ''
-}
-
-/**
  * UserEntity из /user/me → частичное состояние формы (поверх текущего).
  * @param {object | null} user
  * @returns {Record<string, unknown>} только заданные с сервера поля

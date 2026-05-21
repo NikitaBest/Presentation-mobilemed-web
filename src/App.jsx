@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { clearAuthSession } from './api/auth.js'
 import { getStoredToken } from './api/session.js'
+import { getScanRowId } from './api/scanHistory.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
@@ -101,7 +102,7 @@ export default function App() {
   }, [])
 
   const openScanFromHistory = useCallback((row) => {
-    const scanId = row?.scan?.id ?? row?.rppgScanId ?? null
+    const scanId = getScanRowId(row)
     setScanSummary(scanId ? { value: { scan: { id: scanId } } } : null)
     setStep('results')
   }, [])

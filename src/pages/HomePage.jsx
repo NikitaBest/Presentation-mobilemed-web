@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
-import { getScansHistory } from '../api/scanHistory.js'
+import { getScanHistoryRowKey, getScansHistory } from '../api/scanHistory.js'
 import { getAvailableRppgScansFromUser, getUserMe } from '../api/user.js'
 import { SettingsIcon } from '../components/icons/SettingsIcon.jsx'
 import { useI18n } from '../i18n/useI18n.js'
@@ -20,10 +20,6 @@ function IconScan() {
       <ellipse cx="12" cy="12" rx="4" ry="5.5" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   )
-}
-
-function scanRowKey(row) {
-  return row?.scan?.id ?? row?.rppgScanId ?? `${row?.scan?.createdAt ?? row?.createdAt ?? ''}`
 }
 
 /**
@@ -121,7 +117,6 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                 </span>
               </p>
             ) : null}
-            <p className="home-page__lead">{t('home.lead')}</p>
           </header>
 
           <section className="home-scans" aria-labelledby="home-scans-title">
@@ -156,7 +151,7 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                 <>
                   <ul className="home-scans__list" aria-label={t('home.historyRecentAria')}>
                     {recentRows.map((row, index) => (
-                      <li key={scanRowKey(row)}>
+                      <li key={getScanHistoryRowKey(row)}>
                         <HomeLatestScan
                           row={row}
                           locale={locale}

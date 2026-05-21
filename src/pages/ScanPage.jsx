@@ -486,7 +486,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
           sdkRawResultsKeys: Object.keys(scanResult.sdkRaw?.results ?? {}),
         })
         try {
-          const apiResult = await postSaveRppgScan(scanResult)
+          const apiResult = await postSaveRppgScan(scanResult, userForm)
           onSaved?.(apiResult)
           teardownStream()
           teardownSession()

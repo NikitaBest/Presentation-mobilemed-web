@@ -1,3 +1,4 @@
+import { getScanDisplayName } from '../../api/user.js'
 import { healthScoreBand } from '../healthScoreBand.js'
 import { formatScanWhen } from '../../utils/scanDate.js'
 import '../../components/HealthScoreCore.css'
@@ -23,13 +24,15 @@ export function HomeLatestScan({ row, locale, t, onOpen }) {
 
   const when = formatScanWhen(row?.scan?.createdAt ?? row?.createdAt, locale)
   const whenLabel = when.time ? `${when.date} · ${when.time}` : when.date
+  const personName = getScanDisplayName(row)
+  const ariaDate = personName ? `${personName}, ${whenLabel}` : whenLabel
 
   return (
     <button
       type="button"
       className={`home-latest health-core--${band}`}
       onClick={onOpen}
-      aria-label={t('home.latestOpen', { date: whenLabel })}
+      aria-label={t('home.latestOpen', { date: ariaDate })}
     >
       <div className="home-latest__ring" aria-hidden>
         <svg className="home-latest__ring-svg" viewBox="0 0 52 52" focusable="false">
@@ -52,6 +55,9 @@ export function HomeLatestScan({ row, locale, t, onOpen }) {
 
       <div className="home-latest__desc">
         <div className="home-latest__head">
+          {personName ? (
+            <p className="home-latest__name">{personName}</p>
+          ) : null}
           <p className="home-latest__when">
             <time dateTime={row?.scan?.createdAt ?? row?.createdAt ?? undefined}>
               {whenLabel}

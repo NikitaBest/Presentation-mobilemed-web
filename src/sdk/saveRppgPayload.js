@@ -1,7 +1,7 @@
 import { vitalSignsToFlatMetrics } from './vitalSignsSerialize.js'
 
 /**
- * POST /scan/save-rppg: тело `{ scanResult }`, внутри takenAt, source, metrics, sdkRaw (см. docs/API.md).
+ * POST /scan/save-rppg: scanResult + name/антропометрия из анкеты (см. mapFormToSaveRppgRequest, docs/API.md).
  * metrics — плоские показатели с unit/confidence для бекенда; sdkRaw — объект с полным results.
  */
 

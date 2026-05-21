@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { getStoredToken, getStoredUserId } from './api/session.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
-import { loadUserDisplayName } from './utils/userDisplayNameStorage.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
 import { AuthPage } from './pages/AuthPage.jsx'
@@ -107,8 +106,6 @@ export default function App() {
       const user = await getUserMe()
       if (!user) return
       const patch = mapUserEntityToFormPatch(user)
-      const storedName = loadUserDisplayName(getStoredUserId())
-      if (storedName) patch.name = storedName
       if (Object.keys(patch).length > 0) {
         setUserForm((prev) => ({ ...prev, ...patch }))
       }

@@ -10,9 +10,7 @@ import {
   validateSmokingField,
   validateWeightField,
 } from '../validation/bodyMetrics.js'
-import { getStoredUserId } from '../api/session.js'
 import { mapFormToUpdateUserRequest, mapUserEntityToFormPatch, putUserUpdate } from '../api/user.js'
-import { saveUserDisplayName } from '../utils/userDisplayNameStorage.js'
 import './UserDataPage.css'
 
 const REQ = { required: true }
@@ -241,7 +239,6 @@ export function UserDataPage({
             setSaving(true)
             try {
               const updated = await putUserUpdate(mapFormToUpdateUserRequest(value))
-              saveUserDisplayName(getStoredUserId(), nameTrimmed)
               if (updated) {
                 const patch = mapUserEntityToFormPatch(updated)
                 if (Object.keys(patch).length > 0) {

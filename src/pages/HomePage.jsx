@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
+import { getAvailableRppgScansFromUser, getUserMe } from '../api/user.js'
 import { useI18n } from '../i18n/useI18n.js'
 import '../components/home/HomeLatestScan.css'
 import './HomePage.css'
@@ -55,8 +56,30 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
+  /** @type {'loading' | 'ready' | 'hidden'} */
+  const [quotaPhase, setQuotaPhase] = useState('loading')
+  /** @type {number | null} */
+  const [scansLeft, setScansLeft] = useState(null)
 
   const recentRows = useMemo(() => rows.slice(0, 3), [rows])
+
+  const loadQuota = useCallback(async () => {
+    setQuotaPhase('loading')
+    try {
+      const user = await getUserMe()
+      const left = getAvailableRppgScansFromUser(user)
+      if (left == null) {
+        setQuotaPhase('hidden')
+        setScansLeft(null)
+      } else {
+        setScansLeft(left)
+        setQuotaPhase('ready')
+      }
+    } catch {
+      setQuotaPhase('hidden')
+      setScansLeft(null)
+    }
+  }, [])
 
   const load = useCallback(async () => {
     setPhase('loading')
@@ -73,10 +96,14 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
     }
   }, [t])
 
+  const loadHome = useCallback(async () => {
+    await Promise.all([load(), loadQuota()])
+  }, [load, loadQuota])
+
   useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect -- загрузка истории на главной */
-    void load()
-  }, [load, localeRevision])
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- данные главной */
+    void loadHome()
+  }, [loadHome, localeRevision])
 
   return (
     <AppLayout>
@@ -94,6 +121,22 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
             </button>
           </div>
           <span className="home-page__brand">{t('home.brand')}</span>
+          {quotaPhase === 'loading' ? (
+            <p className="home-page__quota home-page__quota--loading" aria-live="polite">
+              {t('home.scansLeftLoading')}
+            </p>
+          ) : null}
+          {quotaPhase === 'ready' && scansLeft != null ? (
+            <p
+              className={`home-page__quota${scansLeft === 0 ? ' home-page__quota--empty' : ''}`}
+              role="status"
+            >
+              <span className="home-page__quota-value">{scansLeft}</span>
+              <span className="home-page__quota-label">
+                {scansLeft === 0 ? t('home.scansLeftNone') : t('home.scansLeftLabel')}
+              </span>
+            </p>
+          ) : null}
           <p className="home-page__lead">{t('home.lead')}</p>
         </header>
 

@@ -16,7 +16,9 @@ export {
   getUserMe,
   putUserUpdate,
   mapFormToUpdateUserRequest,
+  mapFormToSaveRppgRequest,
   mapUserEntityToFormPatch,
+  getScanDisplayName,
 } from './user.js'
 export {
   getStoredToken,

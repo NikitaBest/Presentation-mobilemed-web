@@ -15,6 +15,17 @@ export async function getUserMe() {
 }
 
 /**
+ * Оставшиеся RPPG-сканы из profile (GET /user/me).
+ * @param {object | null | undefined} user — UserEntity
+ * @returns {number | null} null если поле не пришло
+ */
+export function getAvailableRppgScansFromUser(user) {
+  const n = user?.profile?.availableRppgScans
+  if (typeof n !== 'number' || !Number.isFinite(n)) return null
+  return Math.max(0, Math.floor(n))
+}
+
+/**
  * PUT /user/update — ApplicationModelsUserUpdateUserRequest.
  * @param {object} body — age, height, weight, gender, smokeStatus, goals, confirmedPolicyAndDocuments
  * @returns {Promise<object | null>} обновлённый UserEntity в value
@@ -36,6 +47,7 @@ export async function putUserUpdate(body) {
  * @param {object} form — поля как в USER_FORM_INITIAL
  */
 export function mapFormToUpdateUserRequest(form) {
+  const name = String(form.name ?? '').trim()
   const age = Number.parseInt(String(form.age ?? '').trim(), 10)
   const height = Number.parseInt(String(form.height ?? '').trim(), 10)
   const weight = Math.round(
@@ -54,6 +66,7 @@ export function mapFormToUpdateUserRequest(form) {
     : []
 
   return {
+    name: name || null,
     age,
     height,
     weight,
@@ -65,6 +78,34 @@ export function mapFormToUpdateUserRequest(form) {
 }
 
 /**
+ * Метаданные анкеты для POST /scan/save-rppg (имя попадает в scan.name в истории).
+ * @param {object} scanResult — takenAt, source, metrics, sdkRaw
+ * @param {object} form — поля USER_FORM_INITIAL
+ */
+export function mapFormToSaveRppgRequest(scanResult, form) {
+  const u = mapFormToUpdateUserRequest(form)
+  return {
+    scanResult,
+    name: u.name,
+    age: u.age,
+    height: u.height,
+    weight: u.weight,
+    gender: u.gender,
+    smokeStatus: u.smokeStatus,
+  }
+}
+
+/**
+ * Имя владельца скана из строки GET /scan/get.
+ * @param {object | null | undefined} row
+ * @returns {string}
+ */
+export function getScanDisplayName(row) {
+  const raw = row?.scan?.name ?? row?.name
+  return typeof raw === 'string' ? raw.trim() : ''
+}
+
+/**
  * UserEntity из /user/me → частичное состояние формы (поверх текущего).
  * @param {object | null} user
  * @returns {Record<string, unknown>} только заданные с сервера поля
@@ -73,6 +114,9 @@ export function mapUserEntityToFormPatch(user) {
   const p = user?.profile
   if (!p || typeof p !== 'object') return {}
   const out = {}
+  if (typeof p.name === 'string' && p.name.trim()) {
+    out.name = p.name.trim()
+  }
   if (typeof p.age === 'number' && Number.isFinite(p.age)) {
     out.age = String(p.age)
   }

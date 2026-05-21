@@ -222,8 +222,16 @@
     border-color 0.2s ease;
 }
 
-.results-interpretation-cta__btn:hover {
+.results-interpretation-cta__btn:hover:not(:disabled) {
   background: var(--mm-bg-primary-soft);
+}
+
+.results-interpretation-cta__btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  color: var(--mm-text-muted);
+  background: var(--mm-bg-muted);
+  border-color: var(--mm-border);
 }
 
 .results-interpretation-cta__btn:focus-visible {

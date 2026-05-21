@@ -80,7 +80,8 @@ export function ResultsPage({
   const interpretationPhase =
     llmInterpretation?.scanId === scanId ? llmInterpretation.phase : null
   const interpretationLoading =
-    interpretationPhase === 'loading' || interpretationPhase === 'idle'
+    interpretationPhase === 'loading' || interpretationPhase === 'idle' || interpretationPhase === null
+  const interpretationReady = interpretationPhase === 'ready'
 
   const displayTranscripts = useMemo(
     () => sortTranscriptsByColor(filterDisplayableTranscripts(row?.transcripts)),
@@ -184,6 +185,8 @@ export function ResultsPage({
                   <button
                     type="button"
                     className="results-interpretation-cta__btn"
+                    disabled={!interpretationReady}
+                    aria-busy={interpretationLoading || undefined}
                     onClick={() => onOpenInterpretation(scanId)}
                   >
                     {interpretationLoading
@@ -191,7 +194,9 @@ export function ResultsPage({
                       : t('results.openInterpretation')}
                   </button>
                   <p className="results-interpretation-cta__hint">
-                    {t('results.openInterpretationHint')}
+                    {interpretationLoading
+                      ? t('results.openInterpretationHintLoading')
+                      : t('results.openInterpretationHint')}
                   </p>
                 </div>
               ) : null}

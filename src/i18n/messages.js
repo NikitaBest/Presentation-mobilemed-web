@@ -106,6 +106,7 @@ export const MESSAGES = {
     'scanHistory.error': 'Не удалось загрузить историю',
     'scanHistory.retry': 'Повторить',
     'scanHistory.loadMore': 'Показать ещё',
+    'scanHistory.count': '{count} сканов',
 
     'results.title': 'Результаты',
     'results.leadOk':
@@ -398,6 +399,7 @@ export const MESSAGES = {
     'scanHistory.error': 'Could not load history',
     'scanHistory.retry': 'Retry',
     'scanHistory.loadMore': 'Load more',
+    'scanHistory.count': '{count} scans',
 
     'results.title': 'Results',
     'results.leadOk':

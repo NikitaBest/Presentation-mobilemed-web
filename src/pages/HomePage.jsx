@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
-import { getScanHistoryRowKey, getScansHistory } from '../api/scanHistory.js'
+import {
+  getScanHistoryRowKey,
+  getScansHistory,
+  SCAN_HISTORY_HOME_PREVIEW_SIZE,
+} from '../api/scanHistory.js'
 import { getAvailableRppgScansFromUser, getUserMe } from '../api/user.js'
 import { SettingsIcon } from '../components/icons/SettingsIcon.jsx'
 import { useI18n } from '../i18n/useI18n.js'
@@ -35,12 +39,17 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
+  const [historyTotal, setHistoryTotal] = useState(0)
+  const [hasMoreHistory, setHasMoreHistory] = useState(false)
   /** @type {'loading' | 'ready' | 'hidden'} */
   const [quotaPhase, setQuotaPhase] = useState('loading')
   /** @type {number | null} */
   const [scansLeft, setScansLeft] = useState(null)
 
-  const recentRows = useMemo(() => rows.slice(0, 3), [rows])
+  const recentRows = useMemo(
+    () => rows.slice(0, SCAN_HISTORY_HOME_PREVIEW_SIZE),
+    [rows],
+  )
 
   const loadQuota = useCallback(async () => {
     setQuotaPhase('loading')
@@ -64,14 +73,25 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
     setPhase('loading')
     setError('')
     try {
-      const res = await getScansHistory({ pageNumber: 1, pageSize: 3 })
-      const data = res?.value?.data
-      setRows(Array.isArray(data) ? data : [])
-      setPhase(Array.isArray(data) && data.length > 0 ? 'ready' : 'empty')
+      const res = await getScansHistory({
+        pageNumber: 1,
+        pageSize: SCAN_HISTORY_HOME_PREVIEW_SIZE,
+      })
+      const value = res?.value
+      const data = Array.isArray(value?.data) ? value.data : []
+      const total = typeof value?.totalCount === 'number' ? value.totalCount : data.length
+      setRows(data)
+      setHistoryTotal(total)
+      setHasMoreHistory(
+        Boolean(value?.hasNext) || total > SCAN_HISTORY_HOME_PREVIEW_SIZE,
+      )
+      setPhase(data.length > 0 ? 'ready' : 'empty')
     } catch (e) {
       setPhase('error')
       setError(e instanceof Error ? e.message : t('home.historyError'))
       setRows([])
+      setHistoryTotal(0)
+      setHasMoreHistory(false)
     }
   }, [t])
 
@@ -162,15 +182,20 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
                       </li>
                     ))}
                   </ul>
-                  <div className="home-scans__panel-foot">
-                    <button
-                      type="button"
-                      className="home-scans__all"
-                      onClick={onOpenAllScans}
-                    >
-                      {t('home.allMetrics')}
-                    </button>
-                  </div>
+                  {hasMoreHistory || historyTotal > SCAN_HISTORY_HOME_PREVIEW_SIZE ? (
+                    <div className="home-scans__panel-foot">
+                      <button
+                        type="button"
+                        className="home-scans__all"
+                        onClick={onOpenAllScans}
+                      >
+                        {t('home.allMetrics')}
+                        {historyTotal > SCAN_HISTORY_HOME_PREVIEW_SIZE
+                          ? ` (${historyTotal})`
+                          : ''}
+                      </button>
+                    </div>
+                  ) : null}
                 </>
               ) : null}
             </div>

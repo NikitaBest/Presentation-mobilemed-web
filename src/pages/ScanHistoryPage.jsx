@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
-import { getScanHistoryRowKey, getScansHistory } from '../api/scanHistory.js'
+import { getAllScansHistory, getScanHistoryRowKey } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
 import '../components/home/HomeLatestScan.css'
 import './ScanHistoryPage.css'
-
-const PAGE_SIZE = 20
 
 /**
  * @param {{ onBack: () => void, onOpenScan: (row: object) => void }} props
@@ -15,52 +13,34 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
   const { locale, localeRevision, t } = useI18n()
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
   const [error, setError] = useState('')
-  const [page, setPage] = useState(1)
-  const [hasNext, setHasNext] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
 
-  const loadPage = useCallback(
-    async (pageNumber, { append = false } = {}) => {
-      if (append) {
-        setLoadingMore(true)
-      } else {
-        setPhase('loading')
-        setError('')
-      }
-      try {
-        const res = await getScansHistory({ pageNumber, pageSize: PAGE_SIZE })
-        const value = res?.value
-        const data = Array.isArray(value?.data) ? value.data : []
-        setRows((prev) => {
-          const next = append ? [...prev, ...data] : data
-          setPhase(next.length > 0 ? 'ready' : 'empty')
-          return next
-        })
-        setHasNext(Boolean(value?.hasNext))
-        setPage(pageNumber)
-      } catch (e) {
-        if (!append) {
-          setPhase('error')
-          setRows([])
-        }
-        setError(e instanceof Error ? e.message : t('scanHistory.error'))
-      } finally {
-        setLoadingMore(false)
-      }
-    },
-    [t],
-  )
+  const loadAll = useCallback(async () => {
+    setPhase('loading')
+    setError('')
+    try {
+      const { rows: allRows, totalCount: total } = await getAllScansHistory()
+      setRows(allRows)
+      setTotalCount(total)
+      setPhase(allRows.length > 0 ? 'ready' : 'empty')
+    } catch (e) {
+      setPhase('error')
+      setRows([])
+      setTotalCount(0)
+      setError(e instanceof Error ? e.message : t('scanHistory.error'))
+    }
+  }, [t])
 
   useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect -- загрузка полной истории */
-    void loadPage(1)
-  }, [loadPage, localeRevision])
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- полная история GET /scan/get */
+    void loadAll()
+  }, [loadAll, localeRevision])
 
-  const handleLoadMore = useCallback(() => {
-    if (!hasNext || loadingMore) return
-    void loadPage(page + 1, { append: true })
-  }, [hasNext, loadPage, loadingMore, page])
+  const countLabel =
+    phase === 'ready' && rows.length > 0
+      ? t('scanHistory.count', { count: String(totalCount || rows.length) })
+      : null
 
   return (
     <AppLayout>
@@ -69,6 +49,11 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
           <span className="scan-history-page__brand">{t('home.brand')}</span>
           <h1 className="scan-history-page__title">{t('scanHistory.title')}</h1>
           <p className="scan-history-page__lead">{t('scanHistory.lead')}</p>
+          {countLabel ? (
+            <p className="scan-history-page__count" role="status">
+              {countLabel}
+            </p>
+          ) : null}
         </header>
 
         <div className="scan-history-page__scroll page-shell__scroll">
@@ -84,7 +69,7 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
               <button
                 type="button"
                 className="btn-secondary scan-history-page__retry"
-                onClick={() => void loadPage(1)}
+                onClick={() => void loadAll()}
               >
                 {t('scanHistory.retry')}
               </button>
@@ -96,31 +81,19 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
           ) : null}
 
           {phase === 'ready' && rows.length > 0 ? (
-            <>
-              <ul className="scan-history-page__list">
-                {rows.map((row) => (
-                  <li key={getScanHistoryRowKey(row)}>
-                    <HomeLatestScan
-                      row={row}
-                      locale={locale}
-                      t={t}
-                      className="home-latest--card"
-                      onOpen={() => onOpenScan(row)}
-                    />
-                  </li>
-                ))}
-              </ul>
-              {hasNext ? (
-                <button
-                  type="button"
-                  className="btn-secondary scan-history-page__more"
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? t('scanHistory.loading') : t('scanHistory.loadMore')}
-                </button>
-              ) : null}
-            </>
+            <ul className="scan-history-page__list">
+              {rows.map((row) => (
+                <li key={getScanHistoryRowKey(row)}>
+                  <HomeLatestScan
+                    row={row}
+                    locale={locale}
+                    t={t}
+                    className="home-latest--card"
+                    onOpen={() => onOpenScan(row)}
+                  />
+                </li>
+              ))}
+            </ul>
           ) : null}
         </div>
 

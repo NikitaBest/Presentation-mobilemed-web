@@ -110,6 +110,63 @@ export function getScanHistoryRowKey(row) {
   return at ? `scan-at-${at}` : 'scan-unknown'
 }
 
+/** Размер страницы по умолчанию в API (docs/API.md). */
+export const SCAN_HISTORY_DEFAULT_PAGE_SIZE = 50
+
+/** Превью на главной. */
+export const SCAN_HISTORY_HOME_PREVIEW_SIZE = 3
+
+/**
+ * @param {object[]} existing
+ * @param {object[]} incoming
+ * @returns {object[]}
+ */
+export function mergeScanHistoryRows(existing, incoming) {
+  const seen = new Set(existing.map((row) => getScanHistoryRowKey(row)))
+  const out = [...existing]
+  for (const row of incoming) {
+    const key = getScanHistoryRowKey(row)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(row)
+  }
+  return out
+}
+
+/**
+ * GET /scan/get — все страницы до hasNext=false.
+ * @param {{ pageSize?: number }} [params]
+ * @returns {Promise<{ rows: object[], totalCount: number, pageSize: number }>}
+ */
+export async function getAllScansHistory({
+  pageSize = SCAN_HISTORY_DEFAULT_PAGE_SIZE,
+} = {}) {
+  let pageNumber = 1
+  let rows = []
+  let totalCount = 0
+  let hasNext = true
+
+  while (hasNext) {
+    const res = await getScansHistory({ pageNumber, pageSize })
+    const value = res?.value
+    const chunk = Array.isArray(value?.data) ? value.data : []
+    rows = mergeScanHistoryRows(rows, chunk)
+    if (typeof value?.totalCount === 'number' && Number.isFinite(value.totalCount)) {
+      totalCount = value.totalCount
+    }
+    hasNext = Boolean(value?.hasNext)
+    pageNumber += 1
+    if (chunk.length === 0) break
+    if (pageNumber > 200) break
+  }
+
+  return {
+    rows,
+    totalCount: totalCount > 0 ? totalCount : rows.length,
+    pageSize,
+  }
+}
+
 /**
  * GET /scan/get — история сканов (см. docs/API.md: pageNumber, pageSize в query).
  * @param {{ pageNumber?: number, pageSize?: number }} [params]

@@ -28,6 +28,14 @@
   color: var(--mm-text-muted);
 }
 
+.scan-history-page__count {
+  margin: var(--mm-space-2) 0 0;
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.35;
+  color: var(--mm-primary);
+}
+
 .scan-history-page__status {
   margin: 0;
   padding: var(--mm-space-4);

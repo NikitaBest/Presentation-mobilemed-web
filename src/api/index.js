@@ -21,11 +21,15 @@ export {
 } from './user.js'
 export {
   getScansHistory,
+  getAllScansHistory,
+  mergeScanHistoryRows,
   normalizeScanHistoryRow,
   getScanDisplayName,
   getScanRowId,
   getScanRowCreatedAt,
   getScanHistoryRowKey,
+  SCAN_HISTORY_DEFAULT_PAGE_SIZE,
+  SCAN_HISTORY_HOME_PREVIEW_SIZE,
 } from './scanHistory.js'
 export {
   getStoredToken,

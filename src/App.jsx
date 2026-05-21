@@ -9,6 +9,7 @@ import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
 import { ResultsPage } from './pages/ResultsPage.jsx'
 import { SettingsPage } from './pages/SettingsPage.jsx'
+import { ScanHistoryPage } from './pages/ScanHistoryPage.jsx'
 const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
@@ -18,6 +19,7 @@ import {
   HOME_STEP,
   LANGUAGE_STEP,
   SETTINGS_STEP,
+  SCAN_HISTORY_STEP,
   readInitialStep,
   writePersistedStep,
 } from './utils/appStepStorage.js'
@@ -55,7 +57,7 @@ export default function App() {
   }, [runAuth, step])
 
   useEffect(() => {
-    if (step === LANGUAGE_STEP || step === SETTINGS_STEP) return
+    if (step === LANGUAGE_STEP || step === SETTINGS_STEP || step === SCAN_HISTORY_STEP) return
     writePersistedStep(step)
   }, [step])
 
@@ -68,7 +70,12 @@ export default function App() {
     setStep(SETTINGS_STEP)
   }, [])
 
-  const closeSettings = useCallback(() => {
+  const openScanHistory = useCallback((fromStep = HOME_STEP) => {
+    setReturnStep(fromStep)
+    setStep(SCAN_HISTORY_STEP)
+  }, [])
+
+  const closeOverlayStep = useCallback(() => {
     setStep(returnStep)
   }, [returnStep])
 
@@ -133,11 +140,6 @@ export default function App() {
     setStep(HOME_STEP)
   }, [])
 
-  const openEditProfile = useCallback(() => {
-    setUserDataVariant('profile')
-    setStep('userData')
-  }, [])
-
   const finishUserDataProfile = useCallback(() => {
     setUserDataVariant('flow')
     setStep(HOME_STEP)
@@ -160,11 +162,10 @@ export default function App() {
       )}
       {activeStep === HOME_STEP && (
         <HomePage
-          userForm={userForm}
           onStartScan={startScanFlow}
           onOpenSettings={() => openSettings(HOME_STEP)}
           onOpenScan={openScanFromHistory}
-          onEditProfile={openEditProfile}
+          onOpenAllScans={() => openScanHistory(HOME_STEP)}
         />
       )}
       {activeStep === 'welcome' && (
@@ -209,7 +210,10 @@ export default function App() {
         />
       )}
       {activeStep === SETTINGS_STEP && (
-        <SettingsPage onBack={closeSettings} />
+        <SettingsPage onBack={closeOverlayStep} />
+      )}
+      {activeStep === SCAN_HISTORY_STEP && (
+        <ScanHistoryPage onBack={closeOverlayStep} onOpenScan={openScanFromHistory} />
       )}
     </>
   )

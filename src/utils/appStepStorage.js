@@ -8,6 +8,9 @@ export const LANGUAGE_STEP = 'language'
 /** Настройки (не в цепочке сканирования). */
 export const SETTINGS_STEP = 'settings'
 
+/** Полная история сканов (не в цепочке сканирования). */
+export const SCAN_HISTORY_STEP = 'scanHistory'
+
 /** Главная после выбора языка (не в цепочке сканирования). */
 export const HOME_STEP = 'home'
 

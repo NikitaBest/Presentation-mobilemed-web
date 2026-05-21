@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
+import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
-import {
-  formatUserProfileLines,
-  isUserProfileFilled,
-} from '../utils/userProfileDisplay.js'
+import '../components/home/HomeLatestScan.css'
 import './HomePage.css'
 
 function IconSettings() {
@@ -40,54 +38,31 @@ function IconScan() {
   )
 }
 
-function formatScanDate(iso, locale) {
-  if (!iso) return '—'
-  try {
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return '—'
-    return d.toLocaleString(locale === 'en' ? 'en-GB' : 'ru-RU', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return '—'
-  }
+function scanRowKey(row) {
+  return row?.scan?.id ?? row?.rppgScanId ?? `${row?.scan?.createdAt ?? row?.createdAt ?? ''}`
 }
 
 /**
  * @param {{
- *   userForm: object,
  *   onStartScan: () => void,
  *   onOpenSettings: () => void,
  *   onOpenScan: (row: object) => void,
- *   onEditProfile: () => void,
+ *   onOpenAllScans: () => void,
  * }} props
  */
-export function HomePage({
-  userForm,
-  onStartScan,
-  onOpenSettings,
-  onOpenScan,
-  onEditProfile,
-}) {
+export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllScans }) {
   const { locale, t } = useI18n()
-  const profileLines = useMemo(
-    () => formatUserProfileLines(userForm, t, locale),
-    [userForm, t, locale],
-  )
-  const profileFilled = useMemo(() => isUserProfileFilled(userForm), [userForm])
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
+
+  const recentRows = useMemo(() => rows.slice(0, 3), [rows])
 
   const load = useCallback(async () => {
     setPhase('loading')
     setError('')
     try {
-      const res = await getScansHistory({ pageNumber: 1, pageSize: 20 })
+      const res = await getScansHistory({ pageNumber: 1, pageSize: 3 })
       const data = res?.value?.data
       setRows(Array.isArray(data) ? data : [])
       setPhase(Array.isArray(data) && data.length > 0 ? 'ready' : 'empty')
@@ -123,85 +98,52 @@ export function HomePage({
         </header>
 
         <div className="home-page__scroll page-shell__scroll">
-          <section className="home-profile" aria-labelledby="home-profile-title">
-            <div className="home-profile__head">
-              <h2 id="home-profile-title" className="home-profile__title">
-                {t('home.profileTitle')}
-              </h2>
-              <span className="home-profile__edit-hint">{t('home.profileEdit')}</span>
-            </div>
-            <button
-              type="button"
-              className="home-profile__card"
-              aria-label={t('home.profileOpen')}
-              onClick={onEditProfile}
-            >
-              {!profileFilled ? (
-                <p className="home-profile__empty">{t('home.profileEmpty')}</p>
-              ) : null}
-              <dl className="home-profile__dl">
-                {profileLines.map((line) => (
-                  <div key={line.label} className="home-profile__row">
-                    <dt className="home-profile__label">{line.label}</dt>
-                    <dd className="home-profile__value">{line.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </button>
-          </section>
-
-          <section className="home-history" aria-labelledby="home-history-title">
-            <h2 id="home-history-title" className="home-history__title">
+          <section className="home-scans" aria-labelledby="home-scans-title">
+            <h2 id="home-scans-title" className="home-scans__section-title">
               {t('home.historyTitle')}
             </h2>
 
             {phase === 'loading' ? (
-              <p className="home-history__status">{t('home.historyLoading')}</p>
+              <p className="home-scans__status">{t('home.historyLoading')}</p>
             ) : null}
 
             {phase === 'error' ? (
-              <div className="home-history__error-wrap">
-                <p className="home-history__error" role="alert">
+              <div className="home-scans__error-wrap">
+                <p className="home-scans__error" role="alert">
                   {error}
                 </p>
-                <button type="button" className="btn-secondary home-history__retry" onClick={() => void load()}>
+                <button type="button" className="btn-secondary home-scans__retry" onClick={() => void load()}>
                   {t('home.historyRetry')}
                 </button>
               </div>
             ) : null}
 
             {phase === 'empty' ? (
-              <p className="home-history__empty">{t('home.historyEmpty')}</p>
+              <p className="home-scans__empty">{t('home.historyEmpty')}</p>
             ) : null}
 
-            {phase === 'ready' ? (
-              <ul className="home-history__list">
-                {rows.map((row) => {
-                  const id = row?.scan?.id ?? row?.rppgScanId
-                  const dateLabel = formatScanDate(row?.scan?.createdAt ?? row?.createdAt, locale)
-                  const score = row?.healthScore
-                  const scoreText =
-                    score != null && score !== '' && Number.isFinite(Number(score))
-                      ? String(Math.round(Number(score)))
-                      : '—'
-                  return (
-                    <li key={id ?? dateLabel}>
-                      <button
-                        type="button"
-                        className="home-history__item"
-                        aria-label={t('home.historyOpen', { date: dateLabel })}
-                        onClick={() => onOpenScan(row)}
-                      >
-                        <span className="home-history__item-date">{dateLabel}</span>
-                        <span className="home-history__item-score">
-                          <span className="home-history__item-score-label">{t('home.historyScore')}</span>
-                          <span className="home-history__item-score-value">{scoreText}</span>
-                        </span>
-                      </button>
+            {phase === 'ready' && recentRows.length > 0 ? (
+              <>
+                <ul className="home-scans__list">
+                  {recentRows.map((row) => (
+                    <li key={scanRowKey(row)}>
+                      <HomeLatestScan
+                        row={row}
+                        locale={locale}
+                        t={t}
+                        onOpen={() => onOpenScan(row)}
+                      />
                     </li>
-                  )
-                })}
-              </ul>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  className="btn-secondary home-scans__all"
+                  onClick={onOpenAllScans}
+                >
+                  {t('home.allMetrics')}
+                </button>
+              </>
             ) : null}
           </section>
 

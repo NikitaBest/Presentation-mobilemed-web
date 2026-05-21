@@ -1,0 +1,206 @@
+.home-latest {
+  display: flex;
+  align-items: center;
+  gap: var(--mm-space-3);
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--mm-border);
+  border-radius: var(--mm-radius-md);
+  background: linear-gradient(
+    100deg,
+    var(--mm-bg-surface) 0%,
+    color-mix(in srgb, var(--hc-core) 5%, var(--mm-bg-muted)) 100%
+  );
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  touch-action: manipulation;
+}
+
+.home-latest:hover {
+  border-color: color-mix(in srgb, var(--hc-core) 45%, var(--mm-border));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--hc-core) 14%, transparent);
+}
+
+.home-latest:focus-visible {
+  outline: none;
+  border-color: var(--hc-core);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hc-core) 22%, transparent);
+}
+
+/* Слева — кольцо с баллом */
+.home-latest__ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 3.125rem;
+  height: 3.125rem;
+  display: grid;
+  place-items: center;
+}
+
+.home-latest__ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-latest__track {
+  fill: none;
+  stroke: rgba(15, 23, 42, 0.07);
+  stroke-width: 4.5;
+}
+
+.home-latest__progress {
+  fill: none;
+  stroke: var(--hc-core);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+}
+
+.home-latest__ring-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.home-latest__value {
+  font-size: 1rem;
+  font-weight: var(--mm-font-weight-bold);
+  color: var(--mm-text-heading);
+}
+
+.home-latest__of {
+  margin-top: 1px;
+  font-size: 0.5rem;
+  font-weight: var(--mm-font-weight-semibold);
+  color: var(--mm-text-muted);
+}
+
+/* Справа — описание */
+.home-latest__desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-latest__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.375rem;
+}
+
+.home-latest__when {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.25;
+  color: var(--mm-text-heading);
+}
+
+.home-latest__pill {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.625rem;
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.2;
+  border-radius: var(--mm-radius-pill);
+  white-space: nowrap;
+}
+
+.home-latest__pill--green {
+  color: #166534;
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.home-latest__pill--yellow {
+  color: #854d0e;
+  background: rgba(234, 179, 8, 0.16);
+}
+
+.home-latest__pill--red {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.home-latest__pill--unknown {
+  color: var(--mm-text-muted);
+  background: var(--mm-bg-muted);
+}
+
+.home-latest__chevron {
+  margin-left: auto;
+  font-size: 1.125rem;
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1;
+  color: var(--hc-core);
+}
+
+/* Компактные строки предыдущих сканов */
+.home-earlier {
+  margin: var(--mm-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.home-earlier__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mm-space-2);
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--mm-radius-sm);
+  background: transparent;
+  color: var(--mm-text-heading);
+  transition: background-color 0.12s ease;
+  touch-action: manipulation;
+}
+
+.home-earlier__item:hover {
+  background: var(--mm-bg-muted);
+}
+
+.home-earlier__item:focus-visible {
+  outline: none;
+  background: var(--mm-bg-primary-soft);
+  box-shadow: 0 0 0 2px var(--mm-bg-primary-soft);
+}
+
+.home-earlier__date {
+  font-size: var(--mm-font-size-xs);
+  color: var(--mm-text-muted);
+  line-height: 1.3;
+}
+
+.home-earlier__score {
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-bold);
+  color: var(--mm-primary);
+  flex-shrink: 0;
+}
+
+.home-earlier__item--green .home-earlier__score {
+  color: #16a34a;
+}
+
+.home-earlier__item--yellow .home-earlier__score {
+  color: #ca8a04;
+}
+
+.home-earlier__item--red .home-earlier__score {
+  color: #dc2626;
+}

@@ -25,6 +25,7 @@ export {
   mergeScanHistoryRows,
   normalizeScanHistoryRow,
   getScanDisplayName,
+  hasScanDisplayName,
   getScanRowId,
   getScanRowCreatedAt,
   getScanHistoryRowKey,

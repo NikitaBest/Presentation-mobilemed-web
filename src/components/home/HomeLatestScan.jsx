@@ -1,4 +1,8 @@
-import { getScanDisplayName, getScanRowCreatedAt } from '../../api/scanHistory.js'
+import {
+  getScanDisplayName,
+  getScanRowCreatedAt,
+  hasScanDisplayName,
+} from '../../api/scanHistory.js'
 import { healthScoreBand } from '../healthScoreBand.js'
 import { formatScanWhen } from '../../utils/scanDate.js'
 import '../../components/HealthScoreCore.css'
@@ -26,7 +30,9 @@ export function HomeLatestScan({ row, locale, t, onOpen, className = '' }) {
   const when = formatScanWhen(getScanRowCreatedAt(row), locale)
   const whenLabel = when.time ? `${when.date} · ${when.time}` : when.date
   const personName = getScanDisplayName(row)
-  const ariaDate = personName ? `${personName}, ${whenLabel}` : whenLabel
+  const hasName = hasScanDisplayName(row)
+  const nameLabel = hasName ? personName : t('home.scanNoName')
+  const ariaDate = `${nameLabel}, ${whenLabel}`
 
   const classes = ['home-latest', `health-core--${band}`, className].filter(Boolean).join(' ')
 
@@ -58,9 +64,11 @@ export function HomeLatestScan({ row, locale, t, onOpen, className = '' }) {
 
       <div className="home-latest__desc">
         <div className="home-latest__head">
-          {personName ? (
-            <p className="home-latest__name">{personName}</p>
-          ) : null}
+          <p
+            className={`home-latest__name${hasName ? '' : ' home-latest__name--unset'}`}
+          >
+            {nameLabel}
+          </p>
           <p className="home-latest__when">
             <time dateTime={getScanRowCreatedAt(row)}>
               {whenLabel}

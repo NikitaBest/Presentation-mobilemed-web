@@ -72,13 +72,22 @@ function normalizePagedList(value) {
 }
 
 /**
- * Имя из `scan.name` (UserRppgScanEntity), сохранённое при POST /scan/save-rppg.
+ * Имя из `scan.name` (UserRppgScanEntity в GET /scan/get), nullable в API.
+ * Пустая строка / null / отсутствие поля → '' (в UI показываем «Без имени»).
  * @param {object | null | undefined} row — нормализованная строка GET /scan/get
  * @returns {string}
  */
 export function getScanDisplayName(row) {
   const name = row?.scan?.name
   return typeof name === 'string' ? name.trim() : ''
+}
+
+/**
+ * @param {object | null | undefined} row
+ * @returns {boolean}
+ */
+export function hasScanDisplayName(row) {
+  return getScanDisplayName(row).length > 0
 }
 
 /**

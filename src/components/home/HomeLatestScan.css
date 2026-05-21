@@ -129,6 +129,11 @@
   color: var(--mm-text-heading);
 }
 
+.home-latest__name--unset {
+  font-weight: var(--mm-font-weight-medium);
+  color: var(--mm-text-muted);
+}
+
 .home-latest__when {
   margin: 0;
   min-width: 0;

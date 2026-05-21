@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
+import { PasswordVisibilityIcon } from '../components/icons/PasswordVisibilityIcon.jsx'
 import { postAuthLogin, postAuthRegister } from '../api/auth.js'
 import { getStoredEmail } from '../api/session.js'
 import { useI18n } from '../i18n/useI18n.js'
@@ -57,6 +58,7 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState(() => getStoredEmail())
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   const [touched, setTouched] = useState({ email: false, password: false })
@@ -74,6 +76,7 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
 
   const switchMode = useCallback((next) => {
     setMode(next)
+    setPasswordVisible(false)
     setFormError('')
     setErrors({ email: '', password: '' })
     setTouched({ email: false, password: false })
@@ -178,33 +181,49 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
               <label className="auth-page__label" htmlFor="auth-password">
                 {t('auth.passwordLabel')}
               </label>
-              <input
-                id="auth-password"
-                className={`auth-page__input${errors.password ? ' auth-page__input--error' : ''}`}
-                type="password"
-                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                placeholder={t('auth.passwordPlaceholder')}
-                value={password}
-                disabled={submitting}
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={errors.password ? 'auth-password-error' : undefined}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (touched.password) {
+              <div className="auth-page__input-wrap">
+                <input
+                  id="auth-password"
+                  className={`auth-page__input auth-page__input--password${
+                    errors.password ? ' auth-page__input--error' : ''
+                  }`}
+                  type={passwordVisible ? 'text' : 'password'}
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  placeholder={t('auth.passwordPlaceholder')}
+                  value={password}
+                  disabled={submitting}
+                  aria-invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? 'auth-password-error' : undefined}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (touched.password) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        password: validateAuthPasswordField(e.target.value, { ...REQ, t }),
+                      }))
+                    }
+                  }}
+                  onBlur={(e) => {
+                    setTouched((s) => ({ ...s, password: true }))
                     setErrors((prev) => ({
                       ...prev,
                       password: validateAuthPasswordField(e.target.value, { ...REQ, t }),
                     }))
+                  }}
+                />
+                <button
+                  type="button"
+                  className="auth-page__password-toggle"
+                  disabled={submitting}
+                  aria-pressed={passwordVisible}
+                  aria-label={
+                    passwordVisible ? t('auth.hidePassword') : t('auth.showPassword')
                   }
-                }}
-                onBlur={(e) => {
-                  setTouched((s) => ({ ...s, password: true }))
-                  setErrors((prev) => ({
-                    ...prev,
-                    password: validateAuthPasswordField(e.target.value, { ...REQ, t }),
-                  }))
-                }}
-              />
+                  onClick={() => setPasswordVisible((v) => !v)}
+                >
+                  <PasswordVisibilityIcon visible={passwordVisible} />
+                </button>
+              </div>
               {errors.password ? (
                 <p id="auth-password-error" className="auth-page__field-error" role="alert">
                   {errors.password}

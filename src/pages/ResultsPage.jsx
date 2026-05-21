@@ -27,7 +27,14 @@ function selectScanRow(response, preferredScanId) {
 /**
  * Итог после сканирования: POST /scan/save-rppg + расшифровка из GET /scan/get.
  */
-export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
+export function ResultsPage({
+  onGoHome,
+  onMeasureAgain,
+  onOpenInterpretation,
+  onPrefetchInterpretation,
+  llmInterpretation,
+  scanSummary,
+}) {
   const { localeRevision, t } = useI18n()
   const preferredScanId =
     scanSummary?.value?.scan?.id ?? scanSummary?.value?.rppgScanId ?? null
@@ -63,6 +70,17 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
   }, [load, localeRevision])
 
   const healthScore = row?.healthScore
+  const scanId = getScanRowId(row) ?? preferredScanId
+
+  useEffect(() => {
+    if (!scanId || !onPrefetchInterpretation) return
+    onPrefetchInterpretation(scanId)
+  }, [scanId, onPrefetchInterpretation])
+
+  const interpretationPhase =
+    llmInterpretation?.scanId === scanId ? llmInterpretation.phase : null
+  const interpretationLoading =
+    interpretationPhase === 'loading' || interpretationPhase === 'idle'
 
   const displayTranscripts = useMemo(
     () => sortTranscriptsByColor(filterDisplayableTranscripts(row?.transcripts)),
@@ -160,6 +178,23 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
               ) : (
                 <p className="page-text page-text--note">{t('results.transcriptsEmpty')}</p>
               )}
+
+              {scanId ? (
+                <div className="results-interpretation-cta">
+                  <button
+                    type="button"
+                    className="results-interpretation-cta__btn"
+                    onClick={() => onOpenInterpretation(scanId)}
+                  >
+                    {interpretationLoading
+                      ? t('results.openInterpretationLoading')
+                      : t('results.openInterpretation')}
+                  </button>
+                  <p className="results-interpretation-cta__hint">
+                    {t('results.openInterpretationHint')}
+                  </p>
+                </div>
+              ) : null}
             </>
           ) : null}
         </div>

@@ -20,3 +20,38 @@ export async function postSaveRppgScan(scanResult, userForm) {
   })
   return readJsonResultResponse(res)
 }
+
+/**
+ * GET /scan/rppg-scan/{scanId}/llm-interpretation — HTML-расшифровка (docs/API.md).
+ * @param {string} scanId
+ * @param {{ regenerate?: boolean }} [options]
+ */
+export async function getRppgScanLlmInterpretation(scanId, { regenerate = false } = {}) {
+  const id = String(scanId ?? '').trim()
+  if (!id) throw new Error('scanId is required')
+  const q = new URLSearchParams({ regenerate: String(Boolean(regenerate)) })
+  const res = await apiFetch(
+    `/scan/rppg-scan/${encodeURIComponent(id)}/llm-interpretation?${q}`,
+    { method: 'GET' },
+  )
+  return readJsonResultResponse(res)
+}
+
+/**
+ * @param {object | null | undefined} data — SharedContractsResultOfRppgScanLlmInterpretationResponse
+ * @returns {{ html: string, fromCache: boolean, scanId: string | null, culture: string | null }}
+ */
+export function parseLlmInterpretationResponse(data) {
+  const value = data?.value ?? data?.Value
+  const htmlRaw = value?.html ?? value?.Html
+  const html = typeof htmlRaw === 'string' ? htmlRaw : ''
+  const fromCache = Boolean(value?.fromCache ?? value?.FromCache)
+  const scanId = value?.scanId ?? value?.ScanId
+  const culture = value?.culture ?? value?.Culture
+  return {
+    html,
+    fromCache,
+    scanId: typeof scanId === 'string' ? scanId : null,
+    culture: typeof culture === 'string' ? culture : null,
+  }
+}

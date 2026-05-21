@@ -13,6 +13,7 @@ import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
 import { ResultsPage } from './pages/ResultsPage.jsx'
 import { SettingsPage } from './pages/SettingsPage.jsx'
 import { ScanHistoryPage } from './pages/ScanHistoryPage.jsx'
+import { ScanInterpretationPage } from './pages/ScanInterpretationPage.jsx'
 const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
@@ -24,10 +25,12 @@ import {
   LANGUAGE_STEP,
   SETTINGS_STEP,
   SCAN_HISTORY_STEP,
+  SCAN_INTERPRETATION_STEP,
   clearPersistedStep,
   readInitialStep,
   writePersistedStep,
 } from './utils/appStepStorage.js'
+import { useScanLlmInterpretation } from './hooks/useScanLlmInterpretation.js'
 import { useI18n } from './i18n/useI18n.js'
 import './App.css'
 
@@ -38,6 +41,15 @@ export default function App() {
   const [scanSummary, setScanSummary] = useState(null)
   const [userDataHint, setUserDataHint] = useState('')
   const [returnStep, setReturnStep] = useState(HOME_STEP)
+  const [interpretationScanId, setInterpretationScanId] = useState(null)
+  const {
+    prefetch: prefetchInterpretation,
+    regenerate: regenerateInterpretation,
+    load: loadInterpretation,
+    reset: resetInterpretation,
+    regenerating: interpretationRegenerating,
+    ...interpretationState
+  } = useScanLlmInterpretation(t)
   /** @type {'flow' | 'profile'} */
   const [userDataVariant, setUserDataVariant] = useState('flow')
 
@@ -55,7 +67,8 @@ export default function App() {
       step === LANGUAGE_STEP ||
       step === AUTH_STEP ||
       step === SETTINGS_STEP ||
-      step === SCAN_HISTORY_STEP
+      step === SCAN_HISTORY_STEP ||
+      step === SCAN_INTERPRETATION_STEP
     ) {
       return
     }
@@ -106,6 +119,24 @@ export default function App() {
     setScanSummary(scanId ? { value: { scan: { id: scanId } } } : null)
     setStep('results')
   }, [])
+
+  const openScanInterpretation = useCallback((scanId) => {
+    if (!scanId) return
+    setInterpretationScanId(scanId)
+    setReturnStep('results')
+    setStep(SCAN_INTERPRETATION_STEP)
+  }, [])
+
+  const closeScanInterpretation = useCallback(() => {
+    setInterpretationScanId(null)
+    setStep(returnStep)
+  }, [returnStep])
+
+  useEffect(() => {
+    if (step !== 'results' && step !== SCAN_INTERPRETATION_STEP) {
+      resetInterpretation()
+    }
+  }, [step, resetInterpretation])
 
   useEffect(() => {
     if (step === 'instruction') {
@@ -224,9 +255,22 @@ export default function App() {
         <ResultsPage
           onGoHome={goHome}
           onMeasureAgain={() => setStep('instruction')}
+          onOpenInterpretation={openScanInterpretation}
+          onPrefetchInterpretation={prefetchInterpretation}
+          llmInterpretation={interpretationState}
           scanSummary={scanSummary}
         />
       )}
+      {activeStep === SCAN_INTERPRETATION_STEP && interpretationScanId ? (
+        <ScanInterpretationPage
+          scanId={interpretationScanId}
+          interpretation={interpretationState}
+          regenerating={interpretationRegenerating}
+          onRegenerate={() => regenerateInterpretation(interpretationScanId)}
+          onRetry={() => loadInterpretation(interpretationScanId)}
+          onBack={closeScanInterpretation}
+        />
+      ) : null}
       {activeStep === SETTINGS_STEP && (
         <SettingsPage onBack={closeOverlayStep} onLogout={handleLogout} />
       )}

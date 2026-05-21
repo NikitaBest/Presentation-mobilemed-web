@@ -39,4 +39,8 @@ export {
   setSessionFromLogin,
   clearSession,
 } from './session.js'
-export { postSaveRppgScan } from './scan.js'
+export {
+  postSaveRppgScan,
+  getRppgScanLlmInterpretation,
+  parseLlmInterpretationResponse,
+} from './scan.js'

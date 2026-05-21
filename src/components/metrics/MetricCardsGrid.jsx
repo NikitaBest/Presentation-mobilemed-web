@@ -34,7 +34,7 @@ export function MetricCardsGrid({
       {tapHintActive ? (
         <button
           type="button"
-          className="metric-grid-backdrop"
+          className="metric-grid-scrim"
           aria-label={t('common.closeHint')}
           onClick={onTapHintDismiss}
         />

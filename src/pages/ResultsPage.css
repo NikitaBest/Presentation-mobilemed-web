@@ -239,40 +239,15 @@
   color: var(--mm-text-muted);
 }
 
+/* Подсказка «тап по карточке» — без затемнения шапки, dock и остальной страницы */
+.results-page--tap-hint .results-page__scroll {
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
 .results-page--tap-hint .results-metrics,
 .results-page--tap-hint .metric-grid-wrap {
   overflow: visible;
-}
-
-/* Подсказка «нажмите на карточку» — затемнение шапки и блока оценки */
-.results-page--tap-hint .results-page__header,
-.results-page--tap-hint .results-hero,
-.results-page--tap-hint .results-section-title,
-.results-page--tap-hint .results-id-mismatch {
-  opacity: 0.42;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.results-page--tap-hint .results-page__dock {
-  opacity: 0.55;
-  pointer-events: auto;
-}
-
-.results-page--tap-hint-exit .results-page__header,
-.results-page--tap-hint-exit .results-hero,
-.results-page--tap-hint-exit .results-section-title,
-.results-page--tap-hint-exit .results-id-mismatch {
-  animation: results-hint-ui-fade-in 0.55s ease forwards;
-}
-
-@keyframes results-hint-ui-fade-in {
-  from {
-    opacity: 0.42;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .results-loading,

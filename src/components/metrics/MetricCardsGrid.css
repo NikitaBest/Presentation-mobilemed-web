@@ -6,19 +6,20 @@
   z-index: 20;
 }
 
-.metric-grid-backdrop {
-  position: fixed;
+/* Прозрачная зона закрытия — только внутри сетки, без затемнения всего экрана */
+.metric-grid-scrim {
+  position: absolute;
   inset: 0;
   z-index: 24;
   margin: 0;
   padding: 0;
   border: none;
-  background: rgba(17, 24, 39, 0.42);
+  background: transparent;
   cursor: pointer;
   animation: metric-hint-fade-in 0.35s ease both;
 }
 
-.metric-grid-wrap--hint-exit .metric-grid-backdrop {
+.metric-grid-wrap--hint-exit .metric-grid-scrim {
   animation: metric-hint-fade-out 0.55s ease forwards;
   pointer-events: none;
 }
@@ -97,17 +98,18 @@
 }
 
 .metric-grid-wrap--hint .metric-grid__cell:not(.metric-grid__cell--hint) {
-  opacity: 0.4;
+  opacity: 0.58;
   pointer-events: none;
-  filter: saturate(0.85);
+  transition: opacity 0.3s ease;
 }
 
 .metric-card--highlighted {
   position: relative;
   z-index: 27;
+  /* inset — подсветка внутри карточки, не обрезается overflow у скролла */
   box-shadow:
-    0 0 0 2px rgba(34, 197, 94, 0.55),
-    0 8px 24px rgba(34, 197, 94, 0.2);
+    inset 0 0 0 2px color-mix(in srgb, var(--mm-primary) 55%, transparent),
+    var(--mm-shadow-sm);
   animation: metric-card-blink 0.75s ease-in-out 0.35s 3;
 }
 
@@ -128,14 +130,14 @@
 
 .metric-card--highlighted.metric-card--yellow {
   box-shadow:
-    0 0 0 2px rgba(234, 179, 8, 0.55),
-    0 8px 24px rgba(234, 179, 8, 0.18);
+    inset 0 0 0 2px rgba(234, 179, 8, 0.55),
+    var(--mm-shadow-sm);
 }
 
 .metric-card--highlighted.metric-card--red {
   box-shadow:
-    0 0 0 2px rgba(239, 68, 68, 0.5),
-    0 8px 24px rgba(239, 68, 68, 0.16);
+    inset 0 0 0 2px rgba(239, 68, 68, 0.5),
+    var(--mm-shadow-sm);
 }
 
 @keyframes metric-hint-fade-in {
@@ -167,10 +169,10 @@
       0 0 0 1px rgba(17, 24, 39, 0.06);
   }
   50% {
-    opacity: 0.88;
+    opacity: 1;
     box-shadow:
-      0 6px 20px rgba(34, 197, 94, 0.2),
-      0 0 0 1px rgba(34, 197, 94, 0.25);
+      0 6px 20px rgba(59, 130, 246, 0.16),
+      0 0 0 1px rgba(59, 130, 246, 0.2);
   }
 }
 
@@ -178,13 +180,13 @@
   0%,
   100% {
     box-shadow:
-      0 0 0 2px rgba(34, 197, 94, 0.45),
-      0 6px 20px rgba(34, 197, 94, 0.15);
+      inset 0 0 0 2px color-mix(in srgb, var(--mm-primary) 45%, transparent),
+      var(--mm-shadow-sm);
   }
   50% {
     box-shadow:
-      0 0 0 3px rgba(34, 197, 94, 0.75),
-      0 10px 32px rgba(34, 197, 94, 0.35);
+      inset 0 0 0 3px color-mix(in srgb, var(--mm-primary) 75%, transparent),
+      var(--mm-shadow-sm);
   }
 }
 
@@ -216,7 +218,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .metric-grid-backdrop,
+  .metric-grid-scrim,
   .metric-tap-hint,
   .metric-card--highlighted,
   .metric-grid-wrap--hint-exit .metric-grid__cell:not(.metric-grid__cell--hint) {

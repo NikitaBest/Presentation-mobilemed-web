@@ -4,6 +4,7 @@
  */
 const STORAGE_TOKEN = 'mm_api_token'
 const STORAGE_USER_ID = 'mm_api_user_id'
+const STORAGE_EMAIL = 'mm_api_email'
 
 export function getStoredToken() {
   try {
@@ -21,6 +22,24 @@ export function getStoredUserId() {
   }
 }
 
+export function getStoredEmail() {
+  try {
+    return sessionStorage.getItem(STORAGE_EMAIL) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+export function setStoredEmail(email) {
+  try {
+    const s = String(email ?? '').trim()
+    if (s) sessionStorage.setItem(STORAGE_EMAIL, s)
+    else sessionStorage.removeItem(STORAGE_EMAIL)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function setSessionFromLogin({ token, userId }) {
   try {
     if (token) sessionStorage.setItem(STORAGE_TOKEN, token)
@@ -34,6 +53,7 @@ export function clearSession() {
   try {
     sessionStorage.removeItem(STORAGE_TOKEN)
     sessionStorage.removeItem(STORAGE_USER_ID)
+    sessionStorage.removeItem(STORAGE_EMAIL)
   } catch {
     /* ignore */
   }

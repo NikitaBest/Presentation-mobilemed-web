@@ -2,13 +2,13 @@
   "x-generator": "NSwag v14.2.0.0 (NJsonSchema v11.1.0.0 (Newtonsoft.Json v13.0.0.0))",
   "openapi": "3.0.0",
   "info": {
-    "title": "X5 MobileMed API",
+    "title": "MobileMed Retail API",
     "description": "Локализация ru/en: login locale → JWT; анонимные GET — Accept-Language. docs/localization_locale_contract.md",
     "version": "v1"
   },
   "servers": [
     {
-      "url": "https://retail-backend-app.mobilemed.ai"
+      "url": "https://demo-backend.mobilemed.ai"
     }
   ],
   "paths": {
@@ -129,262 +129,6 @@
           {
             "JWTBearerAuth": []
           },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/item/replace": {
-      "post": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Заменить товар в позиции рациона",
-        "description": "Принимает Id позиции, новый ProductId и вес. Прежний основной товар добавляется в замены, если записи с таким ProductId ещё нет. Если новый товар выбран из существующих замен, соответствующие строки замен удаляются; остальные замены сохраняются.",
-        "operationId": "ApiEndpointsRationReplaceItemReplaceWeekRationItemEndpoint",
-        "requestBody": {
-          "x-name": "ReplaceWeekRationItemRequest",
-          "description": "",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiEndpointsRationReplaceWeekRationItemRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfWeekRationEntity"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "JWTBearerAuth": []
-          },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/scan/regenerate": {
-      "post": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Перегенерировать рацион",
-        "description": "Устанавливает WeekRationGenerationStatus = Pending; фоновая задача сгенерирует рацион заново.",
-        "operationId": "ApiEndpointsRationRegenerateRequestWeekRationRegenerationEndpoint",
-        "requestBody": {
-          "x-name": "WeekRationRegenerateRequest",
-          "description": "",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiEndpointsRationWeekRationRegenerateRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfString"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "JWTBearerAuth": []
-          },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/{rationId}/owner": {
-      "get": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Публичный метод. Пользователь и исключения по ИД рациона",
-        "description": "Находит рацион, по нему — скан RPPG, по скану — пользователя; возвращает UserEntity с профилем и список user_exclude_products.",
-        "operationId": "ApiEndpointsRationGetOwnerGetWeekRationOwnerEndpoint",
-        "parameters": [
-          {
-            "name": "rationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfWeekRationOwnerResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/scan/{scanId}/generation-status": {
-      "get": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Статус генерации рациона по скану",
-        "description": "Возвращает WeekRationGenerationStatus и StatusMessage для указанного скана.",
-        "operationId": "ApiEndpointsRationGetGenerationStatusGetWeekRationGenerationStatusEndpoint",
-        "parameters": [
-          {
-            "name": "scanId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfWeekRationGenerationStatusResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "JWTBearerAuth": []
-          },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/scan/{scanId}": {
-      "get": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Рацион по скану",
-        "description": "Последний сохранённый рацион для скана. Поле culture — язык генерации; названия товаров по week_rations.culture.",
-        "operationId": "ApiEndpointsRationGetByScanGetWeekRationByScanEndpoint",
-        "parameters": [
-          {
-            "name": "scanId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SharedContractsResultOfWeekRationEntity"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "JWTBearerAuth": []
-          },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
-    "/ration/{rationId}": {
-      "get": {
-        "tags": [
-          "Ration"
-        ],
-        "summary": "Публичный метод. Рацион по ИД",
-        "description": "Возвращает рацион по идентификатору сохранённой записи (если она принадлежит текущему пользователю).",
-        "operationId": "ApiEndpointsRationGetByIdGetWeekRationByIdEndpoint",
-        "parameters": [
-          {
-            "name": "rationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationEntity"
-                }
-              }
-            }
-          }
-        },
-        "security": [
           {
             "Bearer": []
           }
@@ -658,6 +402,46 @@
         ]
       }
     },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Регистрация по email и паролю",
+        "description": "Создаёт пользователя через ASP.NET Identity (UserManager). В ответе — JWT, как при login. Опционально locale (ru/en) для claim Locale.",
+        "operationId": "ApiEndpointsAuthenticationRegisterRegisterEndpoint",
+        "requestBody": {
+          "x-name": "EmailRegisterRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationModelsAuthEmailRegisterRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationModelsAuthLoginResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/auth/refresh-token": {
       "post": {
         "tags": [
@@ -696,8 +480,8 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Авторизация пользователя по ИД сессии",
-        "description": "В теле запроса передайте locale: ru или en — значение попадёт в JWT (claim Locale) и определяет язык ответов API для авторизованных запросов. Подробнее: docs/localization_locale_contract.md",
+        "summary": "Авторизация по email и паролю",
+        "description": "В теле запроса: email, password; опционально locale (ru/en) — попадает в JWT (claim Locale). Подробнее: docs/localization_locale_contract.md",
         "operationId": "ApiEndpointsAuthenticationLoginLoginEndpoint",
         "requestBody": {
           "x-name": "LoginRequest",
@@ -1123,52 +907,6 @@
         ]
       }
     },
-    "/app/openrouter/week-ration": {
-      "post": {
-        "tags": [
-          "App"
-        ],
-        "summary": "Рацион на неделю по скану RPPG (OpenRouter)",
-        "description": "По ID скана строит текст отчёта, подмешивает каталог товаров X5 и исключения пользователя; возвращает JSON рациона на 7 дней.",
-        "operationId": "ApiEndpointsAppOpenRouterChatOpenRouterWeekRationEndpoint",
-        "requestBody": {
-          "x-name": "WeekRationRequest",
-          "description": "",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApplicationModelsWeekRationWeekRationRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationModelsWeekRationWeekRationResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "JWTBearerAuth": []
-          },
-          {
-            "Bearer": []
-          }
-        ]
-      }
-    },
     "/app/health-check": {
       "post": {
         "tags": [
@@ -1360,20 +1098,47 @@
                 "type": "string",
                 "format": "guid"
               },
+              "name": {
+                "type": "string",
+                "nullable": true
+              },
+              "age": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              },
+              "height": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              },
+              "weight": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              },
+              "gender": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesGender"
+                  }
+                ]
+              },
+              "smokeStatus": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesSmokeStatus"
+                  }
+                ]
+              },
               "sdkResult": {
                 "type": "string",
                 "nullable": true
               },
               "status": {
                 "$ref": "#/components/schemas/InfrastructureDbAppEntitiesRppgScanStatus"
-              },
-              "weekRationGenerationStatus": {
-                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationGenerationStatus"
-              },
-              "statusMessage": {
-                "type": "string",
-                "maxLength": 4000,
-                "nullable": true
               },
               "resultItems": {
                 "type": "array",
@@ -1383,6 +1148,30 @@
               }
             }
           }
+        ]
+      },
+      "InfrastructureDbAppEntitiesGender": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Male",
+          "Female"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "InfrastructureDbAppEntitiesSmokeStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "NotSmoking",
+          "Smoking"
+        ],
+        "enum": [
+          0,
+          1
         ]
       },
       "InfrastructureDbAppEntitiesRppgScanStatus": {
@@ -1399,24 +1188,6 @@
           1,
           2,
           3
-        ]
-      },
-      "InfrastructureDbAppEntitiesWeekRationGenerationStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "None",
-          "Pending",
-          "InProgress",
-          "Completed",
-          "Failed"
-        ],
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
         ]
       },
       "InfrastructureDbAppEntitiesUserRppgScanResultItemEntity": {
@@ -1580,7 +1351,7 @@
         "x-abstract": true,
         "additionalProperties": false
       },
-      "SharedContractsResultOfWeekRationEntity": {
+      "SharedContractsResultOfUserEntity": {
         "allOf": [
           {
             "$ref": "#/components/schemas/SharedContractsResult"
@@ -1593,479 +1364,67 @@
                 "nullable": true,
                 "oneOf": [
                   {
-                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationEntity"
+                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserEntity"
                   }
                 ]
               }
             }
           }
         ]
-      },
-      "InfrastructureDbAppEntitiesWeekRationEntity": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/InfrastructureDbBaseEntity"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "userId": {
-                "type": "string",
-                "format": "guid"
-              },
-              "rppgScanId": {
-                "type": "string",
-                "format": "guid"
-              },
-              "items": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationItemEntity"
-                }
-              },
-              "kcal": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "proteins": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "fats": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "carbs": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              }
-            }
-          }
-        ]
-      },
-      "InfrastructureDbAppEntitiesWeekRationItemEntity": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/InfrastructureDbBaseEntity"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "weekRationId": {
-                "type": "string",
-                "format": "guid"
-              },
-              "type": {
-                "type": "string",
-                "maxLength": 20
-              },
-              "order": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "day": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "productId": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "product": {
-                "nullable": true,
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductEntity"
-                  }
-                ]
-              },
-              "weight": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "reason": {
-                "type": "string",
-                "maxLength": 2000,
-                "nullable": true
-              },
-              "replaces": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationItemReplaceEntity"
-                }
-              },
-              "kcal": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "proteins": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "fats": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              },
-              "carbs": {
-                "type": "number",
-                "format": "decimal",
-                "nullable": true
-              }
-            }
-          }
-        ]
-      },
-      "InfrastructureDbAppEntitiesProductEntity": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "categoryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "category": {
-            "$ref": "#/components/schemas/InfrastructureDbAppEntitiesCategoryEntity"
-          },
-          "plu": {
-            "type": "string",
-            "maxLength": 32
-          },
-          "images": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "rating": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "kcalPer100G": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "proteinsGPer100G": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "fatsGPer100G": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "carbsGPer100G": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "price": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "shelfLifeDays": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "weightG": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "volumeMl": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "isAlcohol": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "isTobacco": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "isAdultContent": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "priority": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "title": {
-            "type": "string"
-          },
-          "labels": {
-            "type": "string",
-            "nullable": true
-          },
-          "allergens": {
-            "type": "string",
-            "nullable": true
-          },
-          "mainIngrediants": {
-            "type": "string",
-            "nullable": true
-          },
-          "fullIngrediants": {
-            "type": "string",
-            "nullable": true
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductFeatureDto"
-            }
-          },
-          "productType": {
-            "type": "string",
-            "nullable": true
-          },
-          "manufacturer": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "country": {
-            "type": "string",
-            "nullable": true
-          },
-          "unitName": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "InfrastructureDbAppEntitiesCategoryEntity": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "parentId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "InfrastructureDbAppEntitiesProductFeatureDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "displayValues": {
-            "type": "string"
-          }
-        }
-      },
-      "InfrastructureDbAppEntitiesWeekRationItemReplaceEntity": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/InfrastructureDbBaseEntity"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "weekRationItemId": {
-                "type": "string",
-                "format": "guid"
-              },
-              "productId": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "product": {
-                "nullable": true,
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductEntity"
-                  }
-                ]
-              },
-              "weight": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "reason": {
-                "type": "string",
-                "maxLength": 2000,
-                "nullable": true
-              }
-            }
-          }
-        ]
-      },
-      "ApiEndpointsRationReplaceWeekRationItemRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "productId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "weight": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "SharedContractsResultOfString": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SharedContractsResult"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "value": {
-                "type": "string",
-                "nullable": true
-              }
-            }
-          }
-        ]
-      },
-      "ApiEndpointsRationWeekRationRegenerateRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "scanId": {
-            "type": "string",
-            "format": "guid"
-          }
-        }
-      },
-      "SharedContractsResultOfWeekRationOwnerResponse": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SharedContractsResult"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "value": {
-                "nullable": true,
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/ApplicationModelsWeekRationWeekRationOwnerResponse"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "ApplicationModelsWeekRationWeekRationOwnerResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "user": {
-            "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserEntity"
-          },
-          "excludeProducts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserExcludeProductEntity"
-            }
-          }
-        }
       },
       "InfrastructureDbAppEntitiesUserEntity": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MicrosoftAspNetCoreIdentityIdentityUserOfGuid"
           },
-          "confirmedPolicyAndDocuments": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "profile": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserProfileEntity"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "guid"
+              },
+              "profile": {
+                "nullable": true,
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserProfileEntity"
+                  }
+                ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "createdById": {
+                "type": "string",
+                "format": "guid",
+                "nullable": true
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "updatedById": {
+                "type": "string",
+                "format": "guid",
+                "nullable": true
+              },
+              "deletedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "deletedById": {
+                "type": "string",
+                "format": "guid",
+                "nullable": true
               }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdById": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "updatedById": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "deletedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "deletedById": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
+            }
           }
-        }
+        ]
       },
       "InfrastructureDbAppEntitiesUserProfileEntity": {
         "allOf": [
@@ -2079,6 +1438,14 @@
               "userId": {
                 "type": "string",
                 "format": "guid"
+              },
+              "availableRppgScans": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "availableSkinScans": {
+                "type": "integer",
+                "format": "int32"
               },
               "age": {
                 "type": "integer",
@@ -2111,12 +1478,9 @@
                   }
                 ]
               },
-              "goals": {
-                "type": "array",
-                "nullable": true,
-                "items": {
-                  "type": "string"
-                }
+              "confirmedPolicyAndDocuments": {
+                "type": "boolean",
+                "nullable": true
               },
               "utmSource": {
                 "type": "string",
@@ -2126,116 +1490,68 @@
           }
         ]
       },
-      "InfrastructureDbAppEntitiesGender": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Male",
-          "Female"
-        ],
-        "enum": [
-          0,
-          1
-        ]
-      },
-      "InfrastructureDbAppEntitiesSmokeStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "NotSmoking",
-          "Smoking"
-        ],
-        "enum": [
-          0,
-          1
-        ]
-      },
-      "InfrastructureDbAppEntitiesUserExcludeProductEntity": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/InfrastructureDbBaseEntity"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "userId": {
-                "type": "string",
-                "format": "guid"
-              },
-              "excludeProduct": {
-                "type": "string",
-                "maxLength": 200
-              }
-            }
-          }
-        ]
-      },
-      "ApiEndpointsRationWeekRationByIdRouteRequest": {
-        "type": "object",
-        "additionalProperties": false
-      },
-      "SharedContractsResultOfWeekRationGenerationStatusResponseDto": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SharedContractsResult"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "value": {
-                "nullable": true,
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/ApplicationModelsWeekRationWeekRationGenerationStatusResponseDto"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "ApplicationModelsWeekRationWeekRationGenerationStatusResponseDto": {
+      "MicrosoftAspNetCoreIdentityIdentityUserOfGuid": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "culture": {
-            "type": "string"
+          "id": {
+            "type": "string",
+            "format": "guid"
           },
-          "status": {
-            "$ref": "#/components/schemas/InfrastructureDbAppEntitiesWeekRationGenerationStatus"
-          },
-          "statusMessage": {
+          "userName": {
             "type": "string",
             "nullable": true
+          },
+          "normalizedUserName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "normalizedEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "emailConfirmed": {
+            "type": "boolean"
+          },
+          "passwordHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "securityStamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "concurrencyStamp": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumberConfirmed": {
+            "type": "boolean"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "lockoutEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lockoutEnabled": {
+            "type": "boolean"
+          },
+          "accessFailedCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
-      },
-      "ApiEndpointsRationWeekRationByScanRouteRequest": {
-        "type": "object",
-        "additionalProperties": false
-      },
-      "SharedContractsResultOfUserEntity": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SharedContractsResult"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "value": {
-                "nullable": true,
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserEntity"
-                  }
-                ]
-              }
-            }
-          }
-        ]
       },
       "ApplicationModelsUserUpdateUserRequest": {
         "type": "object",
@@ -2271,13 +1587,6 @@
                 "$ref": "#/components/schemas/InfrastructureDbAppEntitiesSmokeStatus"
               }
             ]
-          },
-          "goals": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string"
-            }
           },
           "confirmedPolicyAndDocuments": {
             "type": "boolean",
@@ -2521,16 +1830,28 @@
           "user": {
             "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserEntity"
           },
-          "profile": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesUserProfileEntity"
-              }
-            ]
-          },
           "token": {
             "type": "string"
+          }
+        }
+      },
+      "ApplicationModelsAuthEmailRegisterRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "utm": {
+            "type": "string",
+            "nullable": true
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -2538,10 +1859,11 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
           },
           "utm": {
             "type": "string",
@@ -2790,6 +2112,21 @@
           }
         }
       },
+      "InfrastructureDbAppEntitiesProductFeatureDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "displayValues": {
+            "type": "string"
+          }
+        }
+      },
       "ApiEndpointsAssortmentGetProductsGetProductsRequest": {
         "allOf": [
           {
@@ -2900,7 +2237,42 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "scanResult": {}
+          "scanResult": {},
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "gender": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesGender"
+              }
+            ]
+          },
+          "smokeStatus": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesSmokeStatus"
+              }
+            ]
+          }
         }
       },
       "SharedContractsResultOfStatEventEntity": {
@@ -3132,226 +2504,6 @@
           "model": {
             "type": "string",
             "default": "google/gemini-2.5-flash",
-            "nullable": true
-          }
-        }
-      },
-      "ApplicationModelsWeekRationWeekRationResponseDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "rppgScanId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "kcal": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "proteins": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "fats": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "carbs": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "ration": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "$ref": "#/components/schemas/ApplicationModelsWeekRationDayRationMealSlotDto"
-            }
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          },
-          "rawAssistantContent": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "ApplicationModelsWeekRationDayRationMealSlotDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "day": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "type": {
-            "type": "string"
-          },
-          "kcal": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "proteins": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "fats": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "carbs": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "food": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ApplicationModelsWeekRationDayRationProductRefDto"
-            }
-          }
-        }
-      },
-      "ApplicationModelsWeekRationDayRationProductRefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "reason": {
-            "type": "string",
-            "nullable": true
-          },
-          "weight": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "kcal": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "proteins": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "fats": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "carbs": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "replace": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ApplicationModelsWeekRationWeekRationProductReplaceCandidateDto"
-            }
-          },
-          "product": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductEntity"
-              }
-            ]
-          }
-        }
-      },
-      "ApplicationModelsWeekRationWeekRationProductReplaceCandidateDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "weight": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "kcal": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "proteins": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "fats": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "carbs": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "product": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/InfrastructureDbAppEntitiesProductEntity"
-              }
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "ApplicationModelsWeekRationWeekRationRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "scanId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "model": {
-            "type": "string",
-            "nullable": true
-          },
-          "temperature": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "maxTokens": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "topP": {
-            "type": "number",
-            "format": "double",
             "nullable": true
           }
         }

@@ -14,16 +14,8 @@ import './WelcomePage.css'
 /**
  * Описание перед сканированием (переход с главной).
  */
-export function WelcomePage({
-  authStatus = 'ready',
-  authError = '',
-  onRetryAuth,
-  onContinue,
-  onBack,
-}) {
+export function WelcomePage({ onContinue, onBack }) {
   const { locale, t } = useI18n()
-  const loading = authStatus === 'loading'
-  const failed = authStatus === 'error'
 
   const welcomeSteps = getWelcomeSteps(locale)
   const demoMetrics = getWelcomeDemoMetrics(locale)
@@ -97,16 +89,6 @@ export function WelcomePage({
             </div>
           </section>
 
-          {loading ? (
-            <p className="welcome-status" aria-live="polite">
-              {t('welcome.connecting')}
-            </p>
-          ) : null}
-          {failed && authError ? (
-            <p className="welcome-status welcome-status--error" role="alert">
-              {authError}
-            </p>
-          ) : null}
         </div>
 
         <footer className="page-dock welcome-page__dock">
@@ -115,20 +97,9 @@ export function WelcomePage({
             <button type="button" className="btn-secondary" onClick={onBack}>
               {t('common.back')}
             </button>
-            {failed && onRetryAuth ? (
-              <button type="button" className="btn-primary" onClick={onRetryAuth}>
-                {t('welcome.retry')}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={onContinue}
-                disabled={loading}
-              >
-                {loading ? t('welcome.continueWait') : t('welcome.continue')}
-              </button>
-            )}
+            <button type="button" className="btn-primary" onClick={onContinue}>
+              {t('welcome.continue')}
+            </button>
           </div>
         </footer>
       </div>

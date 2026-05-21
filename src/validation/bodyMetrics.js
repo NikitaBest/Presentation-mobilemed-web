@@ -11,6 +11,8 @@ const HEIGHT_MIN = 50
 const HEIGHT_MAX = 260
 const WEIGHT_MIN = 20
 const WEIGHT_MAX = 300
+const NAME_MIN = 1
+const NAME_MAX = 80
 
 function trim(raw) {
   return String(raw ?? '').trim()
@@ -24,6 +26,23 @@ function isStrictIntString(s) {
 /** Число с необязательной дробной частью */
 function isStrictWeightString(s) {
   return /^\d+([.,]\d+)?$/.test(s)
+}
+
+/**
+ * @param {string} raw
+ * @param {{ required?: boolean, t?: (key: string, vars?: Record<string, string>) => string }} opts
+ */
+export function validateNameField(raw, { required = false, t } = {}) {
+  const tr = (key, vars) => (typeof t === 'function' ? t(key, vars) : '')
+  const s = trim(raw)
+  if (s === '') return required ? tr('userData.validation.nameRequired') : ''
+  if (s.length < NAME_MIN) {
+    return tr('userData.validation.nameTooShort', { min: String(NAME_MIN) })
+  }
+  if (s.length > NAME_MAX) {
+    return tr('userData.validation.nameTooLong', { max: String(NAME_MAX) })
+  }
+  return ''
 }
 
 /**

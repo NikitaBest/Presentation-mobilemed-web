@@ -1,9 +1,13 @@
+import { getStoredToken } from '../api/session.js'
 import { hasUserChosenLocale } from '../i18n/locale.js'
 
 const STEP_STORAGE_KEY = 'mm_app_step'
 
 /** Экран выбора языка при первом входе (не в цепочке «Далее»). */
 export const LANGUAGE_STEP = 'language'
+
+/** Вход / регистрация после выбора языка (не в цепочке сканирования). */
+export const AUTH_STEP = 'auth'
 
 /** Настройки (не в цепочке сканирования). */
 export const SETTINGS_STEP = 'settings'
@@ -29,6 +33,7 @@ export const APP_STEPS = [
  */
 export function readInitialStep() {
   if (!hasUserChosenLocale()) return LANGUAGE_STEP
+  if (!getStoredToken()) return AUTH_STEP
   return readPersistedStep()
 }
 

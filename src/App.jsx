@@ -1,8 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { ensureAuthSession } from './api/auth.js'
+import { getStoredToken, getStoredUserId } from './api/session.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
+import { loadUserDisplayName } from './utils/userDisplayNameStorage.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
 import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
+import { AuthPage } from './pages/AuthPage.jsx'
 import { HomePage } from './pages/HomePage.jsx'
 import { WelcomePage } from './pages/WelcomePage.jsx'
 import { UserDataPage } from './pages/UserDataPage.jsx'
@@ -16,6 +18,7 @@ const ScanPage = lazy(() =>
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
 import {
   APP_STEPS,
+  AUTH_STEP,
   HOME_STEP,
   LANGUAGE_STEP,
   SETTINGS_STEP,
@@ -31,38 +34,42 @@ export default function App() {
   const [step, setStep] = useState(() => readInitialStep())
   const [userForm, setUserForm] = useState(() => ({ ...USER_FORM_INITIAL }))
   const [scanSummary, setScanSummary] = useState(null)
-  const [authStatus, setAuthStatus] = useState('loading')
-  const [authError, setAuthError] = useState('')
   const [userDataHint, setUserDataHint] = useState('')
   const [returnStep, setReturnStep] = useState(HOME_STEP)
   /** @type {'flow' | 'profile'} */
   const [userDataVariant, setUserDataVariant] = useState('flow')
 
-  const runAuth = useCallback(async () => {
-    setAuthStatus('loading')
-    setAuthError('')
-    try {
-      await ensureAuthSession()
-      setAuthStatus('ready')
-    } catch (e) {
-      setAuthStatus('error')
-      setAuthError(e instanceof Error ? e.message : t('app.authError'))
+  useEffect(() => {
+    if (step === LANGUAGE_STEP || step === AUTH_STEP) return
+    if (!getStoredToken()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- без JWT только экран входа
+      setStep(AUTH_STEP)
+      return
     }
-  }, [t])
+  }, [step])
 
   useEffect(() => {
-    if (step === LANGUAGE_STEP) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- сессия после выбора языка
-    runAuth()
-  }, [runAuth, step])
-
-  useEffect(() => {
-    if (step === LANGUAGE_STEP || step === SETTINGS_STEP || step === SCAN_HISTORY_STEP) return
+    if (
+      step === LANGUAGE_STEP ||
+      step === AUTH_STEP ||
+      step === SETTINGS_STEP ||
+      step === SCAN_HISTORY_STEP
+    ) {
+      return
+    }
     writePersistedStep(step)
   }, [step])
 
   const completeLanguageStep = useCallback(() => {
+    setStep(AUTH_STEP)
+  }, [])
+
+  const completeAuthStep = useCallback(() => {
     setStep(HOME_STEP)
+  }, [])
+
+  const backToLanguageFromAuth = useCallback(() => {
+    setStep(LANGUAGE_STEP)
   }, [])
 
   const openSettings = useCallback((fromStep = HOME_STEP) => {
@@ -100,6 +107,8 @@ export default function App() {
       const user = await getUserMe()
       if (!user) return
       const patch = mapUserEntityToFormPatch(user)
+      const storedName = loadUserDisplayName(getStoredUserId())
+      if (storedName) patch.name = storedName
       if (Object.keys(patch).length > 0) {
         setUserForm((prev) => ({ ...prev, ...patch }))
       }
@@ -160,6 +169,12 @@ export default function App() {
       {activeStep === LANGUAGE_STEP && (
         <LanguageSelectPage onComplete={completeLanguageStep} />
       )}
+      {activeStep === AUTH_STEP && (
+        <AuthPage
+          onSuccess={completeAuthStep}
+          onBackToLanguage={backToLanguageFromAuth}
+        />
+      )}
       {activeStep === HOME_STEP && (
         <HomePage
           onStartScan={startScanFlow}
@@ -169,13 +184,7 @@ export default function App() {
         />
       )}
       {activeStep === 'welcome' && (
-        <WelcomePage
-          authStatus={authStatus}
-          authError={authError}
-          onRetryAuth={runAuth}
-          onContinue={goNext}
-          onBack={goHome}
-        />
+        <WelcomePage onContinue={goNext} onBack={goHome} />
       )}
       {activeStep === 'userData' && (
         <UserDataPage

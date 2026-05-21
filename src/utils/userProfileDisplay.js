@@ -14,7 +14,12 @@ function getAgeWordRu(n) {
  */
 export function isUserProfileFilled(form) {
   return Boolean(
-    form.sex && form.age && form.height && form.weight && form.smokingStatus,
+    String(form.name ?? '').trim() &&
+      form.sex &&
+      form.age &&
+      form.height &&
+      form.weight &&
+      form.smokingStatus,
   )
 }
 
@@ -56,7 +61,11 @@ export function formatUserProfileLines(form, t, locale) {
   if (form.smokingStatus === 'NON_SMOKER') smokingValue = t('userData.smokingNon')
   else if (form.smokingStatus === 'SMOKER') smokingValue = t('userData.smokingYes')
 
+  const nameValue =
+    String(form.name ?? '').trim() || notSet
+
   return [
+    { label: t('userData.nameTitle'), value: nameValue },
     { label: t('userData.sexTitle'), value: sexValue },
     { label: t('userData.ageTitle'), value: ageValue },
     { label: t('userData.heightWeightTitle'), value: `${heightValue} · ${weightValue}` },

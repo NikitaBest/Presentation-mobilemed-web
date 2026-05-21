@@ -2,7 +2,16 @@
  * Слой HTTP-запросов к backend (см. docs/API.md).
  */
 export { apiFetch } from './client.js'
-export { postAuthLogin, ensureAuthSession, resolveLoginUserId } from './auth.js'
+export {
+  postAuthLogin,
+  postAuthRegister,
+  postAuthRefreshToken,
+  ensureAuthSession,
+  reauthenticateWithCurrentLocale,
+  resolveLoginUserId,
+  clearAuthSession,
+  AuthRequiredError,
+} from './auth.js'
 export {
   getUserMe,
   putUserUpdate,
@@ -12,6 +21,7 @@ export {
 export {
   getStoredToken,
   getStoredUserId,
+  getStoredEmail,
   setSessionFromLogin,
   clearSession,
 } from './session.js'

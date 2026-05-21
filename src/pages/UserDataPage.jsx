@@ -5,11 +5,14 @@ import { useI18n } from '../i18n/useI18n.js'
 import {
   validateAgeField,
   validateHeightField,
+  validateNameField,
   validateSexField,
   validateSmokingField,
   validateWeightField,
 } from '../validation/bodyMetrics.js'
+import { getStoredUserId } from '../api/session.js'
 import { mapFormToUpdateUserRequest, mapUserEntityToFormPatch, putUserUpdate } from '../api/user.js'
+import { saveUserDisplayName } from '../utils/userDisplayNameStorage.js'
 import './UserDataPage.css'
 
 const REQ = { required: true }
@@ -90,6 +93,7 @@ export function UserDataPage({
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [touched, setTouched] = useState({
+    name: false,
     age: false,
     height: false,
     weight: false,
@@ -97,6 +101,7 @@ export function UserDataPage({
     smokingStatus: false,
   })
   const [errors, setErrors] = useState({
+    name: '',
     age: '',
     height: '',
     weight: '',
@@ -122,6 +127,7 @@ export function UserDataPage({
 
   const runAllValidation = useCallback(
     (v) => ({
+      name: validateNameField(v.name, { ...REQ, t }),
       age: validateAgeField(v.age, { ...REQ, t }),
       height: validateHeightField(v.height, { ...REQ, t }),
       weight: validateWeightField(v.weight, { ...REQ, t }),
@@ -130,6 +136,9 @@ export function UserDataPage({
     }),
     [t],
   )
+
+  const nameTrimmed = String(value.name ?? '').trim()
+  const nameOk = !errors.name && nameTrimmed.length > 0
 
   const ageNum = parsePositiveInt(value.age)
   const ageOk =
@@ -169,6 +178,9 @@ export function UserDataPage({
       const merged = { ...value, ...patch }
       setErrors((prev) => {
         const next = { ...prev }
+        if ('name' in patch && touched.name) {
+          next.name = validateNameField(merged.name, { ...REQ, t })
+        }
         if ('age' in patch && touched.age) {
           next.age = validateAgeField(merged.age, { ...REQ, t })
         }
@@ -181,7 +193,7 @@ export function UserDataPage({
         return next
       })
     },
-    [onFormChange, touched.age, touched.height, touched.weight, value, t],
+    [onFormChange, touched.name, touched.age, touched.height, touched.weight, value, t],
   )
 
   return (
@@ -208,6 +220,7 @@ export function UserDataPage({
             const nextErrors = runAllValidation(value)
             setErrors(nextErrors)
             setTouched({
+              name: true,
               age: true,
               height: true,
               weight: true,
@@ -215,6 +228,7 @@ export function UserDataPage({
               smokingStatus: true,
             })
             if (
+              nextErrors.name ||
               nextErrors.age ||
               nextErrors.height ||
               nextErrors.weight ||
@@ -227,12 +241,14 @@ export function UserDataPage({
             setSaving(true)
             try {
               const updated = await putUserUpdate(mapFormToUpdateUserRequest(value))
+              saveUserDisplayName(getStoredUserId(), nameTrimmed)
               if (updated) {
                 const patch = mapUserEntityToFormPatch(updated)
                 if (Object.keys(patch).length > 0) {
                   onFormChange(patch)
                 }
               }
+              onFormChange({ name: nameTrimmed })
               onContinue()
             } catch (err) {
               setSaveError(
@@ -243,6 +259,51 @@ export function UserDataPage({
             }
           }}
         >
+          <section className="user-data-section" aria-labelledby="uds-name">
+            <h2 className="user-data-section-title" id="uds-name">
+              {t('userData.nameTitle')}
+            </h2>
+            <p className="user-data-section-subtitle">{t('userData.nameSubtitle')}</p>
+            <input
+              id="user-name"
+              className={`user-data-input${errors.name ? ' user-data-input--error' : ''}`}
+              type="text"
+              inputMode="text"
+              autoComplete="name"
+              placeholder={t('userData.namePlaceholder')}
+              value={value.name}
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? 'user-name-error' : undefined}
+              onChange={(e) => patchErrorsAfterChange({ name: e.target.value })}
+              onBlur={(e) => {
+                setTouched((t) => ({ ...t, name: true }))
+                setErrors((prev) => ({
+                  ...prev,
+                  name: validateNameField(e.target.value, { ...REQ, t }),
+                }))
+              }}
+            />
+            {errors.name ? (
+              <p id="user-name-error" className="user-data-field-error" role="alert">
+                {errors.name}
+              </p>
+            ) : null}
+            {nameOk ? (
+              <div className="user-data-note">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M13.3333 4L6 11.3333L2.66667 8"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>{t('userData.nameNote')}</span>
+              </div>
+            ) : null}
+          </section>
+
           <section className="user-data-section" aria-labelledby="uds-sex">
             <h2 className="user-data-section-title" id="uds-sex">
               {t('userData.sexTitle')}

@@ -2,17 +2,30 @@ import { getApiBaseUrl } from '../config.js'
 import { getAcceptLanguageHeader, getApiLocale } from '../i18n/locale.js'
 import {
   clearSession,
+  getStoredEmail,
   getStoredToken,
   getStoredUserId,
   setSessionFromLogin,
+  setStoredEmail,
 } from './session.js'
 
-/** POST /auth/login — ApplicationModelsAuthLoginRequest */
 const LOGIN_PATH = '/auth/login'
+const REGISTER_PATH = '/auth/register'
+const REFRESH_PATH = '/auth/refresh-token'
 
 /** Клейм .NET JWT (совпадает с user.id в ответе login). */
 const JWT_NAMEIDENTIFIER =
   'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+
+/** Пароль только в памяти вкладки — для повторного login при смене locale. */
+let sessionPassword = ''
+
+export class AuthRequiredError extends Error {
+  constructor() {
+    super('AUTH_REQUIRED')
+    this.name = 'AuthRequiredError'
+  }
+}
 
 function decodeJwtPayload(token) {
   if (!token || typeof token !== 'string') return null
@@ -59,7 +72,6 @@ function userIdFromLoginJson(data) {
 
 /**
  * Единый id для хранения: как в ответе API, согласованный с JWT (Bearer).
- * При расхождении JSON vs JWT берём JWT — по нему бекенд проверяет сессию.
  */
 export function resolveLoginUserId(data, token) {
   const fromBody = userIdFromLoginJson(data)
@@ -68,7 +80,7 @@ export function resolveLoginUserId(data, token) {
   if (fromJwt && fromBody && fromJwt !== fromBody) {
     if (import.meta.env.DEV) {
       console.warn(
-        '[MobileMed] auth/login: user.id в JSON и субъект в JWT различаются, сохраняем id из JWT:',
+        '[MobileMed] auth: user.id в JSON и субъект в JWT различаются, сохраняем id из JWT:',
         { fromBody, fromJwt },
       )
     }
@@ -77,7 +89,7 @@ export function resolveLoginUserId(data, token) {
   return fromJwt || fromBody || ''
 }
 
-function getLoginBearer() {
+function getServiceBearer() {
   return import.meta.env.VITE_API_AUTH_BEARER ?? ''
 }
 
@@ -87,11 +99,10 @@ function getUtmFromUrl() {
   return params.get('utm') ?? params.get('Utm') ?? ''
 }
 
-function getUtmForLogin() {
+function getUtmForAuth() {
   return getUtmFromUrl() || (import.meta.env.VITE_AUTH_UTM ?? '') || ''
 }
 
-/** Сброс сохранённого JWT и повторный login (удобно в DevTools). Параметры из URL затем убираются. */
 function consumeForceReauthFromUrl() {
   if (typeof window === 'undefined') return
   const params = new URLSearchParams(window.location.search)
@@ -101,6 +112,7 @@ function consumeForceReauthFromUrl() {
     params.get('forceLogin') === 'true'
   if (!force) return
   clearSession()
+  sessionPassword = ''
   params.delete('reauth')
   params.delete('forceLogin')
   const q = params.toString()
@@ -108,75 +120,53 @@ function consumeForceReauthFromUrl() {
   window.history.replaceState(window.history.state, '', path)
 }
 
-function buildLoginBody() {
-  const body = { locale: getApiLocale() }
-  const utm = getUtmForLogin()
-  if (utm) body.utm = utm
-  const existingUserId = getStoredUserId()
-  const existingToken = getStoredToken()
-  if (existingUserId && !existingToken) body.id = existingUserId
-  return body
+function rememberCredentials(email, password) {
+  const e = String(email ?? '').trim()
+  if (e) setStoredEmail(e)
+  if (password) sessionPassword = String(password)
+}
+
+function authLocaleFields(locale) {
+  const out = { locale: locale ?? getApiLocale() }
+  const utm = getUtmForAuth()
+  if (utm) out.utm = utm
+  return out
+}
+
+function parseAuthError(res, data, text) {
+  const detail =
+    (data && (data.error || data.message || data.title || data.detail)) ||
+    text ||
+    res.statusText
+  return `${res.status} ${detail}`.trim()
 }
 
 /**
- * Повторный login с текущей локалью (storage) — новый JWT с claim Locale.
- * Тот же userId в теле — история сканов на бэкенде не меняется (docs/API.md).
- * Сессию не сбрасываем до успешного ответа; при ошибке восстанавливаем прежний JWT.
+ * @param {string} path
+ * @param {object} body
+ * @param {{ useUserJwt?: boolean }} [opts]
  */
-export async function reauthenticateWithCurrentLocale() {
-  const userId = getStoredUserId()
-  const prevToken = getStoredToken()
-
-  if (!userId && !prevToken) {
-    const data = await postAuthLogin({ locale: getApiLocale() })
-    const uid = resolveLoginUserId(data, data.token)
-    setSessionFromLogin({ token: data.token, userId: uid })
-    return
-  }
-
-  if (!userId) {
-    throw new Error(
-      'Не сохранён идентификатор пользователя — смена языка без повторной привязки к аккаунту невозможна',
-    )
-  }
-
-  try {
-    const data = await postAuthLogin({ id: userId, locale: getApiLocale() })
-    const uid = resolveLoginUserId(data, data.token) || userId
-    if (import.meta.env.DEV && uid !== userId) {
-      console.warn('[MobileMed] reauth: userId в ответе login отличается от сохранённого', {
-        was: userId,
-        now: uid,
-      })
-    }
-    setSessionFromLogin({ token: data.token, userId: uid })
-  } catch (e) {
-    if (prevToken) {
-      setSessionFromLogin({ token: prevToken, userId })
-    }
-    throw e
-  }
-}
-
-/**
- * @returns {Promise<{ user: object, profile: object | null, token: string }>}
- */
-export async function postAuthLogin(body) {
+async function postAuthEndpoint(path, body, { useUserJwt = false } = {}) {
   const base = getApiBaseUrl().replace(/\/$/, '')
   if (!base) {
     throw new Error('Не задан VITE_API_BASE_URL')
   }
 
-  const merged = { ...buildLoginBody(), ...(body && typeof body === 'object' ? body : {}) }
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept-Language': getAcceptLanguageHeader(),
+  }
+  const serviceBearer = getServiceBearer()
+  if (serviceBearer) headers.Authorization = `Bearer ${serviceBearer}`
+  if (useUserJwt) {
+    const token = getStoredToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+  }
 
-  const headers = { 'Content-Type': 'application/json', 'Accept-Language': getAcceptLanguageHeader() }
-  const bearer = getLoginBearer()
-  if (bearer) headers.Authorization = `Bearer ${bearer}`
-
-  const res = await fetch(`${base}${LOGIN_PATH}`, {
+  const res = await fetch(`${base}${path}`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(merged),
+    body: JSON.stringify(body),
   })
 
   const text = await res.text()
@@ -188,39 +178,114 @@ export async function postAuthLogin(body) {
   }
 
   if (!res.ok) {
-    const detail =
-      (data && (data.message || data.title || data.detail)) || text || res.statusText
-    throw new Error(`auth/login: ${res.status} ${detail}`.trim())
+    throw new Error(`auth${path}: ${parseAuthError(res, data, text)}`)
   }
 
-  const token = data?.token
-  const userId = resolveLoginUserId(data, token)
-  if (!token || !userId) {
-    throw new Error(
-      'auth/login: в ответе нет token или идентификатора пользователя (user.id / userId / JWT)',
-    )
+  if (data && 'isSuccess' in data && data.isSuccess === false) {
+    throw new Error(data.error || 'Запрос отклонён сервером')
   }
 
   return data
 }
 
 /**
- * Если JWT уже есть — повторный вызов login не делаем.
- * Иначе POST /auth/login и сохранение token и userId (см. resolveLoginUserId).
+ * @param {object} data — ApplicationModelsAuthLoginResponse
+ */
+function persistAuthResponse(data) {
+  const token = data?.token
+  const userId = resolveLoginUserId(data, token)
+  if (!token || !userId) {
+    throw new Error(
+      'auth: в ответе нет token или идентификатора пользователя (user.id / userId / JWT)',
+    )
+  }
+  setSessionFromLogin({ token, userId })
+  return data
+}
+
+/**
+ * @param {{ email: string, password: string, locale?: string, utm?: string }} params
+ */
+export async function postAuthLogin({ email, password, locale, utm }) {
+  const body = {
+    email: String(email ?? '').trim(),
+    password: String(password ?? ''),
+    ...authLocaleFields(locale),
+  }
+  if (utm) body.utm = utm
+
+  const data = await postAuthEndpoint(LOGIN_PATH, body)
+  persistAuthResponse(data)
+  rememberCredentials(body.email, body.password)
+  return data
+}
+
+/**
+ * @param {{ email: string, password: string, locale?: string, utm?: string }} params
+ */
+export async function postAuthRegister({ email, password, locale, utm }) {
+  const body = {
+    email: String(email ?? '').trim(),
+    password: String(password ?? ''),
+    ...authLocaleFields(locale),
+  }
+  if (utm) body.utm = utm
+
+  const data = await postAuthEndpoint(REGISTER_PATH, body)
+  persistAuthResponse(data)
+  rememberCredentials(body.email, body.password)
+  return data
+}
+
+/** POST /auth/refresh-token — продление JWT (locale в claim не меняется). */
+export async function postAuthRefreshToken() {
+  const data = await postAuthEndpoint(REFRESH_PATH, {}, { useUserJwt: true })
+  persistAuthResponse(data)
+  return data
+}
+
+/**
+ * Смена locale в JWT: login с email/password и новым locale (docs/API.md).
+ * Без пароля в памяти — только refresh-token (Accept-Language для запросов обновится).
+ */
+export async function reauthenticateWithCurrentLocale() {
+  const email = getStoredEmail()
+  const password = sessionPassword
+  const locale = getApiLocale()
+
+  if (email && password) {
+    const data = await postAuthLogin({ email, password, locale })
+    const userId = resolveLoginUserId(data, data.token) || getStoredUserId()
+    setSessionFromLogin({ token: data.token, userId })
+    return
+  }
+
+  if (getStoredToken()) {
+    await postAuthRefreshToken()
+  }
+}
+
+/**
+ * JWT обязателен; при отсутствии — AuthRequiredError.
+ * При наличии — попытка refresh (не критично при ошибке, если токен ещё валиден).
  */
 export async function ensureAuthSession() {
   consumeForceReauthFromUrl()
 
-  if (getStoredToken()) {
-    if (import.meta.env.DEV) {
-      console.info(
-        '[MobileMed] JWT уже в sessionStorage — запрос auth/login не отправляется. Чтобы увидеть запрос: вкладка Application → Session Storage → удалите mm_api_token, либо откройте страницу с ?reauth=1',
-      )
-    }
-    return
+  if (!getStoredToken()) {
+    throw new AuthRequiredError()
   }
 
-  const data = await postAuthLogin(buildLoginBody())
-  const userId = resolveLoginUserId(data, data.token)
-  setSessionFromLogin({ token: data.token, userId })
+  try {
+    await postAuthRefreshToken()
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.warn('[MobileMed] refresh-token не удался, используем сохранённый JWT', e)
+    }
+  }
+}
+
+export function clearAuthSession() {
+  sessionPassword = ''
+  clearSession()
 }

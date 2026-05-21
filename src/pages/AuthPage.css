@@ -28,6 +28,30 @@
   color: var(--mm-primary);
 }
 
+.auth-page__fade-block {
+  transition:
+    opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-page__fade-block--out {
+  opacity: 0;
+  transform: translateY(0.35rem);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-page__fade-block,
+  .auth-page__fade-block--out {
+    transition: none;
+  }
+
+  .auth-page__fade-block--out {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .auth-page__title {
   margin: 0 0 var(--mm-space-2);
   font-size: var(--mm-font-size-h1);
@@ -35,20 +59,19 @@
   line-height: var(--mm-line-tight);
   letter-spacing: var(--mm-letter-tight);
   color: var(--mm-text-heading);
+  transition: color 0.25s ease;
 }
 
 .auth-page__lead {
-  margin: 0 0 var(--mm-space-1);
+  margin: 0;
   font-size: var(--mm-font-size-body);
   line-height: 1.4;
-  color: var(--mm-text);
+  color: var(--mm-text-muted);
+  transition: color 0.25s ease;
 }
 
-.auth-page__hint {
-  margin: 0;
-  font-size: var(--mm-font-size-sm);
-  line-height: 1.4;
-  color: var(--mm-text-muted);
+.auth-page__submit-text {
+  display: inline-block;
 }
 
 .auth-page__form-card {
@@ -98,9 +121,9 @@
   cursor: pointer;
   touch-action: manipulation;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
+    background-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .auth-page__switch-btn:hover:not(:disabled) {
@@ -119,14 +142,14 @@
 }
 
 .auth-page__switch-btn--active {
-  color: var(--mm-text-on-primary);
-  background: var(--mm-primary);
-  box-shadow: var(--mm-shadow-sm);
+  color: var(--mm-primary);
+  background: color-mix(in srgb, var(--mm-primary) 11%, var(--mm-bg-surface));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .auth-page__switch-btn--active:hover:not(:disabled) {
-  color: var(--mm-text-on-primary);
-  background: var(--mm-primary-hover);
+  color: var(--mm-primary-hover);
+  background: color-mix(in srgb, var(--mm-primary) 16%, var(--mm-bg-surface));
 }
 
 .auth-page__label {

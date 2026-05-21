@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { postAuthLogin, postAuthRegister } from '../api/auth.js'
 import { getStoredEmail } from '../api/session.js'
@@ -15,6 +15,36 @@ const MODES = [
   { id: 'login', labelKey: 'auth.tabLogin' },
   { id: 'register', labelKey: 'auth.tabRegister' },
 ]
+
+const FADE_MS = 180
+
+/**
+ * @param {{ mode: string, className?: string, children: (visibleMode: string) => import('react').ReactNode }} props
+ */
+function AuthModeFade({ mode, className = '', children }) {
+  const [visibleMode, setVisibleMode] = useState(mode)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (mode === visibleMode) return undefined
+    setVisible(false)
+    const timer = window.setTimeout(() => {
+      setVisibleMode(mode)
+      setVisible(true)
+    }, FADE_MS)
+    return () => window.clearTimeout(timer)
+  }, [mode, visibleMode])
+
+  return (
+    <div
+      className={`auth-page__fade-block${className ? ` ${className}` : ''}${
+        visible ? '' : ' auth-page__fade-block--out'
+      }`}
+    >
+      {children(visibleMode)}
+    </div>
+  )
+}
 
 /**
  * @param {{
@@ -33,15 +63,6 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
   const [errors, setErrors] = useState({ email: '', password: '' })
 
   const isRegister = mode === 'register'
-
-  const headerCopy = useMemo(
-    () => ({
-      title: isRegister ? t('auth.titleRegister') : t('auth.titleLogin'),
-      lead: isRegister ? t('auth.leadRegister') : t('auth.leadLogin'),
-      hint: t('auth.hint'),
-    }),
-    [isRegister, t],
-  )
 
   const runValidation = useCallback(
     () => ({
@@ -91,9 +112,21 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
         <div className="auth-page__body page-shell__scroll">
           <header className="auth-page__header">
             <span className="auth-page__brand">{t('auth.brand')}</span>
-            <h1 className="auth-page__title">{headerCopy.title}</h1>
-            <p className="auth-page__lead">{headerCopy.lead}</p>
-            <p className="auth-page__hint">{headerCopy.hint}</p>
+            <AuthModeFade mode={mode}>
+              {(visibleMode) => {
+                const register = visibleMode === 'register'
+                return (
+                  <>
+                    <h1 className="auth-page__title">
+                      {register ? t('auth.titleRegister') : t('auth.titleLogin')}
+                    </h1>
+                    <p className="auth-page__lead">
+                      {register ? t('auth.leadRegister') : t('auth.leadLogin')}
+                    </p>
+                  </>
+                )
+              }}
+            </AuthModeFade>
           </header>
 
           <form
@@ -217,11 +250,15 @@ export function AuthPage({ onSuccess, onBackToLanguage }) {
             form="auth-form"
             disabled={submitting}
           >
-            {submitting
-              ? t('auth.submitting')
-              : isRegister
-                ? t('auth.submitRegister')
-                : t('auth.submitLogin')}
+            <AuthModeFade mode={mode} className="auth-page__submit-text">
+              {(visibleMode) =>
+                submitting
+                  ? t('auth.submitting')
+                  : visibleMode === 'register'
+                    ? t('auth.submitRegister')
+                    : t('auth.submitLogin')
+              }
+            </AuthModeFade>
           </button>
           {onBackToLanguage ? (
             <button

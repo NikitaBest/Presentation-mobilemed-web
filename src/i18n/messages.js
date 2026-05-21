@@ -92,9 +92,7 @@ export const MESSAGES = {
     'results.home': 'На главную',
     'results.disclaimer': 'Данный анализ не заменяет медицинскую консультацию.',
     'results.settingsTitle': 'Настройки',
-    'results.settingsLang': 'Язык интерфейса и ответов API',
-    'results.settingsLangHint':
-      'После смены языка выполняется повторный вход — список сканов подгрузится заново.',
+    'results.settingsLang': 'Язык',
     'results.loadError': 'Не удалось загрузить результаты',
     'results.localeError': 'Не удалось сменить язык',
     'results.heroAria': 'Общий показатель здоровья',
@@ -343,9 +341,7 @@ export const MESSAGES = {
     'results.home': 'Home',
     'results.disclaimer': 'This analysis does not replace medical advice.',
     'results.settingsTitle': 'Settings',
-    'results.settingsLang': 'UI and API response language',
-    'results.settingsLangHint':
-      'Changing language re-authenticates you — the scan list will reload.',
+    'results.settingsLang': 'Language',
     'results.loadError': 'Could not load results',
     'results.localeError': 'Could not change language',
     'results.heroAria': 'Overall health score',

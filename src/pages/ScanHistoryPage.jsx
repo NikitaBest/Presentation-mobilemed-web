@@ -16,7 +16,7 @@ function scanRowKey(row) {
  * @param {{ onBack: () => void, onOpenScan: (row: object) => void }} props
  */
 export function ScanHistoryPage({ onBack, onOpenScan }) {
-  const { locale, t } = useI18n()
+  const { locale, localeRevision, t } = useI18n()
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
@@ -59,7 +59,7 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
   useEffect(() => {
     /* eslint-disable-next-line react-hooks/set-state-in-effect -- загрузка полной истории */
     void loadPage(1)
-  }, [loadPage])
+  }, [loadPage, localeRevision])
 
   const handleLoadMore = useCallback(() => {
     if (!hasNext || loadingMore) return
@@ -127,8 +127,8 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
           ) : null}
         </div>
 
-        <footer className="page-dock scan-history-page__dock">
-          <button type="button" className="btn-secondary" onClick={onBack}>
+        <footer className="page-dock scan-history-page__dock" aria-label={t('common.back')}>
+          <button type="button" className="btn-secondary scan-history-page__back" onClick={onBack}>
             {t('common.back')}
           </button>
         </footer>

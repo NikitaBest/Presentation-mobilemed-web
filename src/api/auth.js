@@ -120,14 +120,42 @@ function buildLoginBody() {
 
 /**
  * Повторный login с текущей локалью (storage) — новый JWT с claim Locale.
- * Сохраняйте userId до вызова clearSession (см. docs/API.md).
+ * Тот же userId в теле — история сканов на бэкенде не меняется (docs/API.md).
+ * Сессию не сбрасываем до успешного ответа; при ошибке восстанавливаем прежний JWT.
  */
 export async function reauthenticateWithCurrentLocale() {
   const userId = getStoredUserId()
-  clearSession()
-  const data = await postAuthLogin(userId ? { id: userId } : {})
-  const uid = resolveLoginUserId(data, data.token)
-  setSessionFromLogin({ token: data.token, userId: uid })
+  const prevToken = getStoredToken()
+
+  if (!userId && !prevToken) {
+    const data = await postAuthLogin({ locale: getApiLocale() })
+    const uid = resolveLoginUserId(data, data.token)
+    setSessionFromLogin({ token: data.token, userId: uid })
+    return
+  }
+
+  if (!userId) {
+    throw new Error(
+      'Не сохранён идентификатор пользователя — смена языка без повторной привязки к аккаунту невозможна',
+    )
+  }
+
+  try {
+    const data = await postAuthLogin({ id: userId, locale: getApiLocale() })
+    const uid = resolveLoginUserId(data, data.token) || userId
+    if (import.meta.env.DEV && uid !== userId) {
+      console.warn('[MobileMed] reauth: userId в ответе login отличается от сохранённого', {
+        was: userId,
+        now: uid,
+      })
+    }
+    setSessionFromLogin({ token: data.token, userId: uid })
+  } catch (e) {
+    if (prevToken) {
+      setSessionFromLogin({ token: prevToken, userId })
+    }
+    throw e
+  }
 }
 
 /**

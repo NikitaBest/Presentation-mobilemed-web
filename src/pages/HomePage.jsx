@@ -51,7 +51,7 @@ function scanRowKey(row) {
  * }} props
  */
 export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllScans }) {
-  const { locale, t } = useI18n()
+  const { locale, localeRevision, t } = useI18n()
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
@@ -76,7 +76,7 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
   useEffect(() => {
     /* eslint-disable-next-line react-hooks/set-state-in-effect -- загрузка истории на главной */
     void load()
-  }, [load])
+  }, [load, localeRevision])
 
   return (
     <AppLayout>

@@ -69,3 +69,12 @@
   width: 100%;
   margin-top: var(--mm-space-3);
 }
+
+.scan-history-page.page-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.scan-history-page__scroll {
+  padding-bottom: var(--mm-space-2);
+}

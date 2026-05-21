@@ -28,7 +28,7 @@ function selectScanRow(response, preferredScanId) {
  * Итог после сканирования: POST /scan/save-rppg + расшифровка из GET /scan/get.
  */
 export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
-  const { t } = useI18n()
+  const { localeRevision, t } = useI18n()
   const preferredScanId =
     scanSummary?.value?.scan?.id ?? scanSummary?.value?.rppgScanId ?? null
   const saveOk = scanSummary && scanSummary.isSuccess !== false
@@ -54,13 +54,13 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
       setFetchError(e instanceof Error ? e.message : formatMessage(readLocaleForApp(), 'results.loadError'))
       setRow(null)
     }
-  }, [preferredScanId])
+  }, [preferredScanId, t])
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- загрузка GET /scan/get при входе на экран результатов */
     void load()
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [load])
+  }, [load, localeRevision])
 
   const healthScore = row?.healthScore
 

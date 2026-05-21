@@ -58,23 +58,20 @@ export function SettingsPage({ onBack }) {
         </header>
 
         <div className="settings-page__scroll page-shell__scroll">
-          <section className="settings-page__section" aria-labelledby="settings-lang-title">
+          <section
+            className="settings-page__section settings-page__lang"
+            aria-labelledby="settings-lang-title"
+          >
             <h2 id="settings-lang-title" className="settings-page__section-title">
               {t('results.settingsLang')}
             </h2>
-            <p className="settings-page__hint">{t('results.settingsLangHint')}</p>
-            <div className="settings-page__row">
-              <span className="settings-page__label" id="settings-lang-label">
-                {t('welcome.langLabel')}
-              </span>
-              <LanguageSwitch
-                value={locale}
-                onChange={handleLocaleChange}
-                disabled={busy}
-                labels={{ ru: t('lang.ru'), en: t('lang.en') }}
-                aria-labelledby="settings-lang-label"
-              />
-            </div>
+            <LanguageSwitch
+              value={locale}
+              onChange={handleLocaleChange}
+              disabled={busy}
+              labels={{ ru: t('lang.ru'), en: t('lang.en') }}
+              aria-label={t('results.settingsLang')}
+            />
             {error ? (
               <p className="settings-page__error" role="alert">
                 {error}
@@ -83,8 +80,13 @@ export function SettingsPage({ onBack }) {
           </section>
         </div>
 
-        <footer className="page-dock settings-page__dock">
-          <button type="button" className="btn-secondary" onClick={onBack} disabled={busy}>
+        <footer className="page-dock settings-page__dock" aria-label={t('common.back')}>
+          <button
+            type="button"
+            className="btn-secondary settings-page__back"
+            onClick={onBack}
+            disabled={busy}
+          >
             {t('common.back')}
           </button>
         </footer>

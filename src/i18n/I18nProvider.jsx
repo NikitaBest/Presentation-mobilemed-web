@@ -14,6 +14,8 @@ import { formatMessage } from './messages.js'
 
 export function I18nProvider({ children }) {
   const [locale, setLocaleState] = useState(() => readLocaleForApp())
+  /** +1 после успешного re-login — экраны с историей перезапрашивают GET /scan/get */
+  const [localeRevision, setLocaleRevision] = useState(0)
 
   const applyDocumentLang = useCallback((loc) => {
     if (typeof document !== 'undefined') {
@@ -31,12 +33,21 @@ export function I18nProvider({ children }) {
       applyDocumentLang(normalized)
       return
     }
+    const prevLocale = locale
     writeLocaleToStorage(normalized)
     markLocaleAsChosen()
     setLocaleState(normalized)
     applyDocumentLang(normalized)
-    if (getStoredToken()) {
-      await reauthenticateWithCurrentLocale()
+    try {
+      if (getStoredToken()) {
+        await reauthenticateWithCurrentLocale()
+        setLocaleRevision((r) => r + 1)
+      }
+    } catch (e) {
+      writeLocaleToStorage(prevLocale)
+      setLocaleState(prevLocale)
+      applyDocumentLang(prevLocale)
+      throw e
     }
   }, [locale, applyDocumentLang])
 
@@ -45,7 +56,10 @@ export function I18nProvider({ children }) {
     [locale],
   )
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t])
+  const value = useMemo(
+    () => ({ locale, localeRevision, setLocale, t }),
+    [locale, localeRevision, setLocale, t],
+  )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

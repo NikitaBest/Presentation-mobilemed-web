@@ -1,7 +1,5 @@
-import { useCallback, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HealthScoreCore } from '../components/HealthScoreCore.jsx'
-import { LanguageSwitch } from '../components/LanguageSwitch.jsx'
 import { MetricCard } from '../components/metrics/MetricCard.jsx'
 import { WelcomeSheetPreview } from '../components/welcome/WelcomeSheetPreview.jsx'
 import { useI18n } from '../i18n/useI18n.js'
@@ -21,9 +19,9 @@ export function WelcomePage({
   authError = '',
   onRetryAuth,
   onContinue,
+  onBackToLanguage,
 }) {
-  const { locale, setLocale, t } = useI18n()
-  const [localeError, setLocaleError] = useState('')
+  const { locale, t } = useI18n()
   const loading = authStatus === 'loading'
   const failed = authStatus === 'error'
 
@@ -31,45 +29,13 @@ export function WelcomePage({
   const demoMetrics = getWelcomeDemoMetrics(locale)
   const demoDetail = getWelcomeDemoDetail(locale)
 
-  const handleLocaleChange = useCallback(
-    async (next) => {
-      if (next === locale) return
-      setLocaleError('')
-      try {
-        await setLocale(next)
-      } catch (e) {
-        setLocaleError(e instanceof Error ? e.message : t('welcome.localeError'))
-      }
-    },
-    [locale, setLocale, t],
-  )
-
   return (
     <AppLayout>
       <div className="welcome-page page-shell">
         <header className="welcome-page__header">
-          <div className="welcome-page__toolbar">
-            <span className="welcome-page__brand">{t('welcome.brand')}</span>
-            <div className="welcome-page__lang">
-              <span className="welcome-page__lang-label" id="welcome-lang-label">
-                {t('welcome.langLabel')}
-              </span>
-              <LanguageSwitch
-                value={locale}
-                onChange={handleLocaleChange}
-                disabled={loading}
-                labels={{ ru: t('lang.ru'), en: t('lang.en') }}
-                aria-labelledby="welcome-lang-label"
-              />
-            </div>
-          </div>
+          <span className="welcome-page__brand">{t('welcome.brand')}</span>
           <h1 className="welcome-page__title">{t('welcome.title')}</h1>
           <p className="welcome-page__lead">{t('welcome.lead')}</p>
-          {localeError ? (
-            <p className="welcome-page__locale-error" role="alert">
-              {localeError}
-            </p>
-          ) : null}
         </header>
 
         <div className="welcome-page__scroll page-shell__scroll">
@@ -145,20 +111,25 @@ export function WelcomePage({
 
         <footer className="page-dock welcome-page__dock">
           <p className="page-dock__disclaimer">{t('welcome.disclaimer')}</p>
-          {failed && onRetryAuth ? (
-            <button type="button" className="btn-primary" onClick={onRetryAuth}>
-              {t('welcome.retry')}
+          <div className="page-footer--row">
+            <button type="button" className="btn-secondary" onClick={onBackToLanguage}>
+              {t('common.back')}
             </button>
-          ) : (
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={onContinue}
-              disabled={loading}
-            >
-              {loading ? t('welcome.continueWait') : t('welcome.continue')}
-            </button>
-          )}
+            {failed && onRetryAuth ? (
+              <button type="button" className="btn-primary" onClick={onRetryAuth}>
+                {t('welcome.retry')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={onContinue}
+                disabled={loading}
+              >
+                {loading ? t('welcome.continueWait') : t('welcome.continue')}
+              </button>
+            )}
+          </div>
         </footer>
       </div>
     </AppLayout>

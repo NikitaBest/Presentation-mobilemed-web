@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { reauthenticateWithCurrentLocale } from '../api/auth.js'
 import { getStoredToken } from '../api/session.js'
 import { I18nContext } from './I18nContext.js'
-import { normalizeLocale, readLocaleForApp, writeLocaleToStorage } from './locale.js'
+import {
+  markLocaleAsChosen,
+  normalizeLocale,
+  readLocaleForApp,
+  writeLocaleToStorage,
+} from './locale.js'
 import { formatMessage } from './messages.js'
 
 /** @typedef {import('./locale.js').AppLocale} AppLocale */
@@ -27,6 +32,7 @@ export function I18nProvider({ children }) {
       return
     }
     writeLocaleToStorage(normalized)
+    markLocaleAsChosen()
     setLocaleState(normalized)
     applyDocumentLang(normalized)
     if (getStoredToken()) {

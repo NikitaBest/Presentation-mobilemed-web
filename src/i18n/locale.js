@@ -1,6 +1,9 @@
 /** Ключ в localStorage; значения ru | en (контракт API, см. docs/API.md). */
 export const LOCALE_STORAGE_KEY = 'mm_app_locale'
 
+/** Пользователь явно выбрал язык (экран при первом входе или смена в настройках). */
+export const LOCALE_CHOSEN_STORAGE_KEY = 'mm_locale_chosen'
+
 /** @typedef {'ru' | 'en'} AppLocale */
 
 /** @returns {AppLocale} */
@@ -33,6 +36,26 @@ export function readLocaleForApp() {
 export function writeLocaleToStorage(locale) {
   try {
     localStorage.setItem(LOCALE_STORAGE_KEY, normalizeLocale(locale))
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Первый вход уже пройден (выбор языка или сохранённая локаль из прошлых сессий). */
+export function hasUserChosenLocale() {
+  try {
+    if (localStorage.getItem(LOCALE_CHOSEN_STORAGE_KEY) === '1') return true
+    const v = localStorage.getItem(LOCALE_STORAGE_KEY)
+    if (v != null && v !== '') return true
+  } catch {
+    /* ignore */
+  }
+  return false
+}
+
+export function markLocaleAsChosen() {
+  try {
+    localStorage.setItem(LOCALE_CHOSEN_STORAGE_KEY, '1')
   } catch {
     /* ignore */
   }

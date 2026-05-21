@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { ensureAuthSession } from './api/auth.js'
 import { getUserMe, mapUserEntityToFormPatch } from './api/user.js'
 import { AppStepTransition } from './components/AppStepTransition.jsx'
+import { LanguageSelectPage } from './pages/LanguageSelectPage.jsx'
 import { WelcomePage } from './pages/WelcomePage.jsx'
 import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
@@ -10,13 +11,18 @@ const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
 import { USER_FORM_INITIAL } from './sdk/userInformation.js'
-import { APP_STEPS, readPersistedStep, writePersistedStep } from './utils/appStepStorage.js'
+import {
+  APP_STEPS,
+  LANGUAGE_STEP,
+  readInitialStep,
+  writePersistedStep,
+} from './utils/appStepStorage.js'
 import { useI18n } from './i18n/useI18n.js'
 import './App.css'
 
 export default function App() {
   const { t } = useI18n()
-  const [step, setStep] = useState(() => readPersistedStep())
+  const [step, setStep] = useState(() => readInitialStep())
   const [userForm, setUserForm] = useState(() => ({ ...USER_FORM_INITIAL }))
   const [scanSummary, setScanSummary] = useState(null)
   const [authStatus, setAuthStatus] = useState('loading')
@@ -36,13 +42,23 @@ export default function App() {
   }, [t])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- инициализация сессии при монтировании
+    if (step === LANGUAGE_STEP) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- сессия после выбора языка
     runAuth()
-  }, [runAuth])
+  }, [runAuth, step])
 
   useEffect(() => {
+    if (step === LANGUAGE_STEP) return
     writePersistedStep(step)
   }, [step])
+
+  const completeLanguageStep = useCallback(() => {
+    setStep('welcome')
+  }, [])
+
+  const goToLanguageSelect = useCallback(() => {
+    setStep(LANGUAGE_STEP)
+  }, [])
 
   useEffect(() => {
     if (step === 'instruction') {
@@ -101,12 +117,16 @@ export default function App() {
 
   const renderStep = (activeStep) => (
     <>
+      {activeStep === LANGUAGE_STEP && (
+        <LanguageSelectPage onComplete={completeLanguageStep} />
+      )}
       {activeStep === 'welcome' && (
         <WelcomePage
           authStatus={authStatus}
           authError={authError}
           onRetryAuth={runAuth}
           onContinue={goNext}
+          onBackToLanguage={goToLanguageSelect}
         />
       )}
       {activeStep === 'userData' && (

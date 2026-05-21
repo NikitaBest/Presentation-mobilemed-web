@@ -1,4 +1,9 @@
+import { hasUserChosenLocale } from '../i18n/locale.js'
+
 const STEP_STORAGE_KEY = 'mm_app_step'
+
+/** Экран выбора языка при первом входе (не в цепочке «Далее»). */
+export const LANGUAGE_STEP = 'language'
 
 export const APP_STEPS = [
   'welcome',
@@ -7,6 +12,15 @@ export const APP_STEPS = [
   'scan',
   'results',
 ]
+
+/**
+ * Стартовый шаг: выбор языка при первом входе, иначе из sessionStorage.
+ * @returns {string}
+ */
+export function readInitialStep() {
+  if (!hasUserChosenLocale()) return LANGUAGE_STEP
+  return readPersistedStep()
+}
 
 /**
  * @returns {string}

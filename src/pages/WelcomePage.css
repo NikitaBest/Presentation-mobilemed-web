@@ -7,37 +7,9 @@
   margin-bottom: var(--mm-space-3);
 }
 
-.welcome-page__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--mm-space-3);
-  margin-bottom: var(--mm-space-2);
-}
-
-.welcome-page__lang {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--mm-space-2);
-}
-
-.welcome-page__lang-label {
-  font-size: var(--mm-font-size-xs);
-  font-weight: var(--mm-font-weight-semibold);
-  color: var(--mm-text-muted);
-}
-
-.welcome-page__locale-error {
-  margin: var(--mm-space-2) 0 0;
-  font-size: var(--mm-font-size-sm);
-  color: var(--mm-error);
-}
-
 .welcome-page__brand {
   display: block;
-  margin-bottom: 0;
+  margin-bottom: var(--mm-space-2);
   font-size: 0.6875rem;
   font-weight: var(--mm-font-weight-semibold);
   letter-spacing: 0.05em;

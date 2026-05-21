@@ -6,8 +6,11 @@ import { useI18n } from '../i18n/useI18n.js'
 const GAUGE_R = 52
 const GAUGE_C = 2 * Math.PI * GAUGE_R
 
+const COMPACT_R = 38
+const COMPACT_C = 2 * Math.PI * COMPACT_R
+
 /**
- * @param {{ score: number | string | null | undefined, layout?: 'center' | 'hero' }} props
+ * @param {{ score: number | string | null | undefined, layout?: 'center' | 'hero' | 'compact' }} props
  */
 export function HealthScoreCore({ score, layout = 'center' }) {
   const { t } = useI18n()
@@ -20,11 +23,42 @@ export function HealthScoreCore({ score, layout = 'center' }) {
   const display = Number.isFinite(n) ? String(Math.round(n)) : '—'
   const caption = t(`healthScore.band.${band}`)
   const progress = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0
-  const dashOffset = GAUGE_C * (1 - progress / 100)
+  const ringC = layout === 'compact' ? COMPACT_C : GAUGE_C
+  const dashOffset = ringC * (1 - progress / 100)
 
   const ariaLabel = Number.isFinite(n)
     ? t('healthScore.aria', { score: display, caption })
     : t('healthScore.ariaNA')
+
+  if (layout === 'compact') {
+    return (
+      <div
+        className={`health-core health-core--compact health-core--${band}`}
+        role="img"
+        aria-label={ariaLabel}
+        style={{ '--hc-offset': dashOffset }}
+      >
+        <div className="health-core__compact-ring" aria-hidden>
+          <svg className="health-core__compact-svg" viewBox="0 0 88 88" focusable="false">
+            <circle className="health-core__compact-track" cx="44" cy="44" r={COMPACT_R} />
+            <circle
+              className="health-core__compact-progress"
+              cx="44"
+              cy="44"
+              r={COMPACT_R}
+              strokeDasharray={COMPACT_C}
+              strokeDashoffset={dashOffset}
+              transform="rotate(-90 44 44)"
+            />
+          </svg>
+          <div className="health-core__compact-score">
+            <span className="health-core__compact-value">{display}</span>
+            <span className="health-core__compact-of">/ 100</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (layout === 'hero') {
     return (

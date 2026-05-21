@@ -98,6 +98,11 @@ export const MESSAGES = {
     'results.loadError': 'Не удалось загрузить результаты',
     'results.localeError': 'Не удалось сменить язык',
     'results.heroAria': 'Общий показатель здоровья',
+    'results.metricsTotalLabel': 'Всего показателей',
+    'results.metricsGreenLabel': 'В норме',
+    'results.metricsYellowLabel': 'Средний уровень',
+    'results.metricsRedLabel': 'Требуют внимания',
+    'results.metricsBreakdownEmpty': 'Детальные показатели появятся после расшифровки',
     'results.metricsAria': 'Все показатели',
     'results.actionsAria': 'Действия',
 
@@ -344,6 +349,11 @@ export const MESSAGES = {
     'results.loadError': 'Could not load results',
     'results.localeError': 'Could not change language',
     'results.heroAria': 'Overall health score',
+    'results.metricsTotalLabel': 'Total metrics',
+    'results.metricsGreenLabel': 'In range',
+    'results.metricsYellowLabel': 'Average',
+    'results.metricsRedLabel': 'Need attention',
+    'results.metricsBreakdownEmpty': 'Detailed metrics will appear after analysis',
     'results.metricsAria': 'All metrics',
     'results.actionsAria': 'Actions',
 

@@ -36,6 +36,33 @@ export function filterDisplayableTranscripts(transcripts) {
   })
 }
 
+const TRANSCRIPT_COLOR_SORT_ORDER = { red: 0, yellow: 1, green: 2, neutral: 3 }
+
+/** Красные → жёлтые → зелёные (для сетки на экране результатов). */
+export function sortTranscriptsByColor(transcripts) {
+  return [...transcripts].sort((a, b) => {
+    const oa = TRANSCRIPT_COLOR_SORT_ORDER[transcriptColorKey(a)] ?? 3
+    const ob = TRANSCRIPT_COLOR_SORT_ORDER[transcriptColorKey(b)] ?? 3
+    return oa - ob
+  })
+}
+
+/**
+ * @param {unknown[]} transcripts
+ * @returns {{ total: number, green: number, yellow: number, red: number }}
+ */
+export function countTranscriptsByColor(transcripts) {
+  const counts = { total: 0, green: 0, yellow: 0, red: 0 }
+  for (const t of filterDisplayableTranscripts(transcripts)) {
+    const color = transcriptColorKey(t)
+    if (color === 'green' || color === 'yellow' || color === 'red') {
+      counts[color]++
+      counts.total++
+    }
+  }
+  return counts
+}
+
 /**
  * @param {MetricColor | 'neutral'} color
  */

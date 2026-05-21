@@ -171,6 +171,67 @@
   background: var(--mm-bg-muted);
 }
 
+/* --- Compact (результаты: кольцо слева) --- */
+.health-core--compact {
+  padding: 0;
+  animation: none;
+}
+
+.health-core__compact-ring {
+  position: relative;
+  width: 4.75rem;
+  height: 4.75rem;
+  display: grid;
+  place-items: center;
+}
+
+.health-core__compact-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.health-core__compact-track {
+  fill: none;
+  stroke: rgba(15, 23, 42, 0.07);
+  stroke-width: 5.5;
+}
+
+.health-core__compact-progress {
+  fill: none;
+  stroke: var(--hc-core);
+  stroke-width: 5.5;
+  stroke-linecap: round;
+}
+
+.health-core--compact[style*='--hc-offset'] .health-core__compact-progress {
+  stroke-dashoffset: var(--hc-offset);
+}
+
+.health-core__compact-score {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.health-core__compact-value {
+  font-size: 1.375rem;
+  font-weight: var(--mm-font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--mm-text-heading);
+}
+
+.health-core__compact-of {
+  margin-top: 1px;
+  font-size: 0.5rem;
+  font-weight: var(--mm-font-weight-semibold);
+  color: var(--mm-text-muted);
+}
+
 /* --- Цвета по уровню --- */
 .health-core--green {
   --hc-core: #22c55e;

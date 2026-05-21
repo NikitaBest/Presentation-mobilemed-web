@@ -137,6 +137,10 @@
   overflow: hidden;
 }
 
+.results-hero--compact {
+  padding: var(--mm-space-3) var(--mm-space-4);
+}
+
 .results-hero:has(.health-core--green) {
   background: linear-gradient(
     180deg,

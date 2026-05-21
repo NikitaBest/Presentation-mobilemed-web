@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
-import { HealthScoreCore } from '../components/HealthScoreCore.jsx'
+import { ResultsHealthSummary } from '../components/results/ResultsHealthSummary.jsx'
 import { MetricCardsGrid } from '../components/metrics/MetricCardsGrid.jsx'
 import { MetricDetailSheet } from '../components/metrics/MetricDetailSheet.jsx'
 import { getScansHistory } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
 import { readLocaleForApp } from '../i18n/locale.js'
 import { formatMessage } from '../i18n/messages.js'
-import { filterDisplayableTranscripts } from '../utils/metricTranscript.js'
+import {
+  filterDisplayableTranscripts,
+  sortTranscriptsByColor,
+} from '../utils/metricTranscript.js'
 import './ResultsPage.css'
 
 function selectScanRow(response, preferredScanId) {
@@ -62,7 +65,7 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
   const healthScore = row?.healthScore
 
   const displayTranscripts = useMemo(
-    () => filterDisplayableTranscripts(row?.transcripts),
+    () => sortTranscriptsByColor(filterDisplayableTranscripts(row?.transcripts)),
     [row?.transcripts],
   )
 
@@ -139,8 +142,8 @@ export function ResultsPage({ onGoHome, onMeasureAgain, scanSummary }) {
                 <p className="page-text page-text--note results-id-mismatch">{t('results.idMismatch')}</p>
               ) : null}
 
-              <section className="results-hero" aria-label={t('results.heroAria')}>
-                <HealthScoreCore score={healthScore} layout="hero" />
+              <section className="results-hero results-hero--compact" aria-label={t('results.heroAria')}>
+                <ResultsHealthSummary score={healthScore} transcripts={displayTranscripts} />
               </section>
 
               {displayTranscripts.length > 0 ? (

@@ -108,6 +108,7 @@ export function ScanHistoryPage({ onBack, onOpenScan }) {
                       row={row}
                       locale={locale}
                       t={t}
+                      className="home-latest--card"
                       onOpen={() => onOpenScan(row)}
                     />
                   </li>

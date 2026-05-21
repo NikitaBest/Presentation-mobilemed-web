@@ -66,9 +66,11 @@
   flex-direction: column;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   margin: 0;
   padding: var(--mm-space-4) var(--mm-pad-inline-end) var(--mm-space-2) var(--mm-pad-inline-start);
   box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .page-header {
@@ -204,15 +206,20 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .page-shell__scroll {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  overflow-x: clip;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--mm-space-4);
+  padding-bottom: var(--mm-space-2);
 }
 
 .page-dock {
@@ -220,17 +227,24 @@
   bottom: 0;
   z-index: 30;
   flex-shrink: 0;
+  align-self: stretch;
   margin-top: auto;
   box-sizing: border-box;
   width: calc(100% + var(--mm-pad-inline-start) + var(--mm-pad-inline-end));
-  max-width: none;
   margin-left: calc(-1 * var(--mm-pad-inline-start));
   margin-right: calc(-1 * var(--mm-pad-inline-end));
-  padding: var(--mm-space-4) var(--mm-pad-inline-end)
+  padding: var(--mm-space-3) var(--mm-pad-inline-end)
     max(var(--mm-space-3), env(safe-area-inset-bottom, 0px)) var(--mm-pad-inline-start);
+  background: transparent;
+  border-top: none;
+}
+
+/* Панель с дисклеймером или парой кнопок — сплошной фон и разделитель */
+.page-dock:has(.page-dock__disclaimer),
+.page-dock:has(.results-page__disclaimer),
+.page-dock:has(.page-footer--row) {
   background: var(--mm-bg-surface);
   border-top: 1px solid var(--mm-border);
-  box-shadow: 0 -10px 28px rgba(17, 24, 39, 0.08);
 }
 
 .page-dock__disclaimer {
@@ -264,6 +278,7 @@
 
 .page-dock > .btn-primary {
   border: none;
+  box-shadow: var(--mm-shadow-sm);
 }
 
 .page-dock > .btn-secondary {

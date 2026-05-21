@@ -12,8 +12,9 @@ const RING_C = 2 * Math.PI * 20
  * @param {'ru' | 'en'} props.locale
  * @param {(key: string, vars?: Record<string, string>) => string} props.t
  * @param {() => void} props.onOpen
+ * @param {string} [props.className]
  */
-export function HomeLatestScan({ row, locale, t, onOpen }) {
+export function HomeLatestScan({ row, locale, t, onOpen, className = '' }) {
   const score = row?.healthScore
   const band = healthScoreBand(score)
   const n = score != null && score !== '' ? Number(score) : NaN
@@ -27,10 +28,12 @@ export function HomeLatestScan({ row, locale, t, onOpen }) {
   const personName = getScanDisplayName(row)
   const ariaDate = personName ? `${personName}, ${whenLabel}` : whenLabel
 
+  const classes = ['home-latest', `health-core--${band}`, className].filter(Boolean).join(' ')
+
   return (
     <button
       type="button"
-      className={`home-latest health-core--${band}`}
+      className={classes}
       onClick={onOpen}
       aria-label={t('home.latestOpen', { date: ariaDate })}
     >

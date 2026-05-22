@@ -29,17 +29,21 @@ export function MetricCard({ transcript: t, onSelect, highlighted = false, previ
 
   const inner = (
     <>
-      <span className="metric-card__icon" aria-hidden>
-        <MetricIcon metricKey={t.key} />
-      </span>
-      <span className="metric-card__name">{t.name}</span>
-      <span className="metric-card__value-row">
-        <span className="metric-card__value">{formatTranscriptValue(t)}</span>
-        {t.unit ? <span className="metric-card__unit">{t.unit}</span> : null}
-      </span>
-      {t.status ? (
-        <span className={metricStatusClass(color)}>{t.status}</span>
-      ) : null}
+      <div className="metric-card__head">
+        <span className="metric-card__icon" aria-hidden>
+          <MetricIcon metricKey={t.key} metricName={t.name} />
+        </span>
+        <span className="metric-card__name">{t.name}</span>
+      </div>
+      <div className="metric-card__body">
+        <div className="metric-card__value-row">
+          <span className="metric-card__value">{formatTranscriptValue(t)}</span>
+          {t.unit ? <span className="metric-card__unit">{t.unit}</span> : null}
+        </div>
+        {t.status ? (
+          <span className={metricStatusClass(color)}>{t.status}</span>
+        ) : null}
+      </div>
     </>
   )
 

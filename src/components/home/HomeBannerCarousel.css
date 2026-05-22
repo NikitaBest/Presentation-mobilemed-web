@@ -3,15 +3,14 @@
   min-width: 0;
 }
 
-.home-banners__card--about-bg {
-  min-height: 7.5rem;
-}
-
+/* Единая высота всех слайдов — как баннер «О компании» */
 .home-banners__card {
   position: relative;
   display: block;
   width: 100%;
-  min-height: 6.75rem;
+  height: 7.5rem;
+  min-height: 7.5rem;
+  max-height: 7.5rem;
   border: 1px solid color-mix(in srgb, var(--mm-primary) 35%, var(--mm-border));
   border-radius: var(--mm-radius-lg);
   background: var(--mm-bg-surface);
@@ -58,7 +57,7 @@
 
 .home-banners__panel--about-only {
   gap: 0;
-  min-height: 4.5rem;
+  height: 100%;
 }
 
 .home-banners__card--about-bg .home-banners__open {
@@ -91,8 +90,11 @@
 }
 
 .home-banners__open {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   padding: var(--mm-space-3) var(--mm-space-4) 2.1rem;
   text-align: left;
   font: inherit;
@@ -127,13 +129,19 @@
 .home-banners__content {
   position: relative;
   z-index: 1;
+  flex: 1;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .home-banners__panel {
   display: flex;
   flex-direction: column;
   gap: var(--mm-space-2);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   animation: home-banner-fade-in 0.55s ease both;
 }
 
@@ -220,6 +228,9 @@
   flex-direction: column;
   gap: 0.3rem;
   min-width: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .home-banners__overall {

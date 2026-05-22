@@ -159,7 +159,6 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
                         </span>
                       ) : null}
                     </div>
-                    <p className="home-banners__metric-name">{active.body}</p>
                     {active.whenLabel ? (
                       <p className="home-banners__when">
                         <time>{active.whenLabel}</time>

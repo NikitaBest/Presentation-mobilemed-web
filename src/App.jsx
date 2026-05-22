@@ -251,8 +251,10 @@ export default function App() {
           />
         </Suspense>
       )}
-      {activeStep === 'results' && (
+      {(activeStep === 'results' ||
+        (activeStep === SCAN_INTERPRETATION_STEP && returnStep === 'results')) && (
         <ResultsPage
+          hidden={activeStep === SCAN_INTERPRETATION_STEP}
           onGoHome={goHome}
           onMeasureAgain={() => setStep('instruction')}
           onOpenInterpretation={openScanInterpretation}

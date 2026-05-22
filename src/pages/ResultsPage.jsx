@@ -28,6 +28,7 @@ function selectScanRow(response, preferredScanId) {
  * Итог после сканирования: POST /scan/save-rppg + расшифровка из GET /scan/get.
  */
 export function ResultsPage({
+  hidden = false,
   onGoHome,
   onMeasureAgain,
   onOpenInterpretation,
@@ -74,8 +75,17 @@ export function ResultsPage({
 
   useEffect(() => {
     if (!scanId || !onPrefetchInterpretation) return
+    if (
+      llmInterpretation?.scanId === scanId &&
+      (llmInterpretation.phase === 'ready' ||
+        llmInterpretation.phase === 'loading' ||
+        llmInterpretation.phase === 'empty' ||
+        llmInterpretation.phase === 'error')
+    ) {
+      return
+    }
     onPrefetchInterpretation(scanId)
-  }, [scanId, onPrefetchInterpretation])
+  }, [scanId, onPrefetchInterpretation, llmInterpretation?.scanId, llmInterpretation?.phase])
 
   const interpretationPhase =
     llmInterpretation?.scanId === scanId ? llmInterpretation.phase : null
@@ -127,10 +137,14 @@ export function ResultsPage({
   }, [])
 
   return (
-    <AppLayout>
-      <div
-        className={`results-page${tapHintActive ? ' results-page--tap-hint' : ''}${tapHintExiting ? ' results-page--tap-hint-exit' : ''}`}
-      >
+    <div
+      className={hidden ? 'results-page-mount results-page-mount--hidden' : 'results-page-mount'}
+      aria-hidden={hidden || undefined}
+    >
+      <AppLayout>
+        <div
+          className={`results-page${tapHintActive ? ' results-page--tap-hint' : ''}${tapHintExiting ? ' results-page--tap-hint-exit' : ''}`}
+        >
         <header className="results-page__header">
           <span className="results-page__brand">{t('results.brand')}</span>
           <h1 className="results-page__title">{t('results.title')}</h1>
@@ -226,6 +240,7 @@ export function ResultsPage({
           <p className="results-page__disclaimer">{t('results.disclaimer')}</p>
         </footer>
       </div>
-    </AppLayout>
+      </AppLayout>
+    </div>
   )
 }

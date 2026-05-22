@@ -73,6 +73,45 @@ export const MESSAGES = {
     'home.scanLead': 'Замер по лицу, около минуты',
     'home.scanAction': 'Пройти сканирование',
     'home.openSettings': 'Открыть настройки',
+    'home.banner.sectionAria': 'Полезная информация',
+    'home.banner.openAll': 'Все материалы',
+    'home.banner.openAllAria': 'Открыть все информационные материалы',
+    'home.banner.dotsAria': 'Выбор баннера',
+    'home.banner.dotAria': 'Баннер {current} из {total}',
+    'home.banner.prev': 'Предыдущий баннер',
+    'home.banner.next': 'Следующий баннер',
+    'home.banner.pageTitle': 'Материалы',
+    'home.banner.pageLead': 'Ваши показатели, технология, конфиденциальность и о платформе.',
+    'home.banner.back': 'На главную',
+    'home.banner.tag.latestMetric': 'Ваш последний показатель',
+    'home.banner.tag.technology': 'Технология',
+    'home.banner.tag.privacy': 'Конфиденциальность',
+    'home.banner.tag.about': 'О компании',
+    'home.banner.latestMetric.metricLine': 'Показатель: {name}',
+    'home.banner.latestMetric.noMetricLine': 'Показатель: не выделен',
+    'home.banner.latestMetric.noMetric': 'не выделен',
+    'home.banner.latestMetric.bodyDetail':
+      'Общее состояние: {status} ({score} из 100). {metric}. Измерение от {date}. Подробности — в результатах последнего скана в истории.',
+    'home.banner.latestMetric.emptyTitle': 'Пока нет измерений',
+    'home.banner.latestMetric.emptyBody':
+      'Пройдите сканирование — здесь появится ваш последний показатель с датой и статусом.',
+    'home.banner.latestMetric.emptyBodyDetail':
+      'После первого скана на главной отобразится показатель, на который стоит обратить внимание: название, значение, состояние, дата и время измерения.',
+    'home.banner.technology.title': 'Фотоплетизмография (ФПГ)',
+    'home.banner.technology.body':
+      'Показатели здоровья по короткому видеопотоку с лица или по сигналу внешних ФПГ-датчиков.',
+    'home.banner.technology.bodyDetail':
+      'Технология фотоплетизмографии (ФПГ) используется для вычисления показателей здоровья либо путём захвата короткого видеопотока с лица пользователя, либо путём анализа данных с внешних устройств ФПГ.\n\nАлгоритмы извлекают пульсовую волну из изображения и рассчитывают биомаркеры — частоту сердечных сокращений, вариабельность ритма, дыхание, стрессовые индексы и другие метрики без отдельного медицинского прибора.',
+    'home.banner.privacy.title': 'Всё конфиденциально',
+    'home.banner.privacy.body':
+      'Биометрию не собираем, видео не отправляем — расчёт выполняется локально на вашем устройстве.',
+    'home.banner.privacy.bodyDetail':
+      'Мы не сохраняем и не передаём видеозапись лица на сервер. Обработка сигнала с камеры происходит в браузере на устройстве пользователя.\n\nПерсональные данные профиля и результаты сканирования передаются по защищённому каналу только в объёме, необходимом для работы сервиса. Биометрические шаблоны лица не формируются и не хранятся.',
+    'home.banner.about.title': 'МОБИЛМЕД.ИИ',
+    'home.banner.about.body':
+      'Платформа медицинских данных на основе ИИ: биомаркеры со смартфона, планшета или ноутбука.',
+    'home.banner.about.bodyDetail':
+      'Платформа медицинских данных МОБИЛМЕД.ИИ — это 100% программное решение на основе искусственного интеллекта, использующее видеопоток для обработки больших данных, которое позволяет любому человеку измерять широкий спектр биомаркеров с помощью смартфона, планшета или ноутбука.\n\nВ случаях, когда требуется постоянный мониторинг, МОБИЛМЕД.ИИ предлагает поддержку непрерывных проверок с использованием необработанного сигнала PPG, который он получает от внешних PPG-датчиков.\n\nПрограммное обеспечение, поставляемое в виде МОБИЛМЕД SDK (комплект для разработки программного обеспечения), можно легко интегрировать в любое приложение или рабочий процесс.\n\nБиомаркеры включают артериальное давление, частоту сердечных сокращений, вариабельность сердечного ритма, насыщение кислородом, частоту дыхания, симпатический стресс, парасимпатическую активность, коэффициент пульса и дыхания (PRQ) и оценку здоровья МОБИЛМЕД.ИИ. Инновационные «бескровные» (неинвазивные) анализы крови позволяют измерять гемоглобин, гемоглобин A1c и общий холестерин.\n\nВ скором времени появятся дополнительные неинвазивные анализы крови.',
     'home.profileTitle': 'Ваши данные',
     'home.profileEdit': 'Изменить',
     'home.profileEmpty': 'Данные не заполнены — укажите их перед сканированием',
@@ -387,6 +426,45 @@ export const MESSAGES = {
     'home.scanLead': 'Face scan, about one minute',
     'home.scanAction': 'Start a scan',
     'home.openSettings': 'Open settings',
+    'home.banner.sectionAria': 'Helpful information',
+    'home.banner.openAll': 'All articles',
+    'home.banner.openAllAria': 'Open all information articles',
+    'home.banner.dotsAria': 'Choose banner',
+    'home.banner.dotAria': 'Banner {current} of {total}',
+    'home.banner.prev': 'Previous banner',
+    'home.banner.next': 'Next banner',
+    'home.banner.pageTitle': 'Articles',
+    'home.banner.pageLead': 'Your metrics, technology, privacy, and about the platform.',
+    'home.banner.back': 'Back to home',
+    'home.banner.tag.latestMetric': 'Your metric',
+    'home.banner.tag.technology': 'Technology',
+    'home.banner.tag.privacy': 'Privacy',
+    'home.banner.tag.about': 'About',
+    'home.banner.latestMetric.metricLine': 'Metric: {name}',
+    'home.banner.latestMetric.noMetricLine': 'Metric: not highlighted',
+    'home.banner.latestMetric.noMetric': 'not highlighted',
+    'home.banner.latestMetric.bodyDetail':
+      'Overall status: {status} ({score} out of 100). Metric: {metric}. Measured on {date}. See full results in your latest scan history.',
+    'home.banner.latestMetric.emptyTitle': 'No measurements yet',
+    'home.banner.latestMetric.emptyBody':
+      'Run a scan—your latest metric with date and status will appear here.',
+    'home.banner.latestMetric.emptyBodyDetail':
+      'After your first scan, the home carousel shows a metric worth attention: name, value, status, date, and time.',
+    'home.banner.technology.title': 'Photoplethysmography (PPG)',
+    'home.banner.technology.body':
+      'Health metrics from a short face video stream or from external PPG device signals.',
+    'home.banner.technology.bodyDetail':
+      'Photoplethysmography (PPG) is used to compute health metrics either by capturing a short video stream from the user’s face or by analyzing data from external PPG devices.\n\nAlgorithms extract the pulse wave from the image and calculate biomarkers—heart rate, HRV, respiration, stress indices, and more—without a separate medical device.',
+    'home.banner.privacy.title': 'Fully confidential',
+    'home.banner.privacy.body':
+      'We do not collect biometrics or send video—processing runs locally on your device.',
+    'home.banner.privacy.bodyDetail':
+      'We do not store or upload face video to the server. Camera signal processing happens in the browser on the user’s device.\n\nProfile data and scan results are sent over a secure channel only as needed for the service. Face biometric templates are not created or stored.',
+    'home.banner.about.title': 'MOBILEMED.AI',
+    'home.banner.about.body':
+      'An AI medical data platform: biomarkers from a smartphone, tablet, or laptop.',
+    'home.banner.about.bodyDetail':
+      'MOBILEMED.AI is a 100% software solution powered by artificial intelligence that uses video streams to process big data, enabling anyone to measure a wide range of biomarkers with a smartphone, tablet, or laptop.\n\nWhen continuous monitoring is required, MOBILEMED.AI supports ongoing checks using raw PPG signals from external PPG sensors.\n\nThe software, delivered as the MOBILEMED SDK, can be easily integrated into any application or workflow.\n\nBiomarkers include blood pressure, heart rate, heart rate variability, oxygen saturation, respiration rate, sympathetic stress, parasympathetic activity, pulse-respiration quotient (PRQ), and the MOBILEMED.AI health score. Innovative non-invasive blood analyses measure hemoglobin, HbA1c, and total cholesterol.\n\nAdditional non-invasive blood tests are coming soon.',
     'home.profileTitle': 'Your details',
     'home.profileEdit': 'Edit',
     'home.profileEmpty': 'Profile not complete — fill in before scanning',

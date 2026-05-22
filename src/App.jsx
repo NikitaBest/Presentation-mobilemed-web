@@ -14,6 +14,7 @@ import { ResultsPage } from './pages/ResultsPage.jsx'
 import { SettingsPage } from './pages/SettingsPage.jsx'
 import { ScanHistoryPage } from './pages/ScanHistoryPage.jsx'
 import { ScanInterpretationPage } from './pages/ScanInterpretationPage.jsx'
+import { HomeBannersPage } from './pages/HomeBannersPage.jsx'
 const ScanPage = lazy(() =>
   import('./pages/ScanPage.jsx').then((m) => ({ default: m.ScanPage })),
 )
@@ -26,6 +27,7 @@ import {
   SETTINGS_STEP,
   SCAN_HISTORY_STEP,
   SCAN_INTERPRETATION_STEP,
+  HOME_BANNERS_STEP,
   clearPersistedStep,
   readInitialStep,
   writePersistedStep,
@@ -42,6 +44,7 @@ export default function App() {
   const [userDataHint, setUserDataHint] = useState('')
   const [returnStep, setReturnStep] = useState(HOME_STEP)
   const [interpretationScanId, setInterpretationScanId] = useState(null)
+  const [homeBannersPreviewRow, setHomeBannersPreviewRow] = useState(null)
   const {
     load: loadInterpretation,
     reset: resetInterpretation,
@@ -65,7 +68,8 @@ export default function App() {
       step === AUTH_STEP ||
       step === SETTINGS_STEP ||
       step === SCAN_HISTORY_STEP ||
-      step === SCAN_INTERPRETATION_STEP
+      step === SCAN_INTERPRETATION_STEP ||
+      step === HOME_BANNERS_STEP
     ) {
       return
     }
@@ -92,6 +96,12 @@ export default function App() {
   const openScanHistory = useCallback((fromStep = HOME_STEP) => {
     setReturnStep(fromStep)
     setStep(SCAN_HISTORY_STEP)
+  }, [])
+
+  const openHomeBanners = useCallback((latestRow = null, fromStep = HOME_STEP) => {
+    setHomeBannersPreviewRow(latestRow)
+    setReturnStep(fromStep)
+    setStep(HOME_BANNERS_STEP)
   }, [])
 
   const closeOverlayStep = useCallback(() => {
@@ -218,6 +228,7 @@ export default function App() {
           onOpenSettings={() => openSettings(HOME_STEP)}
           onOpenScan={openScanFromHistory}
           onOpenAllScans={() => openScanHistory(HOME_STEP)}
+          onOpenBanners={(row) => openHomeBanners(row, HOME_STEP)}
         />
       )}
       {activeStep === 'welcome' && (
@@ -273,6 +284,9 @@ export default function App() {
       )}
       {activeStep === SCAN_HISTORY_STEP && (
         <ScanHistoryPage onBack={closeOverlayStep} onOpenScan={openScanFromHistory} />
+      )}
+      {activeStep === HOME_BANNERS_STEP && (
+        <HomeBannersPage onBack={closeOverlayStep} latestRow={homeBannersPreviewRow} />
       )}
     </>
   )

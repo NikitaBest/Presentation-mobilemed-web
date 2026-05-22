@@ -1,0 +1,309 @@
+.home-banners {
+  margin: 0;
+  min-width: 0;
+}
+
+.home-banners__card {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 6.75rem;
+  border: 1px solid color-mix(in srgb, var(--mm-primary) 35%, var(--mm-border));
+  border-radius: var(--mm-radius-lg);
+  background: var(--mm-bg-surface);
+  box-shadow: var(--mm-shadow-card);
+  overflow: hidden;
+  touch-action: pan-y;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-banners__card:hover {
+  border-color: var(--mm-primary);
+  box-shadow: var(--mm-shadow-sm);
+}
+
+.home-banners__card--accent-technology,
+.home-banners__card--accent-about {
+  background: var(--mm-bg-primary-soft);
+}
+
+.home-banners__card--accent-privacy {
+  background: color-mix(in srgb, var(--mm-secondary) 10%, var(--mm-bg-surface));
+  border-color: color-mix(in srgb, var(--mm-secondary) 40%, var(--mm-border));
+}
+
+.home-banners__card--accent-green {
+  background: color-mix(in srgb, #22c55e 10%, var(--mm-bg-surface));
+  border-color: color-mix(in srgb, #22c55e 35%, var(--mm-border));
+}
+
+.home-banners__card--accent-yellow {
+  background: color-mix(in srgb, #eab308 12%, var(--mm-bg-surface));
+  border-color: color-mix(in srgb, #eab308 40%, var(--mm-border));
+}
+
+.home-banners__card--accent-red {
+  background: color-mix(in srgb, #ef4444 10%, var(--mm-bg-surface));
+  border-color: color-mix(in srgb, #ef4444 35%, var(--mm-border));
+}
+
+.home-banners__card--accent-neutral {
+  background: var(--mm-bg-muted);
+}
+
+.home-banners__open {
+  display: block;
+  width: 100%;
+  padding: var(--mm-space-3) var(--mm-space-4) 2.1rem;
+  text-align: left;
+  font: inherit;
+  color: var(--mm-text-heading);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.home-banners__open:hover {
+  background: color-mix(in srgb, var(--mm-primary) 6%, transparent);
+}
+
+.home-banners__open:active {
+  background: color-mix(in srgb, var(--mm-primary) 10%, transparent);
+}
+
+.home-banners__open:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--mm-bg-primary-soft);
+}
+
+.home-banners__content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.home-banners__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-2);
+  animation: home-banner-fade-in 0.55s ease both;
+}
+
+@keyframes home-banner-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-banners__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mm-space-2);
+  min-width: 0;
+}
+
+.home-banners__tag {
+  display: inline-block;
+  max-width: calc(100% - 1.75rem);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: var(--mm-font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--mm-radius-pill);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-banners__tag--accent-technology,
+.home-banners__tag--accent-about {
+  color: var(--mm-primary);
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__tag--accent-privacy {
+  color: var(--mm-secondary);
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__tag--accent-green {
+  color: #166534;
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__tag--accent-yellow {
+  color: #854d0e;
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__tag--accent-red {
+  color: #991b1b;
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__tag--accent-neutral {
+  color: var(--mm-text-muted);
+  background: var(--mm-bg-surface);
+}
+
+.home-banners__chevron {
+  flex-shrink: 0;
+  font-size: 1.375rem;
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1;
+  color: var(--mm-primary);
+}
+
+.home-banners__card--accent-privacy .home-banners__chevron {
+  color: var(--mm-secondary);
+}
+
+.home-banners__metric-block,
+.home-banners__text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.home-banners__overall {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mm-space-2);
+  min-width: 0;
+}
+
+.home-banners__pill {
+  flex-shrink: 1;
+  min-width: 0;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.3;
+  border-radius: var(--mm-radius-pill);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-banners__pill--green {
+  color: #166534;
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.home-banners__pill--yellow {
+  color: #854d0e;
+  background: rgba(234, 179, 8, 0.22);
+}
+
+.home-banners__pill--red {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.16);
+}
+
+.home-banners__pill--unknown {
+  color: var(--mm-text-muted);
+  background: var(--mm-bg-muted);
+}
+
+.home-banners__score {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  font-weight: var(--mm-font-weight-bold);
+  color: var(--mm-text-heading);
+}
+
+.home-banners__score-value {
+  font-size: var(--mm-font-size-lg);
+  line-height: 1;
+}
+
+.home-banners__score-of {
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-medium);
+  color: var(--mm-text-muted);
+}
+
+.home-banners__metric-name {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-medium);
+  line-height: 1.4;
+  color: var(--mm-text);
+}
+
+.home-banners__when {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  line-height: 1.4;
+  color: var(--mm-text-muted);
+}
+
+.home-banners__title {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1.3;
+  color: var(--mm-text-heading);
+}
+
+.home-banners__body {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  line-height: 1.45;
+  color: var(--mm-text-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.home-banners__body--empty {
+  -webkit-line-clamp: 3;
+}
+
+.home-banners__dots {
+  position: absolute;
+  right: var(--mm-space-3);
+  bottom: 0.6rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.35rem;
+  pointer-events: auto;
+}
+
+.home-banners__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--mm-primary) 25%, var(--mm-border));
+  cursor: pointer;
+}
+
+.home-banners__dot--active {
+  width: 1.1rem;
+  border-radius: var(--mm-radius-pill);
+  background: var(--mm-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-banners__panel {
+    animation: none;
+  }
+}

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
+import { HomeBannerCarousel } from '../components/home/HomeBannerCarousel.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
+import { buildHomeBanners } from '../utils/homeBanners.js'
 import {
   getScanHistoryRowKey,
   getScansHistory,
@@ -32,9 +34,16 @@ function IconScan() {
  *   onOpenSettings: () => void,
  *   onOpenScan: (row: object) => void,
  *   onOpenAllScans: () => void,
+ *   onOpenBanners: (latestRow: object | null) => void,
  * }} props
  */
-export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllScans }) {
+export function HomePage({
+  onStartScan,
+  onOpenSettings,
+  onOpenScan,
+  onOpenAllScans,
+  onOpenBanners,
+}) {
   const { locale, localeRevision, t } = useI18n()
   const [phase, setPhase] = useState('loading')
   const [rows, setRows] = useState([])
@@ -48,6 +57,11 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
   const recentRows = useMemo(
     () => rows.slice(0, SCAN_HISTORY_HOME_PREVIEW_SIZE),
     [rows],
+  )
+
+  const homeBanners = useMemo(
+    () => buildHomeBanners({ t, locale, latestRow: recentRows[0] ?? null }),
+    [t, locale, recentRows],
   )
 
   const loadQuota = useCallback(async () => {
@@ -161,6 +175,11 @@ export function HomePage({ onStartScan, onOpenSettings, onOpenScan, onOpenAllSca
               </span>
             </button>
           </section>
+
+          <HomeBannerCarousel
+            banners={homeBanners}
+            onOpenAll={() => onOpenBanners(recentRows[0] ?? null)}
+          />
 
           <section className="home-scans" aria-labelledby="home-scans-title">
             <h2 id="home-scans-title" className="home-page__section-title">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import bannerAboutBg from '../../assets/banner.png'
-import bannerPrivacyBg from '../../assets/banner2.png'
+import { useBannerImagesReady } from '../../hooks/useBannerImagesReady.js'
+import { bannerAboutBg, bannerPrivacyBg } from '../../utils/homeBannerAssets.js'
 import { useI18n } from '../../i18n/useI18n.js'
 import './HomeBannerCarousel.css'
 
@@ -27,6 +27,7 @@ const SWIPE_MIN_PX = 48
  */
 export function HomeBannerCarousel({ banners, onOpenAll }) {
   const { t } = useI18n()
+  const { ready: imagesReady } = useBannerImagesReady()
   const [index, setIndex] = useState(0)
   const count = banners.length
   const touchRef = useRef({ startX: 0, startY: 0, swiped: false })
@@ -40,12 +41,12 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
   )
 
   useEffect(() => {
-    if (count < 2) return undefined
+    if (!imagesReady || count < 2) return undefined
     const id = window.setInterval(() => {
       setIndex((i) => (i + 1) % count)
     }, ROTATE_MS)
     return () => clearInterval(id)
-  }, [count])
+  }, [count, imagesReady])
 
   useEffect(() => {
     if (index >= count && count > 0) {
@@ -94,6 +95,21 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
 
   if (count === 0) return null
 
+  if (!imagesReady) {
+    return (
+      <section
+        className="home-banners home-banners--loading"
+        aria-label={t('home.banner.sectionAria')}
+        aria-busy="true"
+      >
+        <div className="home-banners__skeleton">
+          <span className="home-banners__skeleton-pulse" aria-hidden />
+          <p className="home-banners__loading-text">{t('home.banner.loading')}</p>
+        </div>
+      </section>
+    )
+  }
+
   const active = banners[index] ?? banners[0]
   const isAboutBanner = active.id === 'about'
   const isPrivacyBanner = active.id === 'privacy'
@@ -112,17 +128,19 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
         className={`home-banners__card home-banners__card--accent-${active.accent}${
           isAboutBanner ? ' home-banners__card--about-bg' : ''
         }${isPrivacyBanner ? ' home-banners__card--privacy-bg' : ''}`}
-        style={{
-          ...(isAboutBanner
-            ? { '--home-banner-about-bg': `url(${bannerAboutBg})` }
-            : {}),
-          ...(isPrivacyBanner
-            ? { '--home-banner-privacy-bg': `url(${bannerPrivacyBg})` }
-            : {}),
-        }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
+        {isImageOnlyBanner ? (
+          <img
+            className={`home-banners__bg home-banners__bg--${active.id}`}
+            src={isAboutBanner ? bannerAboutBg : bannerPrivacyBg}
+            alt=""
+            aria-hidden
+            decoding="async"
+            draggable={false}
+          />
+        ) : null}
         <button
           type="button"
           className="home-banners__open"
@@ -138,7 +156,9 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
             >
               <div className="home-banners__head">
                 <span
-                  className={`home-banners__tag home-banners__tag--accent-${active.accent}`}
+                  className={`home-banners__tag home-banners__tag--accent-${active.accent}${
+                    isMetric ? ' home-banners__tag--multiline' : ''
+                  }`}
                 >
                   {active.tag}
                 </span>

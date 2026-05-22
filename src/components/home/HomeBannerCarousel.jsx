@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import bannerAboutBg from '../../assets/banner.png'
 import { useI18n } from '../../i18n/useI18n.js'
 import './HomeBannerCarousel.css'
 
@@ -93,6 +94,7 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
   if (count === 0) return null
 
   const active = banners[index] ?? banners[0]
+  const isAboutBanner = active.id === 'about'
   const isMetric = active.kind === 'latestMetric'
   const bandClass =
     active.accent === 'green' ||
@@ -104,7 +106,14 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
   return (
     <section className="home-banners" aria-label={t('home.banner.sectionAria')}>
       <div
-        className={`home-banners__card home-banners__card--accent-${active.accent}`}
+        className={`home-banners__card home-banners__card--accent-${active.accent}${
+          isAboutBanner ? ' home-banners__card--about-bg' : ''
+        }`}
+        style={
+          isAboutBanner
+            ? { '--home-banner-about-bg': `url(${bannerAboutBg})` }
+            : undefined
+        }
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -115,7 +124,12 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
           aria-label={t('home.banner.openAllAria')}
         >
           <div className="home-banners__content" aria-live="polite">
-            <article key={active.id} className="home-banners__panel">
+            <article
+              key={active.id}
+              className={`home-banners__panel${
+                isAboutBanner ? ' home-banners__panel--about-only' : ''
+              }`}
+            >
               <div className="home-banners__head">
                 <span
                   className={`home-banners__tag home-banners__tag--accent-${active.accent}`}
@@ -157,7 +171,7 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
                     {active.body}
                   </p>
                 )
-              ) : (
+              ) : isAboutBanner ? null : (
                 <div className="home-banners__text-block">
                   <h3 className="home-banners__title">{active.title}</h3>
                   <p className="home-banners__body">{active.body}</p>

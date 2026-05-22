@@ -3,6 +3,10 @@
   min-width: 0;
 }
 
+.home-banners__card--about-bg {
+  min-height: 7.5rem;
+}
+
 .home-banners__card {
   position: relative;
   display: block;
@@ -24,9 +28,42 @@
   box-shadow: var(--mm-shadow-sm);
 }
 
-.home-banners__card--accent-technology,
-.home-banners__card--accent-about {
+.home-banners__card--accent-technology {
   background: var(--mm-bg-primary-soft);
+}
+
+.home-banners__card--accent-about.home-banners__card--about-bg {
+  background-color: #ffffff;
+  background-image: var(--home-banner-about-bg);
+  background-size: cover;
+  background-position: 72% center;
+  background-repeat: no-repeat;
+  border-color: var(--mm-border);
+}
+
+.home-banners__card--about-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.08) 28%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.home-banners__panel--about-only {
+  gap: 0;
+  min-height: 4.5rem;
+}
+
+.home-banners__card--about-bg .home-banners__open {
+  position: relative;
+  z-index: 1;
 }
 
 .home-banners__card--accent-privacy {
@@ -70,8 +107,16 @@
   background: color-mix(in srgb, var(--mm-primary) 6%, transparent);
 }
 
+.home-banners__card--about-bg .home-banners__open:hover {
+  background: color-mix(in srgb, #ffffff 55%, transparent);
+}
+
 .home-banners__open:active {
   background: color-mix(in srgb, var(--mm-primary) 10%, transparent);
+}
+
+.home-banners__card--about-bg .home-banners__open:active {
+  background: color-mix(in srgb, #ffffff 70%, transparent);
 }
 
 .home-banners__open:focus-visible {

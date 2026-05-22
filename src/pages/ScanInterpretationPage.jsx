@@ -1,6 +1,25 @@
+import { useLayoutEffect, useRef } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { useI18n } from '../i18n/useI18n.js'
 import './ScanInterpretationPage.css'
+
+function scrollInterpretationToTop(scrollEl) {
+  if (scrollEl) {
+    scrollEl.scrollTop = 0
+    scrollEl.scrollLeft = 0
+    let node = scrollEl.parentElement
+    while (node) {
+      if (node.scrollTop > 0 || node.scrollLeft > 0) {
+        node.scrollTop = 0
+        node.scrollLeft = 0
+      }
+      node = node.parentElement
+    }
+  }
+  window.scrollTo(0, 0)
+  document.documentElement.scrollTop = 0
+  document.body.scrollTop = 0
+}
 
 /**
  * @param {{
@@ -21,12 +40,23 @@ export function ScanInterpretationPage({
   onBack,
 }) {
   const { t } = useI18n()
+  const scrollRef = useRef(null)
   const { phase, html, fromCache, error } = interpretation
   const isCurrentScan = interpretation.scanId === scanId
   const showLoading = !isCurrentScan || phase === 'loading' || phase === 'idle'
   const showError = isCurrentScan && phase === 'error'
   const showEmpty = isCurrentScan && phase === 'empty'
   const showReady = isCurrentScan && phase === 'ready' && html
+
+  useLayoutEffect(() => {
+    scrollInterpretationToTop(scrollRef.current)
+  }, [scanId])
+
+  useLayoutEffect(() => {
+    if (showReady) {
+      scrollInterpretationToTop(scrollRef.current)
+    }
+  }, [showReady, html])
 
   return (
     <AppLayout>
@@ -36,7 +66,7 @@ export function ScanInterpretationPage({
           <p className="scan-interpretation__lead">{t('scanInterpretation.lead')}</p>
         </header>
 
-        <div className="scan-interpretation__scroll page-shell__scroll">
+        <div ref={scrollRef} className="scan-interpretation__scroll page-shell__scroll">
           {showLoading ? (
             <div className="scan-interpretation__status">
               <p>{t('scanInterpretation.loading')}</p>

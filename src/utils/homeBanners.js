@@ -6,7 +6,7 @@ import {
 } from './metricTranscript.js'
 import { formatScanWhen } from './scanDate.js'
 
-const BANNER_ORDER = ['latestMetric', 'technology', 'privacy', 'about']
+const BANNER_ORDER = ['latestMetric', 'privacy', 'about']
 
 /**
  * @param {string | undefined} text
@@ -105,15 +105,6 @@ export function buildHomeBanners({ t, locale, latestRow }) {
           bodyDetail: t('home.banner.latestMetric.emptyBodyDetail'),
           hasMetricData: false,
         },
-    technology: {
-      id: 'technology',
-      kind: 'static',
-      accent: 'technology',
-      tag: t('home.banner.tag.technology'),
-      title: t('home.banner.technology.title'),
-      body: t('home.banner.technology.body'),
-      bodyDetail: t('home.banner.technology.bodyDetail'),
-    },
     privacy: {
       id: 'privacy',
       kind: 'static',

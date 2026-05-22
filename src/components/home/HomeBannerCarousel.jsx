@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import bannerAboutBg from '../../assets/banner.png'
+import bannerPrivacyBg from '../../assets/banner2.png'
 import { useI18n } from '../../i18n/useI18n.js'
 import './HomeBannerCarousel.css'
 
@@ -95,6 +96,8 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
 
   const active = banners[index] ?? banners[0]
   const isAboutBanner = active.id === 'about'
+  const isPrivacyBanner = active.id === 'privacy'
+  const isImageOnlyBanner = isAboutBanner || isPrivacyBanner
   const isMetric = active.kind === 'latestMetric'
   const bandClass =
     active.accent === 'green' ||
@@ -108,12 +111,15 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
       <div
         className={`home-banners__card home-banners__card--accent-${active.accent}${
           isAboutBanner ? ' home-banners__card--about-bg' : ''
-        }`}
-        style={
-          isAboutBanner
+        }${isPrivacyBanner ? ' home-banners__card--privacy-bg' : ''}`}
+        style={{
+          ...(isAboutBanner
             ? { '--home-banner-about-bg': `url(${bannerAboutBg})` }
-            : undefined
-        }
+            : {}),
+          ...(isPrivacyBanner
+            ? { '--home-banner-privacy-bg': `url(${bannerPrivacyBg})` }
+            : {}),
+        }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -127,7 +133,7 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
             <article
               key={active.id}
               className={`home-banners__panel${
-                isAboutBanner ? ' home-banners__panel--about-only' : ''
+                isImageOnlyBanner ? ' home-banners__panel--image-only' : ''
               }`}
             >
               <div className="home-banners__head">
@@ -170,7 +176,7 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
                     {active.body}
                   </p>
                 )
-              ) : isAboutBanner ? null : (
+              ) : isImageOnlyBanner ? null : (
                 <div className="home-banners__text-block">
                   <h3 className="home-banners__title">{active.title}</h3>
                   <p className="home-banners__body">{active.body}</p>

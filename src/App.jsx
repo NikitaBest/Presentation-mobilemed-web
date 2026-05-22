@@ -43,11 +43,8 @@ export default function App() {
   const [returnStep, setReturnStep] = useState(HOME_STEP)
   const [interpretationScanId, setInterpretationScanId] = useState(null)
   const {
-    prefetch: prefetchInterpretation,
-    regenerate: regenerateInterpretation,
     load: loadInterpretation,
     reset: resetInterpretation,
-    regenerating: interpretationRegenerating,
     ...interpretationState
   } = useScanLlmInterpretation(t)
   /** @type {'flow' | 'profile'} */
@@ -258,7 +255,7 @@ export default function App() {
           onGoHome={goHome}
           onMeasureAgain={() => setStep('instruction')}
           onOpenInterpretation={openScanInterpretation}
-          onPrefetchInterpretation={prefetchInterpretation}
+          onRequestInterpretation={loadInterpretation}
           llmInterpretation={interpretationState}
           scanSummary={scanSummary}
         />
@@ -267,8 +264,6 @@ export default function App() {
         <ScanInterpretationPage
           scanId={interpretationScanId}
           interpretation={interpretationState}
-          regenerating={interpretationRegenerating}
-          onRegenerate={() => regenerateInterpretation(interpretationScanId)}
           onRetry={() => loadInterpretation(interpretationScanId)}
           onBack={closeScanInterpretation}
         />

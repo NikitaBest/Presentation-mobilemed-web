@@ -32,7 +32,7 @@ export function ResultsPage({
   onGoHome,
   onMeasureAgain,
   onOpenInterpretation,
-  onPrefetchInterpretation,
+  onRequestInterpretation,
   llmInterpretation,
   scanSummary,
 }) {
@@ -73,25 +73,44 @@ export function ResultsPage({
   const healthScore = row?.healthScore
   const scanId = getScanRowId(row) ?? preferredScanId
 
-  useEffect(() => {
-    if (!scanId || !onPrefetchInterpretation) return
-    if (
-      llmInterpretation?.scanId === scanId &&
-      (llmInterpretation.phase === 'ready' ||
-        llmInterpretation.phase === 'loading' ||
-        llmInterpretation.phase === 'empty' ||
-        llmInterpretation.phase === 'error')
-    ) {
-      return
-    }
-    onPrefetchInterpretation(scanId)
-  }, [scanId, onPrefetchInterpretation, llmInterpretation?.scanId, llmInterpretation?.phase])
-
   const interpretationPhase =
     llmInterpretation?.scanId === scanId ? llmInterpretation.phase : null
-  const interpretationLoading =
-    interpretationPhase === 'loading' || interpretationPhase === 'idle' || interpretationPhase === null
+  const interpretationLoading = interpretationPhase === 'loading'
   const interpretationReady = interpretationPhase === 'ready'
+  const interpretationError = interpretationPhase === 'error'
+  const interpretationCanOpen = interpretationReady || interpretationPhase === 'empty'
+
+  const handleInterpretationClick = useCallback(() => {
+    if (!scanId) return
+    if (interpretationCanOpen) {
+      onOpenInterpretation(scanId)
+      return
+    }
+    if (interpretationLoading) return
+    onRequestInterpretation?.(scanId)
+  }, [
+    scanId,
+    interpretationCanOpen,
+    interpretationLoading,
+    onOpenInterpretation,
+    onRequestInterpretation,
+  ])
+
+  const interpretationButtonLabel = interpretationLoading
+    ? t('results.generateInterpretationLoading')
+    : interpretationCanOpen
+      ? t('results.openInterpretation')
+      : interpretationError
+        ? t('results.generateInterpretationRetry')
+        : t('results.generateInterpretation')
+
+  const interpretationHintLabel = interpretationLoading
+    ? t('results.generateInterpretationHintLoading')
+    : interpretationCanOpen
+      ? t('results.openInterpretationHint')
+      : interpretationError
+        ? t('results.generateInterpretationHintError')
+        : t('results.generateInterpretationHint')
 
   const displayTranscripts = useMemo(
     () => sortTranscriptsByColor(filterDisplayableTranscripts(row?.transcripts)),
@@ -198,20 +217,21 @@ export function ResultsPage({
                 <div className="results-interpretation-cta">
                   <button
                     type="button"
-                    className="results-interpretation-cta__btn"
-                    disabled={!interpretationReady}
+                    className={`results-interpretation-cta__btn${interpretationLoading ? ' results-interpretation-cta__btn--loading' : ''}`}
+                    disabled={interpretationLoading}
                     aria-busy={interpretationLoading || undefined}
-                    onClick={() => onOpenInterpretation(scanId)}
+                    onClick={() => handleInterpretationClick()}
                   >
-                    {interpretationLoading
-                      ? t('results.openInterpretationLoading')
-                      : t('results.openInterpretation')}
+                    {interpretationLoading ? (
+                      <span className="results-interpretation-cta__btn-inner" aria-hidden>
+                        <span className="results-interpretation-cta__spinner" />
+                        <span>{interpretationButtonLabel}</span>
+                      </span>
+                    ) : (
+                      interpretationButtonLabel
+                    )}
                   </button>
-                  <p className="results-interpretation-cta__hint">
-                    {interpretationLoading
-                      ? t('results.openInterpretationHintLoading')
-                      : t('results.openInterpretationHint')}
-                  </p>
+                  <p className="results-interpretation-cta__hint">{interpretationHintLabel}</p>
                 </div>
               ) : null}
             </>

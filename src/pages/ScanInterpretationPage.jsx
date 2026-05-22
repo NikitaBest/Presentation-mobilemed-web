@@ -25,8 +25,6 @@ function scrollInterpretationToTop(scrollEl) {
  * @param {{
  *   scanId: string,
  *   interpretation: { phase: string, html: string, fromCache: boolean, error: string, scanId: string | null },
- *   regenerating: boolean,
- *   onRegenerate: () => void,
  *   onRetry: () => void,
  *   onBack: () => void,
  * }} props
@@ -34,8 +32,6 @@ function scrollInterpretationToTop(scrollEl) {
 export function ScanInterpretationPage({
   scanId,
   interpretation,
-  regenerating,
-  onRegenerate,
   onRetry,
   onBack,
 }) {
@@ -105,14 +101,6 @@ export function ScanInterpretationPage({
         </div>
 
         <footer className="page-dock scan-interpretation__dock">
-          <button
-            type="button"
-            className="btn-secondary scan-interpretation__regen"
-            disabled={showLoading}
-            onClick={onRegenerate}
-          >
-            {regenerating ? t('scanInterpretation.regenerating') : t('scanInterpretation.regenerate')}
-          </button>
           <button type="button" className="btn-primary" onClick={onBack}>
             {t('scanInterpretation.back')}
           </button>

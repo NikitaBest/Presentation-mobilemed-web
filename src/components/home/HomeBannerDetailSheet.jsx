@@ -1,4 +1,5 @@
 import { useEffect, useId } from 'react'
+import { createPortal } from 'react-dom'
 import { splitBannerParagraphs } from '../../utils/homeBanners.js'
 import { useI18n } from '../../i18n/useI18n.js'
 import './HomeBannerDetailSheet.css'
@@ -25,23 +26,25 @@ export function HomeBannerDetailSheet({ banner, onClose }) {
     if (!open) return undefined
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    document.body.classList.add('mm-banner-sheet-open')
     const onKey = (event) => {
       if (event.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prev
+      document.body.classList.remove('mm-banner-sheet-open')
       window.removeEventListener('keydown', onKey)
     }
   }, [open, onClose])
 
-  if (!open) return null
+  if (!open || !banner) return null
 
   const paragraphs = splitBannerParagraphs(banner.bodyDetail ?? banner.body ?? '')
   const accent =
     banner.accent === 'privacy' || banner.accent === 'about' ? banner.accent : 'neutral'
 
-  return (
+  return createPortal(
     <div className="home-banner-sheet" role="presentation">
       <button
         type="button"
@@ -49,12 +52,13 @@ export function HomeBannerDetailSheet({ banner, onClose }) {
         aria-label={t('common.close')}
         onClick={onClose}
       />
-      <div
-        className={`home-banner-sheet__panel home-banner-sheet__panel--accent-${accent}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-      >
+      <div className="home-banner-sheet__column">
+        <div
+          className={`home-banner-sheet__panel home-banner-sheet__panel--accent-${accent}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+        >
         <div className="home-banner-sheet__scroll">
           <div className="home-banner-sheet__handle" aria-hidden />
 
@@ -82,7 +86,9 @@ export function HomeBannerDetailSheet({ banner, onClose }) {
             {t('home.banner.sheetOk')}
           </button>
         </footer>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

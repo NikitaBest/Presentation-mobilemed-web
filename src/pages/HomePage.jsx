@@ -176,8 +176,6 @@ export function HomePage({
 
           <HomeBannerCarousel banners={homeBanners} onOpenBanner={setSheetBanner} />
 
-          <HomeBannerDetailSheet banner={sheetBanner} onClose={() => setSheetBanner(null)} />
-
           <section className="home-scans" aria-labelledby="home-scans-title">
             <h2 id="home-scans-title" className="home-page__section-title">
               {t('home.historyTitle')}
@@ -244,6 +242,8 @@ export function HomePage({
             {t('home.scanAction')}
           </button>
         </footer>
+
+        <HomeBannerDetailSheet banner={sheetBanner} onClose={() => setSheetBanner(null)} />
       </div>
     </AppLayout>
   )

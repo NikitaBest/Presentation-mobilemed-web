@@ -1,10 +1,27 @@
 .home-banner-sheet {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 250;
+  pointer-events: none;
+}
+
+.home-banner-sheet__column {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--mm-app-max-width);
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+/* Пока открыт sheet — нижняя панель главной не перекрывает «Понятно» */
+body.mm-banner-sheet-open .page-dock {
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -32,8 +49,8 @@
 
 .home-banner-sheet__panel {
   position: relative;
-  z-index: 1;
   display: flex;
+  pointer-events: auto;
   flex-direction: column;
   width: 100%;
   max-height: min(88dvh, 640px);

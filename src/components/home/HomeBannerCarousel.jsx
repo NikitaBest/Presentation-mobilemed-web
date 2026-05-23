@@ -13,11 +13,21 @@ const SWIPE_MIN_PX = 48
  *     id: string,
  *     accent: string,
  *     tag: string,
+ *     title: string,
+ *     body: string,
+ *     bodyDetail?: string,
  *   }>,
- *   onOpenAll: () => void,
+ *   onOpenBanner: (banner: {
+ *     id: string,
+ *     accent: string,
+ *     tag: string,
+ *     title: string,
+ *     body: string,
+ *     bodyDetail?: string,
+ *   }) => void,
  * }} props
  */
-export function HomeBannerCarousel({ banners, onOpenAll }) {
+export function HomeBannerCarousel({ banners, onOpenBanner }) {
   const { t } = useI18n()
   const { ready: imagesReady } = useBannerImagesReady()
   const [index, setIndex] = useState(0)
@@ -82,8 +92,9 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
       touchRef.current.swiped = false
       return
     }
-    onOpenAll()
-  }, [onOpenAll])
+    const banner = banners[index] ?? banners[0]
+    if (banner) onOpenBanner(banner)
+  }, [banners, index, onOpenBanner])
 
   if (count === 0) return null
 
@@ -127,7 +138,7 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
           type="button"
           className="home-banners__open"
           onClick={handleOpenClick}
-          aria-label={t('home.banner.openAllAria')}
+          aria-label={t('home.banner.openAria', { title: active.tag })}
         >
           <div className="home-banners__content" aria-live="polite">
             <article key={active.id} className="home-banners__panel home-banners__panel--image-only">

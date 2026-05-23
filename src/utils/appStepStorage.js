@@ -18,9 +18,6 @@ export const SCAN_HISTORY_STEP = 'scanHistory'
 /** LLM-расшифровка скана (оверлей, не в цепочке сканирования). */
 export const SCAN_INTERPRETATION_STEP = 'scanInterpretation'
 
-/** Информационные баннеры с главной (оверлей). */
-export const HOME_BANNERS_STEP = 'homeBanners'
-
 /** Главная после выбора языка (не в цепочке сканирования). */
 export const HOME_STEP = 'home'
 

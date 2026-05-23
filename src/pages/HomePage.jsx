@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
 import { HomeBannerCarousel } from '../components/home/HomeBannerCarousel.jsx'
+import { HomeBannerDetailSheet } from '../components/home/HomeBannerDetailSheet.jsx'
 import { HomeLatestScan } from '../components/home/HomeLatestScan.jsx'
 import { buildHomeBanners } from '../utils/homeBanners.js'
 import {
@@ -34,7 +35,6 @@ function IconScan() {
  *   onOpenSettings: () => void,
  *   onOpenScan: (row: object) => void,
  *   onOpenAllScans: () => void,
- *   onOpenBanners: () => void,
  * }} props
  */
 export function HomePage({
@@ -42,7 +42,6 @@ export function HomePage({
   onOpenSettings,
   onOpenScan,
   onOpenAllScans,
-  onOpenBanners,
 }) {
   const { locale, localeRevision, t } = useI18n()
   const [phase, setPhase] = useState('loading')
@@ -53,6 +52,8 @@ export function HomePage({
   const [quotaPhase, setQuotaPhase] = useState('loading')
   /** @type {number | null} */
   const [scansLeft, setScansLeft] = useState(null)
+  /** @type {[ReturnType<typeof buildHomeBanners>[number] | null, (banner: ReturnType<typeof buildHomeBanners>[number] | null) => void]} */
+  const [sheetBanner, setSheetBanner] = useState(null)
 
   const recentRows = useMemo(
     () => rows.slice(0, SCAN_HISTORY_HOME_PREVIEW_SIZE),
@@ -173,10 +174,9 @@ export function HomePage({
             </button>
           </section>
 
-          <HomeBannerCarousel
-            banners={homeBanners}
-            onOpenAll={onOpenBanners}
-          />
+          <HomeBannerCarousel banners={homeBanners} onOpenBanner={setSheetBanner} />
+
+          <HomeBannerDetailSheet banner={sheetBanner} onClose={() => setSheetBanner(null)} />
 
           <section className="home-scans" aria-labelledby="home-scans-title">
             <h2 id="home-scans-title" className="home-page__section-title">

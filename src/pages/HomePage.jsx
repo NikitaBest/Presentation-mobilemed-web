@@ -34,7 +34,7 @@ function IconScan() {
  *   onOpenSettings: () => void,
  *   onOpenScan: (row: object) => void,
  *   onOpenAllScans: () => void,
- *   onOpenBanners: (latestRow: object | null) => void,
+ *   onOpenBanners: () => void,
  * }} props
  */
 export function HomePage({
@@ -59,10 +59,7 @@ export function HomePage({
     [rows],
   )
 
-  const homeBanners = useMemo(
-    () => buildHomeBanners({ t, locale, latestRow: recentRows[0] ?? null }),
-    [t, locale, recentRows],
-  )
+  const homeBanners = useMemo(() => buildHomeBanners({ t }), [t])
 
   const loadQuota = useCallback(async () => {
     setQuotaPhase('loading')
@@ -178,7 +175,7 @@ export function HomePage({
 
           <HomeBannerCarousel
             banners={homeBanners}
-            onOpenAll={() => onOpenBanners(recentRows[0] ?? null)}
+            onOpenAll={onOpenBanners}
           />
 
           <section className="home-scans" aria-labelledby="home-scans-title">

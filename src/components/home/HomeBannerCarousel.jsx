@@ -11,16 +11,8 @@ const SWIPE_MIN_PX = 48
  * @param {{
  *   banners: Array<{
  *     id: string,
- *     kind?: string,
  *     accent: string,
  *     tag: string,
- *     title: string,
- *     body: string,
- *     overallStatus?: string,
- *     healthScore?: string,
- *     metricName?: string,
- *     whenLabel?: string,
- *     hasMetricData?: boolean,
  *   }>,
  *   onOpenAll: () => void,
  * }} props
@@ -113,14 +105,6 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
   const active = banners[index] ?? banners[0]
   const isAboutBanner = active.id === 'about'
   const isPrivacyBanner = active.id === 'privacy'
-  const isImageOnlyBanner = isAboutBanner || isPrivacyBanner
-  const isMetric = active.kind === 'latestMetric'
-  const bandClass =
-    active.accent === 'green' ||
-    active.accent === 'yellow' ||
-    active.accent === 'red'
-      ? active.accent
-      : 'unknown'
 
   return (
     <section className="home-banners" aria-label={t('home.banner.sectionAria')}>
@@ -131,16 +115,14 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {isImageOnlyBanner ? (
-          <img
-            className={`home-banners__bg home-banners__bg--${active.id}`}
-            src={isAboutBanner ? bannerAboutBg : bannerPrivacyBg}
-            alt=""
-            aria-hidden
-            decoding="async"
-            draggable={false}
-          />
-        ) : null}
+        <img
+          className={`home-banners__bg home-banners__bg--${active.id}`}
+          src={isAboutBanner ? bannerAboutBg : bannerPrivacyBg}
+          alt=""
+          aria-hidden
+          decoding="async"
+          draggable={false}
+        />
         <button
           type="button"
           className="home-banners__open"
@@ -148,17 +130,10 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
           aria-label={t('home.banner.openAllAria')}
         >
           <div className="home-banners__content" aria-live="polite">
-            <article
-              key={active.id}
-              className={`home-banners__panel${
-                isImageOnlyBanner ? ' home-banners__panel--image-only' : ''
-              }`}
-            >
+            <article key={active.id} className="home-banners__panel home-banners__panel--image-only">
               <div className="home-banners__head">
                 <span
-                  className={`home-banners__tag home-banners__tag--accent-${active.accent}${
-                    isMetric ? ' home-banners__tag--multiline' : ''
-                  }`}
+                  className={`home-banners__tag home-banners__tag--accent-${active.accent}`}
                 >
                   {active.tag}
                 </span>
@@ -166,42 +141,6 @@ export function HomeBannerCarousel({ banners, onOpenAll }) {
                   ›
                 </span>
               </div>
-
-              {isMetric ? (
-                active.hasMetricData ? (
-                  <div className="home-banners__metric-block">
-                    <div className="home-banners__overall">
-                      <span
-                        className={`home-banners__pill home-banners__pill--${bandClass}`}
-                      >
-                        {active.overallStatus ?? active.title}
-                      </span>
-                      {active.healthScore && active.healthScore !== '—' ? (
-                        <span className="home-banners__score">
-                          <span className="home-banners__score-value">
-                            {active.healthScore}
-                          </span>
-                          <span className="home-banners__score-of">/ 100</span>
-                        </span>
-                      ) : null}
-                    </div>
-                    {active.whenLabel ? (
-                      <p className="home-banners__when">
-                        <time>{active.whenLabel}</time>
-                      </p>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="home-banners__body home-banners__body--empty">
-                    {active.body}
-                  </p>
-                )
-              ) : isImageOnlyBanner ? null : (
-                <div className="home-banners__text-block">
-                  <h3 className="home-banners__title">{active.title}</h3>
-                  <p className="home-banners__body">{active.body}</p>
-                </div>
-              )}
             </article>
           </div>
         </button>

@@ -44,7 +44,6 @@ export default function App() {
   const [userDataHint, setUserDataHint] = useState('')
   const [returnStep, setReturnStep] = useState(HOME_STEP)
   const [interpretationScanId, setInterpretationScanId] = useState(null)
-  const [homeBannersPreviewRow, setHomeBannersPreviewRow] = useState(null)
   const {
     load: loadInterpretation,
     reset: resetInterpretation,
@@ -98,8 +97,7 @@ export default function App() {
     setStep(SCAN_HISTORY_STEP)
   }, [])
 
-  const openHomeBanners = useCallback((latestRow = null, fromStep = HOME_STEP) => {
-    setHomeBannersPreviewRow(latestRow)
+  const openHomeBanners = useCallback((fromStep = HOME_STEP) => {
     setReturnStep(fromStep)
     setStep(HOME_BANNERS_STEP)
   }, [])
@@ -228,7 +226,7 @@ export default function App() {
           onOpenSettings={() => openSettings(HOME_STEP)}
           onOpenScan={openScanFromHistory}
           onOpenAllScans={() => openScanHistory(HOME_STEP)}
-          onOpenBanners={(row) => openHomeBanners(row, HOME_STEP)}
+          onOpenBanners={() => openHomeBanners(HOME_STEP)}
         />
       )}
       {activeStep === 'welcome' && (
@@ -286,7 +284,7 @@ export default function App() {
         <ScanHistoryPage onBack={closeOverlayStep} onOpenScan={openScanFromHistory} />
       )}
       {activeStep === HOME_BANNERS_STEP && (
-        <HomeBannersPage onBack={closeOverlayStep} latestRow={homeBannersPreviewRow} />
+        <HomeBannersPage onBack={closeOverlayStep} />
       )}
     </>
   )

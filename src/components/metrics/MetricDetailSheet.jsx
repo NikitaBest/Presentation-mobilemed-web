@@ -22,6 +22,8 @@ import ascvdImage from '../../assets/ASCVD.webp'
 import cardiacLoadImage from '../../assets/cardiac_load.webp'
 import bloodPressureImage from '../../assets/blood_pressure.webp'
 import pulsePressureImage from '../../assets/pulse_pressure.webp'
+import parasympatheticImage from '../../assets/activity.webp'
+import lowHemoglobinImage from '../../assets/low_hemoglobin.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -46,7 +48,8 @@ const METRIC_EXTRAS = {
     i18nKey: 'metricSheet.sympatheticZone.detail',
     match: (key, name) =>
       key === 'sympatheticzone' || key === 'sympathetic_zone' || key === 'sns_zone' ||
-      name.includes('симпатическ') || name.includes('sympathetic'),
+      (name.includes('симпатическ') && !name.includes('парасимпатическ')) ||
+      (name.includes('sympathetic') && !name.includes('parasympathetic')),
   },
   glucoseRisk: {
     image: glucoseImage,
@@ -102,8 +105,8 @@ const METRIC_EXTRAS = {
     i18nKey: 'metricSheet.hemoglobin.detail',
     match: (key, name) =>
       key === 'hemoglobin' || key === 'haemoglobin' ||
-      (name.includes('гемоглобин') && !name.includes('гликированн')) ||
-      (name.includes('hemoglobin') && !name.includes('a1c')),
+      (name.includes('гемоглобин') && !name.includes('гликированн') && !name.includes('риск')) ||
+      (name.includes('hemoglobin') && !name.includes('a1c') && !name.includes('low')),
   },
   baevsky: {
     image: baevskyImage,
@@ -139,6 +142,20 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'pulsepressure' || key === 'pulse_pressure' ||
       name.includes('пульсовое давлени') || name.includes('pulse pressure'),
+  },
+  parasympatheticZone: {
+    image: parasympatheticImage,
+    i18nKey: 'metricSheet.parasympatheticZone.detail',
+    match: (key, name) =>
+      key === 'parasympatheticzone' || key === 'parasympathetic_zone' || key === 'pns_zone' ||
+      name.includes('парасимпатическ') || name.includes('parasympathetic'),
+  },
+  lowHemoglobin: {
+    image: lowHemoglobinImage,
+    i18nKey: 'metricSheet.lowHemoglobin.detail',
+    match: (key, name) =>
+      key === 'lowhemoglobin' || key === 'low_hemoglobin' || key === 'hemoglobin_risk' || key === 'hemoglobinrisk' ||
+      name.includes('риск низкого гемоглобин') || name.includes('low hemoglobin'),
   },
 }
 

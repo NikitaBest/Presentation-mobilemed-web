@@ -372,6 +372,8 @@ export const MESSAGES = {
     'metricSheet.ok': 'Понятно',
     'metricSheet.pulseRate.detail':
       'Частота пульса — это количество ударов сердца в минуту. В покое нормальный пульс для взрослого человека составляет 60–100 уд/мин. Регулярное отслеживание помогает заметить изменения, связанные со стрессом, физической активностью или состоянием здоровья.\n\nЧем ниже пульс в покое, тем эффективнее работает сердце. У спортсменов он нередко опускается до 40–50 уд/мин. Повышенный пульс в состоянии покоя может указывать на переутомление, обезвоживание или начинающееся заболевание.',
+    'metricSheet.heartAge.detail':
+      'Возраст сердца — условный показатель, который сравнивает состояние вашей сердечно-сосудистой системы с типичными значениями для разных возрастных групп. Если возраст сердца выше паспортного, это сигнал обратить внимание на образ жизни.\n\nНа возраст сердца влияют артериальное давление, пульс, уровень стресса, физическая активность и общее состояние сосудов. Регулярные измерения помогают отслеживать динамику и вовремя заметить ухудшение.\n\nСнизить возраст сердца помогают умеренные кардионагрузки, контроль веса, здоровое питание и достаточный сон.',
   },
   en: {
     'lang.ru': 'Русский',
@@ -734,6 +736,8 @@ export const MESSAGES = {
     'metricSheet.ok': 'OK',
     'metricSheet.pulseRate.detail':
       'Pulse rate is the number of heartbeats per minute. A normal resting heart rate for an adult is 60–100 bpm. Regular tracking helps you spot changes linked to stress, physical activity, or health conditions.\n\nA lower resting heart rate usually means your heart works more efficiently. Athletes often have rates as low as 40–50 bpm. An elevated resting pulse can signal fatigue, dehydration, or an emerging illness.',
+    'metricSheet.heartAge.detail':
+      'Heart age is a metric that compares the condition of your cardiovascular system to typical values for different age groups. If your heart age is higher than your actual age, it\u2019s a signal to pay attention to your lifestyle.\n\nHeart age is influenced by blood pressure, pulse, stress levels, physical activity, and overall vascular health. Regular measurements help you track trends and spot any decline early.\n\nModerate cardio exercise, weight management, a healthy diet, and adequate sleep can all help lower your heart age.',
   },
 }
 

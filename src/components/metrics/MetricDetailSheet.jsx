@@ -7,25 +7,40 @@ import {
 } from '../../utils/metricTranscript.js'
 import { useI18n } from '../../i18n/useI18n.js'
 import pulseImage from '../../assets/pulse1.webp'
+import heartAgeImage from '../../assets/heart_age.webp'
 import './MetricDetailSheet.css'
+
+/** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
+const METRIC_EXTRAS = {
+  pulseRate: {
+    image: pulseImage,
+    i18nKey: 'metricSheet.pulseRate.detail',
+    match: (key, name) =>
+      key === 'pulserate' || key === 'pulse_rate' || key === 'heartrate' || key === 'heart_rate' ||
+      name.includes('частота пульса') || name === 'пульс' ||
+      name === 'pulse rate' || name === 'heart rate',
+  },
+  heartAge: {
+    image: heartAgeImage,
+    i18nKey: 'metricSheet.heartAge.detail',
+    match: (key, name) =>
+      key === 'heartage' || key === 'heart_age' ||
+      name.includes('возраст сердца') || name === 'heart age',
+  },
+}
 
 /**
  * @param {object | null} transcript
- * @returns {boolean}
+ * @returns {{ image: string, i18nKey: string } | null}
  */
-function isPulseRateMetric(transcript) {
-  if (!transcript) return false
+function findMetricExtra(transcript) {
+  if (!transcript) return null
   const key = String(transcript.key ?? '').trim().toLowerCase()
-  if (key === 'pulserate' || key === 'pulse_rate' || key === 'heartrate' || key === 'heart_rate') {
-    return true
-  }
   const name = String(transcript.name ?? '').trim().toLowerCase()
-  return (
-    name.includes('частота пульса') ||
-    name === 'пульс' ||
-    name === 'pulse rate' ||
-    name === 'heart rate'
-  )
+  for (const extra of Object.values(METRIC_EXTRAS)) {
+    if (extra.match(key, name)) return extra
+  }
+  return null
 }
 
 /**
@@ -53,10 +68,9 @@ export function MetricDetailSheet({ transcript, onClose }) {
   if (!open) return null
 
   const color = transcriptColorKey(transcript)
-  const isPulse = isPulseRateMetric(transcript)
-  const pulseDetailRaw = isPulse ? t('metricSheet.pulseRate.detail') : null
-  const pulseDetailParagraphs = pulseDetailRaw
-    ? pulseDetailRaw.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
+  const extra = findMetricExtra(transcript)
+  const extraParagraphs = extra
+    ? t(extra.i18nKey).split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
     : []
 
   return (
@@ -94,19 +108,19 @@ export function MetricDetailSheet({ transcript, onClose }) {
             <p className="metric-sheet__description">{transcript.descriptionUser}</p>
           ) : null}
 
-          {isPulse ? (
+          {extra ? (
             <div className="metric-sheet__extra">
               <img
                 className="metric-sheet__extra-image"
-                src={pulseImage}
+                src={extra.image}
                 alt=""
                 aria-hidden
                 decoding="async"
                 draggable={false}
               />
               <div className="metric-sheet__extra-body">
-                {pulseDetailParagraphs.map((paragraph, index) => (
-                  <p key={`pulse-p-${index}`}>{paragraph}</p>
+                {extraParagraphs.map((paragraph, index) => (
+                  <p key={`extra-p-${index}`}>{paragraph}</p>
                 ))}
               </div>
             </div>

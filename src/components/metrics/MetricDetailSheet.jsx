@@ -21,6 +21,7 @@ import baevskyImage from '../../assets/Baevsky.webp'
 import ascvdImage from '../../assets/ASCVD.webp'
 import cardiacLoadImage from '../../assets/cardiac_load.webp'
 import bloodPressureImage from '../../assets/blood_pressure.webp'
+import pulsePressureImage from '../../assets/pulse_pressure.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -131,6 +132,13 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'meanarterialpressure' || key === 'mean_arterial_pressure' || key === 'map' ||
       name.includes('среднее артериальн') || name.includes('mean arterial'),
+  },
+  pulsePressure: {
+    image: pulsePressureImage,
+    i18nKey: 'metricSheet.pulsePressure.detail',
+    match: (key, name) =>
+      key === 'pulsepressure' || key === 'pulse_pressure' ||
+      name.includes('пульсовое давлени') || name.includes('pulse pressure'),
   },
 }
 

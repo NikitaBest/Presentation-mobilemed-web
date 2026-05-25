@@ -15,6 +15,10 @@ import prqImage from '../../assets/PRQ.webp'
 import cholesterolImage from '../../assets/cholesterol.webp'
 import respiratoryRateImage from '../../assets/respiratory_rate.png'
 import systolicImage from '../../assets/systolic_pressure.webp'
+import hba1cImage from '../../assets/hba1c.webp'
+import hemoglobinImage from '../../assets/hemoglobin.webp'
+import baevskyImage from '../../assets/Baevsky.webp'
+import ascvdImage from '../../assets/ASCVD.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -82,6 +86,35 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'systolicpressure' || key === 'systolic_pressure' || key === 'systolic' ||
       name.includes('систолическ') || name.includes('systolic'),
+  },
+  hba1c: {
+    image: hba1cImage,
+    i18nKey: 'metricSheet.hba1c.detail',
+    match: (key, name) =>
+      key === 'hba1c' || key === 'hb_a1c' || key === 'glycatedhemoglobin' || key === 'glycated_hemoglobin' ||
+      name.includes('гликированн') || name.includes('hba1c') || name.includes('hemoglobin a1c'),
+  },
+  hemoglobin: {
+    image: hemoglobinImage,
+    i18nKey: 'metricSheet.hemoglobin.detail',
+    match: (key, name) =>
+      key === 'hemoglobin' || key === 'haemoglobin' ||
+      (name.includes('гемоглобин') && !name.includes('гликированн')) ||
+      (name.includes('hemoglobin') && !name.includes('a1c')),
+  },
+  baevsky: {
+    image: baevskyImage,
+    i18nKey: 'metricSheet.baevsky.detail',
+    match: (key, name) =>
+      key === 'baevsky' || key === 'baevsky_stress' || key === 'baevskystress' || key === 'stress_index' ||
+      name.includes('баевск') || name.includes('baevsky'),
+  },
+  ascvd: {
+    image: ascvdImage,
+    i18nKey: 'metricSheet.ascvd.detail',
+    match: (key, name) =>
+      key === 'ascvd' || key === 'ascvd_risk' || key === 'ascvdrisk' ||
+      name.includes('ascvd') || name.includes('атеросклеротическ'),
   },
 }
 

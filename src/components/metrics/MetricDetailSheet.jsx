@@ -19,6 +19,8 @@ import hba1cImage from '../../assets/hba1c.webp'
 import hemoglobinImage from '../../assets/hemoglobin.webp'
 import baevskyImage from '../../assets/Baevsky.webp'
 import ascvdImage from '../../assets/ASCVD.webp'
+import cardiacLoadImage from '../../assets/cardiac_load.webp'
+import bloodPressureImage from '../../assets/blood_pressure.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -115,6 +117,20 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'ascvd' || key === 'ascvd_risk' || key === 'ascvdrisk' ||
       name.includes('ascvd') || name.includes('атеросклеротическ'),
+  },
+  cardiacLoad: {
+    image: cardiacLoadImage,
+    i18nKey: 'metricSheet.cardiacLoad.detail',
+    match: (key, name) =>
+      key === 'cardiacload' || key === 'cardiac_load' || key === 'cardiacworkload' || key === 'cardiac_workload' ||
+      name.includes('кардиальн') || name.includes('cardiac load') || name.includes('cardiac work'),
+  },
+  meanArterialPressure: {
+    image: bloodPressureImage,
+    i18nKey: 'metricSheet.meanArterialPressure.detail',
+    match: (key, name) =>
+      key === 'meanarterialpressure' || key === 'mean_arterial_pressure' || key === 'map' ||
+      name.includes('среднее артериальн') || name.includes('mean arterial'),
   },
 }
 

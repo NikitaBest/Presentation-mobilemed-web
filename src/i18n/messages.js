@@ -370,6 +370,8 @@ export const MESSAGES = {
     'metricSheet.disclaimer':
       'Не является медицинским диагнозом. Необходима консультация специалиста.',
     'metricSheet.ok': 'Понятно',
+    'metricSheet.pulseRate.detail':
+      'Частота пульса — это количество ударов сердца в минуту. В покое нормальный пульс для взрослого человека составляет 60–100 уд/мин. Регулярное отслеживание помогает заметить изменения, связанные со стрессом, физической активностью или состоянием здоровья.\n\nЧем ниже пульс в покое, тем эффективнее работает сердце. У спортсменов он нередко опускается до 40–50 уд/мин. Повышенный пульс в состоянии покоя может указывать на переутомление, обезвоживание или начинающееся заболевание.',
   },
   en: {
     'lang.ru': 'Русский',
@@ -730,6 +732,8 @@ export const MESSAGES = {
     'metricSheet.disclaimer':
       'This is not a medical diagnosis. Consult a healthcare professional.',
     'metricSheet.ok': 'OK',
+    'metricSheet.pulseRate.detail':
+      'Pulse rate is the number of heartbeats per minute. A normal resting heart rate for an adult is 60–100 bpm. Regular tracking helps you spot changes linked to stress, physical activity, or health conditions.\n\nA lower resting heart rate usually means your heart works more efficiently. Athletes often have rates as low as 40–50 bpm. An elevated resting pulse can signal fatigue, dehydration, or an emerging illness.',
   },
 }
 

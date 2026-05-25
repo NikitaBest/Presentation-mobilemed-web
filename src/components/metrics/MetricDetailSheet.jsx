@@ -6,7 +6,27 @@ import {
   transcriptColorKey,
 } from '../../utils/metricTranscript.js'
 import { useI18n } from '../../i18n/useI18n.js'
+import pulseImage from '../../assets/pulse1.webp'
 import './MetricDetailSheet.css'
+
+/**
+ * @param {object | null} transcript
+ * @returns {boolean}
+ */
+function isPulseRateMetric(transcript) {
+  if (!transcript) return false
+  const key = String(transcript.key ?? '').trim().toLowerCase()
+  if (key === 'pulserate' || key === 'pulse_rate' || key === 'heartrate' || key === 'heart_rate') {
+    return true
+  }
+  const name = String(transcript.name ?? '').trim().toLowerCase()
+  return (
+    name.includes('частота пульса') ||
+    name === 'пульс' ||
+    name === 'pulse rate' ||
+    name === 'heart rate'
+  )
+}
 
 /**
  * @param {{ transcript: object | null, onClose: () => void }} props
@@ -33,6 +53,11 @@ export function MetricDetailSheet({ transcript, onClose }) {
   if (!open) return null
 
   const color = transcriptColorKey(transcript)
+  const isPulse = isPulseRateMetric(transcript)
+  const pulseDetailRaw = isPulse ? t('metricSheet.pulseRate.detail') : null
+  const pulseDetailParagraphs = pulseDetailRaw
+    ? pulseDetailRaw.split(/\n\n+/).map((p) => p.trim()).filter(Boolean)
+    : []
 
   return (
     <div className="metric-sheet" role="presentation">
@@ -43,36 +68,57 @@ export function MetricDetailSheet({ transcript, onClose }) {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="metric-sheet__handle" aria-hidden />
+        <div className="metric-sheet__scroll">
+          <div className="metric-sheet__handle" aria-hidden />
 
-        <h2 id={titleId} className="metric-sheet__title">
-          {transcript.name}
-        </h2>
+          <h2 id={titleId} className="metric-sheet__title">
+            {transcript.name}
+          </h2>
 
-        <p className="metric-sheet__value-row">
-          <span className="metric-sheet__value">{formatTranscriptValue(transcript)}</span>
-          {transcript.unit ? <span className="metric-sheet__unit">{transcript.unit}</span> : null}
-        </p>
-
-        {transcript.status ? (
-          <p className="metric-sheet__status-wrap">
-            <span className={metricStatusClass(color)}>{transcript.status}</span>
+          <p className="metric-sheet__value-row">
+            <span className="metric-sheet__value">{formatTranscriptValue(transcript)}</span>
+            {transcript.unit ? <span className="metric-sheet__unit">{transcript.unit}</span> : null}
           </p>
-        ) : null}
 
-        {transcript.commentUser ? <p className="metric-sheet__comment">{transcript.commentUser}</p> : null}
+          {transcript.status ? (
+            <p className="metric-sheet__status-wrap">
+              <span className={metricStatusClass(color)}>{transcript.status}</span>
+            </p>
+          ) : null}
 
-        {transcript.scaleMetadata ? <MetricScaleBar scaleMetadata={transcript.scaleMetadata} /> : null}
+          {transcript.commentUser ? <p className="metric-sheet__comment">{transcript.commentUser}</p> : null}
 
-        {transcript.descriptionUser ? (
-          <p className="metric-sheet__description">{transcript.descriptionUser}</p>
-        ) : null}
+          {transcript.scaleMetadata ? <MetricScaleBar scaleMetadata={transcript.scaleMetadata} /> : null}
 
-        <button type="button" className="metric-sheet__btn" onClick={onClose}>
-          {t('metricSheet.ok')}
-        </button>
+          {transcript.descriptionUser ? (
+            <p className="metric-sheet__description">{transcript.descriptionUser}</p>
+          ) : null}
 
-        <p className="metric-sheet__disclaimer">{t('metricSheet.disclaimer')}</p>
+          {isPulse ? (
+            <div className="metric-sheet__extra">
+              <img
+                className="metric-sheet__extra-image"
+                src={pulseImage}
+                alt=""
+                aria-hidden
+                decoding="async"
+                draggable={false}
+              />
+              <div className="metric-sheet__extra-body">
+                {pulseDetailParagraphs.map((paragraph, index) => (
+                  <p key={`pulse-p-${index}`}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <footer className="metric-sheet__footer">
+          <button type="button" className="metric-sheet__btn" onClick={onClose}>
+            {t('metricSheet.ok')}
+          </button>
+          <p className="metric-sheet__disclaimer">{t('metricSheet.disclaimer')}</p>
+        </footer>
       </div>
     </div>
   )

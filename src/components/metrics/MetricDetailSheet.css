@@ -22,15 +22,34 @@
 .metric-sheet__panel {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-height: min(88dvh, 640px);
-  padding: var(--mm-space-3) var(--mm-space-5) max(var(--mm-space-5), env(safe-area-inset-bottom, 0px));
   background: var(--mm-bg-surface);
   border-radius: var(--mm-radius-xl) var(--mm-radius-xl) 0 0;
   box-shadow: 0 -8px 32px rgba(17, 24, 39, 0.12);
-  overflow-y: auto;
+  overflow: hidden;
   pointer-events: auto;
   animation: metric-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.metric-sheet__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--mm-space-3) var(--mm-space-5) var(--mm-space-4);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.metric-sheet__footer {
+  flex-shrink: 0;
+  padding: var(--mm-space-3) var(--mm-space-5)
+    max(var(--mm-space-4), env(safe-area-inset-bottom, 0px));
+  background: var(--mm-bg-surface);
+  border-top: 1px solid var(--mm-border);
+  box-shadow: 0 -4px 16px rgba(17, 24, 39, 0.06);
 }
 
 @keyframes metric-sheet-in {
@@ -98,16 +117,48 @@
 
 .metric-sheet__description {
   margin: 0 0 var(--mm-space-5);
-  font-size: var(--mm-font-size-sm);
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-regular);
   line-height: var(--mm-line-relaxed);
-  color: var(--mm-text-heading);
+  color: var(--mm-text-muted);
+}
+
+.metric-sheet__extra {
+  margin: 0 0 var(--mm-space-5);
+  border-radius: var(--mm-radius-md);
+  overflow: hidden;
+  background: var(--mm-bg-muted);
+  border: 1px solid var(--mm-border);
+}
+
+.metric-sheet__extra-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--mm-radius-md) var(--mm-radius-md) 0 0;
+}
+
+.metric-sheet__extra-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-2);
+  padding: var(--mm-space-3) var(--mm-space-4);
+}
+
+.metric-sheet__extra-body p {
+  margin: 0;
+  font-size: var(--mm-font-size-xs);
+  font-weight: var(--mm-font-weight-regular);
+  line-height: var(--mm-line-body);
+  color: var(--mm-text);
 }
 
 .metric-sheet__btn {
   display: block;
   width: 100%;
   min-height: var(--mm-touch-min);
-  margin-bottom: var(--mm-space-4);
+  margin-bottom: var(--mm-space-2);
   padding: 0 var(--mm-space-6);
   font-family: var(--mm-font-sans);
   font-size: var(--mm-font-size-body);

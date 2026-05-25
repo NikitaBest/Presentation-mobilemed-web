@@ -73,9 +73,29 @@
   gap: var(--mm-space-2);
 }
 
+.scan-history-page__sentinel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: var(--mm-space-3) 0;
+}
+
 .scan-history-page__more {
   width: 100%;
-  margin-top: var(--mm-space-3);
+}
+
+.scan-history-page__loading-more {
+  margin: 0;
+  padding: var(--mm-space-3) 0;
+  text-align: center;
+  font-size: var(--mm-font-size-sm);
+  color: var(--mm-text-muted);
+  animation: scan-history-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes scan-history-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }
 
 .scan-history-page.page-shell {

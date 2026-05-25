@@ -11,6 +11,10 @@ import heartAgeImage from '../../assets/heart_age.webp'
 import sympatheticZoneImage from '../../assets/sympathetic_zone.webp'
 import glucoseImage from '../../assets/glucose.webp'
 import diastolicImage from '../../assets/diastolic_pressure.webp'
+import prqImage from '../../assets/PRQ.webp'
+import cholesterolImage from '../../assets/cholesterol.webp'
+import respiratoryRateImage from '../../assets/respiratory_rate.png'
+import systolicImage from '../../assets/systolic_pressure.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -50,6 +54,34 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'diastolicpressure' || key === 'diastolic_pressure' || key === 'diastolic' ||
       name.includes('диастолическ') || name.includes('diastolic'),
+  },
+  prq: {
+    image: prqImage,
+    i18nKey: 'metricSheet.prq.detail',
+    match: (key, name) =>
+      key === 'prq' || key === 'pulse_respiration_quotient' ||
+      name.includes('prq') || name.includes('пульс дыхани') || name.includes('pulse-respiration'),
+  },
+  cholesterol: {
+    image: cholesterolImage,
+    i18nKey: 'metricSheet.cholesterol.detail',
+    match: (key, name) =>
+      key === 'cholesterol' || key === 'cholesterol_risk' || key === 'totalcholesterol' || key === 'total_cholesterol' ||
+      name.includes('холестерин') || name.includes('cholesterol'),
+  },
+  respiratoryRate: {
+    image: respiratoryRateImage,
+    i18nKey: 'metricSheet.respiratoryRate.detail',
+    match: (key, name) =>
+      key === 'respiratoryrate' || key === 'respiratory_rate' || key === 'breathingrate' || key === 'breathing_rate' ||
+      name.includes('частота дыхани') || name.includes('respiratory rate') || name.includes('breathing rate'),
+  },
+  systolicPressure: {
+    image: systolicImage,
+    i18nKey: 'metricSheet.systolicPressure.detail',
+    match: (key, name) =>
+      key === 'systolicpressure' || key === 'systolic_pressure' || key === 'systolic' ||
+      name.includes('систолическ') || name.includes('systolic'),
   },
 }
 

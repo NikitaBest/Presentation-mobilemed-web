@@ -3,6 +3,7 @@ import { AppLayout } from '../components/AppLayout.jsx'
 import { ResultsHealthSummary } from '../components/results/ResultsHealthSummary.jsx'
 import { MetricCardsGrid } from '../components/metrics/MetricCardsGrid.jsx'
 import { MetricDetailSheet } from '../components/metrics/MetricDetailSheet.jsx'
+import { InsufficientDataSheet } from '../components/results/InsufficientDataSheet.jsx'
 import { getScanRowId, getScansHistory } from '../api/scanHistory.js'
 import { useI18n } from '../i18n/useI18n.js'
 import { readLocaleForApp } from '../i18n/locale.js'
@@ -48,6 +49,7 @@ export function ResultsPage({
   const [selectedTranscript, setSelectedTranscript] = useState(null)
   const [tapHintActive, setTapHintActive] = useState(false)
   const [tapHintExiting, setTapHintExiting] = useState(false)
+  const [insufficientDismissed, setInsufficientDismissed] = useState(false)
   const load = useCallback(async () => {
     setPhase('loading')
     setFetchError('')
@@ -239,6 +241,13 @@ export function ResultsPage({
         </div>
 
         <MetricDetailSheet transcript={selectedTranscript} onClose={() => setSelectedTranscript(null)} />
+
+        <InsufficientDataSheet
+          metricsCount={displayTranscripts.length}
+          visible={phase === 'ready' && !insufficientDismissed}
+          onRetry={onMeasureAgain}
+          onDismiss={() => setInsufficientDismissed(true)}
+        />
 
         <footer className="page-dock results-page__dock" aria-label={t('results.actionsAria')}>
           <div className="results-page__dock-inner">

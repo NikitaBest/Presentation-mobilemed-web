@@ -8,6 +8,9 @@ import {
 import { useI18n } from '../../i18n/useI18n.js'
 import pulseImage from '../../assets/pulse1.webp'
 import heartAgeImage from '../../assets/heart_age.webp'
+import sympatheticZoneImage from '../../assets/sympathetic_zone.webp'
+import glucoseImage from '../../assets/glucose.webp'
+import diastolicImage from '../../assets/diastolic_pressure.webp'
 import './MetricDetailSheet.css'
 
 /** @type {Record<string, { image: string, i18nKey: string, match: (key: string, name: string) => boolean }>} */
@@ -26,6 +29,27 @@ const METRIC_EXTRAS = {
     match: (key, name) =>
       key === 'heartage' || key === 'heart_age' ||
       name.includes('возраст сердца') || name === 'heart age',
+  },
+  sympatheticZone: {
+    image: sympatheticZoneImage,
+    i18nKey: 'metricSheet.sympatheticZone.detail',
+    match: (key, name) =>
+      key === 'sympatheticzone' || key === 'sympathetic_zone' || key === 'sns_zone' ||
+      name.includes('симпатическ') || name.includes('sympathetic'),
+  },
+  glucoseRisk: {
+    image: glucoseImage,
+    i18nKey: 'metricSheet.glucoseRisk.detail',
+    match: (key, name) =>
+      key === 'glucoserisk' || key === 'glucose_risk' || key === 'fastingglucose' || key === 'fasting_glucose' ||
+      name.includes('глюкоз') || name.includes('glucose'),
+  },
+  diastolicPressure: {
+    image: diastolicImage,
+    i18nKey: 'metricSheet.diastolicPressure.detail',
+    match: (key, name) =>
+      key === 'diastolicpressure' || key === 'diastolic_pressure' || key === 'diastolic' ||
+      name.includes('диастолическ') || name.includes('diastolic'),
   },
 }
 

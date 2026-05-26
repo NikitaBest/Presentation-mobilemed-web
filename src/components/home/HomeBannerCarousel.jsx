@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBannerImagesReady } from '../../hooks/useBannerImagesReady.js'
-import { bannerAboutBg, bannerPrivacyBg } from '../../utils/homeBannerAssets.js'
+import { getBannerBgs } from '../../utils/homeBannerAssets.js'
 import { useI18n } from '../../i18n/useI18n.js'
 import './HomeBannerCarousel.css'
 
@@ -28,8 +28,9 @@ const SWIPE_MIN_PX = 48
  * }} props
  */
 export function HomeBannerCarousel({ banners, onOpenBanner }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { ready: imagesReady } = useBannerImagesReady()
+  const bannerBgs = getBannerBgs(locale)
   const [index, setIndex] = useState(0)
   const count = banners.length
   const touchRef = useRef({ startX: 0, startY: 0, swiped: false })
@@ -128,7 +129,7 @@ export function HomeBannerCarousel({ banners, onOpenBanner }) {
       >
         <img
           className={`home-banners__bg home-banners__bg--${active.id}`}
-          src={isAboutBanner ? bannerAboutBg : bannerPrivacyBg}
+          src={isAboutBanner ? bannerBgs.about : bannerBgs.privacy}
           alt=""
           aria-hidden
           decoding="async"

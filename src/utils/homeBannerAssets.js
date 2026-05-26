@@ -1,10 +1,28 @@
-import bannerAboutBg from '../assets/banner.webp'
-import bannerPrivacyBg from '../assets/banner2.webp'
+import bannerAboutBgRu from '../assets/banner.webp'
+import bannerPrivacyBgRu from '../assets/banner2.webp'
+import bannerAboutBgEn from '../assets/banner_eng.webp'
+import bannerPrivacyBgEn from '../assets/banner2_eng.webp'
 
-/** URL фонов баннеров на главной (для предзагрузки и CSS). */
-export const HOME_BANNER_BG_URLS = [bannerAboutBg, bannerPrivacyBg]
+const BANNER_BG = {
+  ru: { about: bannerAboutBgRu, privacy: bannerPrivacyBgRu },
+  en: { about: bannerAboutBgEn, privacy: bannerPrivacyBgEn },
+}
 
-export { bannerAboutBg, bannerPrivacyBg }
+/**
+ * @param {'ru' | 'en'} locale
+ * @returns {{ about: string, privacy: string }}
+ */
+export function getBannerBgs(locale) {
+  return BANNER_BG[locale] ?? BANNER_BG.ru
+}
+
+/** URL фонов баннеров на главной (для предзагрузки). */
+export const HOME_BANNER_BG_URLS = [
+  bannerAboutBgRu, bannerPrivacyBgRu,
+  bannerAboutBgEn, bannerPrivacyBgEn,
+]
+
+export { bannerAboutBgRu as bannerAboutBg, bannerPrivacyBgRu as bannerPrivacyBg }
 
 /**
  * @param {string[]} urls

@@ -2,9 +2,6 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
   pointer-events: none;
 }
 
@@ -17,11 +14,30 @@
   background: rgba(17, 24, 39, 0.45);
   cursor: pointer;
   pointer-events: auto;
+  animation: metric-sheet-fade-in 0.28s ease;
+}
+
+@keyframes metric-sheet-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.metric-sheet__column {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--mm-app-max-width);
+  margin: 0 auto;
+  pointer-events: none;
 }
 
 .metric-sheet__panel {
   position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   width: 100%;

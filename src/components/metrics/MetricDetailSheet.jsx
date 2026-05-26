@@ -206,12 +206,13 @@ export function MetricDetailSheet({ transcript, onClose }) {
   return (
     <div className="metric-sheet" role="presentation">
       <button type="button" className="metric-sheet__backdrop" aria-label={t('common.close')} onClick={onClose} />
-      <div
-        className="metric-sheet__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-      >
+      <div className="metric-sheet__column">
+        <div
+          className="metric-sheet__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+        >
         <div className="metric-sheet__scroll">
           <div className="metric-sheet__handle" aria-hidden />
 
@@ -263,6 +264,7 @@ export function MetricDetailSheet({ transcript, onClose }) {
           </button>
           <p className="metric-sheet__disclaimer">{t('metricSheet.disclaimer')}</p>
         </footer>
+        </div>
       </div>
     </div>
   )

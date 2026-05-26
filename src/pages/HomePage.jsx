@@ -12,22 +12,9 @@ import {
 import { getAvailableRppgScansFromUser, getUserMe } from '../api/user.js'
 import { SettingsIcon } from '../components/icons/SettingsIcon.jsx'
 import { useI18n } from '../i18n/useI18n.js'
+import facescanIcon from '../assets/facescan.svg'
 import '../components/home/HomeLatestScan.css'
 import './HomePage.css'
-
-function IconScan() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M8 4h8a2 2 0 0 1 2 2v2M8 20H6a2 2 0 0 1-2-2v-2M20 14v2a2 2 0 0 1-2 2h-2M4 10V8a2 2 0 0 1 2-2h2"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <ellipse cx="12" cy="12" rx="4" ry="5.5" stroke="currentColor" strokeWidth="1.75" />
-    </svg>
-  )
-}
 
 /**
  * @param {{
@@ -141,36 +128,36 @@ export function HomePage({
               onClick={onStartScan}
             >
               <span className="home-page__scan-icon" aria-hidden>
-                <IconScan />
+                <img src={facescanIcon} alt="" draggable={false} />
               </span>
               <span className="home-page__scan-body">
                 <span className="home-page__scan-label">{t('home.scanTitle')}</span>
                 <span className="home-page__scan-hint">{t('home.scanLead')}</span>
-                {quotaPhase === 'loading' ? (
-                  <span
-                    className="home-page__scan-quota home-page__scan-quota--loading"
-                    aria-live="polite"
-                  >
-                    {t('home.scansLeftLoading')}
-                  </span>
-                ) : null}
-                {quotaPhase === 'ready' && scansLeft != null ? (
-                  <span
-                    className={`home-page__scan-quota${
-                      scansLeft === 0 ? ' home-page__scan-quota--empty' : ''
-                    }`}
-                    role="status"
-                  >
-                    <span className="home-page__scan-quota-value">{scansLeft}</span>
-                    <span className="home-page__scan-quota-label">
-                      {scansLeft === 0 ? t('home.scansLeftNone') : t('home.scansLeftLabel')}
-                    </span>
-                  </span>
-                ) : null}
               </span>
               <span className="home-page__scan-chevron" aria-hidden>
                 ›
               </span>
+              {quotaPhase === 'loading' ? (
+                <span
+                  className="home-page__scan-quota home-page__scan-quota--loading"
+                  aria-live="polite"
+                >
+                  {t('home.scansLeftLoading')}
+                </span>
+              ) : null}
+              {quotaPhase === 'ready' && scansLeft != null ? (
+                <span
+                  className={`home-page__scan-quota${
+                    scansLeft === 0 ? ' home-page__scan-quota--empty' : ''
+                  }`}
+                  role="status"
+                >
+                  <span className="home-page__scan-quota-value">{scansLeft}</span>
+                  <span className="home-page__scan-quota-label">
+                    {scansLeft === 0 ? t('home.scansLeftNone') : t('home.scansLeftLabel')}
+                  </span>
+                </span>
+              ) : null}
             </button>
           </section>
 

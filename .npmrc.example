@@ -1,0 +1,11 @@
+# BiosenseSignal Web SDK — JFrog Artifactory (v5.13+).
+# Скопируйте в .npmrc и подставьте API key от customer success.
+# Либо задайте JFROG_API_KEY — scripts/setup-npmrc.mjs создаст .npmrc при npm install.
+#
+# После настройки Artifactory замените в package.json:
+#   "@biosensesignal/web-sdk": "5.13.1"
+# вместо file:vendor/biosensesignal/biosensesignal-web-sdk-v5.13.1.tgz
+
+@biosensesignal:registry=https://biosensesignal.jfrog.io/artifactory/api/npm/biosensesignal-web-sdk/
+//biosensesignal.jfrog.io/artifactory/api/npm/biosensesignal-web-sdk/:_authToken=${JFROG_API_KEY}
+//biosensesignal.jfrog.io/artifactory/api/npm/biosensesignal-web-sdk/:always-auth=true

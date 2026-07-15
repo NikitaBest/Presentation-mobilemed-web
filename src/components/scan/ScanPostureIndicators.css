@@ -1,0 +1,82 @@
+.scan-pgs-axes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--mm-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scan-pgs-axes--compact .scan-pgs-axis {
+  min-height: 1.5rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.625rem;
+}
+
+.scan-pgs-axes--compact .scan-pgs-axis__dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+}
+
+.scan-pgs-axis {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--mm-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.2;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  backdrop-filter: blur(6px);
+}
+
+.scan-pgs-axis__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #94a3b8;
+}
+
+.scan-pgs-axis--ok {
+  border-color: rgba(52, 211, 153, 0.55);
+}
+
+.scan-pgs-axis--ok .scan-pgs-axis__dot {
+  background: #34d399;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+}
+
+.scan-pgs-axis--warn {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+
+.scan-pgs-axis--warn .scan-pgs-axis__dot {
+  background: #fbbf24;
+}
+
+.scan-pgs-axis--error {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.scan-pgs-axis--error .scan-pgs-axis__dot {
+  background: #f87171;
+}
+
+.scan-pgs-axis--na .scan-pgs-axis__dot {
+  background: #64748b;
+}
+
+.scan-pgs-axis__label {
+  white-space: nowrap;
+}
+
+.scan-pgs-axis__status {
+  color: #cbd5e1;
+  font-weight: var(--mm-font-weight-medium);
+}

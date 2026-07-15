@@ -1,0 +1,100 @@
+.documents-page__header {
+  flex-shrink: 0;
+  margin-bottom: var(--mm-space-4);
+}
+
+.documents-page__brand {
+  display: block;
+  margin-bottom: var(--mm-space-1);
+  font-size: 0.6875rem;
+  font-weight: var(--mm-font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mm-primary);
+}
+
+.documents-page__title {
+  margin: 0 0 var(--mm-space-1);
+  font-size: var(--mm-font-size-h2);
+  font-weight: var(--mm-font-weight-bold);
+  line-height: var(--mm-line-tight);
+  color: var(--mm-text-heading);
+}
+
+.documents-page__lead {
+  margin: 0;
+  font-size: var(--mm-font-size-sm);
+  line-height: 1.45;
+  color: var(--mm-text-muted);
+}
+
+.documents-page.page-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.documents-page__scroll.page-shell__scroll {
+  padding-bottom: var(--mm-space-2);
+}
+
+.documents-page__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mm-space-2);
+}
+
+.documents-page__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mm-space-3);
+  width: 100%;
+  min-height: var(--mm-touch-min);
+  padding: var(--mm-space-3) var(--mm-space-4);
+  font: inherit;
+  text-align: left;
+  color: var(--mm-text-heading);
+  background: var(--mm-bg-surface);
+  border: 1px solid var(--mm-border);
+  border-radius: var(--mm-radius-md);
+  box-shadow: var(--mm-shadow-card);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.documents-page__item:hover {
+  background: color-mix(in srgb, var(--mm-primary) 6%, var(--mm-bg-surface));
+  border-color: color-mix(in srgb, var(--mm-primary) 30%, var(--mm-border));
+}
+
+.documents-page__item:focus-visible {
+  outline: none;
+  border-color: var(--mm-primary);
+  box-shadow: 0 0 0 2px var(--mm-bg-primary-soft);
+}
+
+.documents-page__item-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mm-font-size-sm);
+  font-weight: var(--mm-font-weight-semibold);
+  line-height: 1.35;
+}
+
+.documents-page__item-chevron {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  font-weight: var(--mm-font-weight-bold);
+  line-height: 1;
+  color: var(--mm-primary);
+}
+
+.documents-page__dock {
+  flex-shrink: 0;
+}

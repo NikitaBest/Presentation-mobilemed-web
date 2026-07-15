@@ -95,6 +95,17 @@
   flex-shrink: 0;
 }
 
+.scan-dock-frame-pill {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.scan-dock-frame-pill .scan-pill--frame {
+  max-width: 100%;
+}
+
 .scan-dock-pgs .scan-pgs-axes {
   justify-content: center;
   gap: 0.375rem;
@@ -230,6 +241,38 @@
   --scan-oval-ring-color: var(--mm-scan-ring);
   --scan-oval-arc-a: #34d399;
   --scan-oval-arc-b: #10b981;
+}
+
+/* Овал и «прожектор» по face.roi из PGS */
+.scan-oval-frame--dynamic-roi {
+  left: var(--scan-roi-cx);
+  top: var(--scan-roi-cy);
+  width: calc(2 * var(--scan-roi-rx));
+  height: calc(2 * var(--scan-roi-ry));
+  transition:
+    left 0.14s ease-out,
+    top 0.14s ease-out,
+    width 0.14s ease-out,
+    height 0.14s ease-out;
+}
+
+.scan-dim--dynamic-roi {
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--scan-roi-rx) var(--scan-roi-ry) at var(--scan-roi-cx) var(--scan-roi-cy),
+    transparent 0%,
+    transparent 98.6%,
+    rgba(0, 0, 0, 0.25) 99.2%,
+    rgba(0, 0, 0, 0.92) 99.7%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--scan-roi-rx) var(--scan-roi-ry) at var(--scan-roi-cx) var(--scan-roi-cy),
+    transparent 0%,
+    transparent 98.6%,
+    rgba(0, 0, 0, 0.25) 99.2%,
+    rgba(0, 0, 0, 0.92) 99.7%,
+    #000 100%
+  );
 }
 
 /* Как scan-pill--frame-*: pending = ожидание кадра, ok = VALID, warn = поправьте положение */
@@ -612,24 +655,33 @@
 }
 
 /*
- * Пульс + подсказка сразу под овалом; снизу ограничены футером (без пустой полосы посередине).
+ * Док замера/позы: пульс, подсказка, статусы — закреплены у низа экрана (не следуют за овалом).
  */
 .scan-measuring-dock {
   position: fixed;
   left: max(var(--mm-space-3), env(safe-area-inset-left, 0px));
   right: max(var(--mm-space-3), env(safe-area-inset-right, 0px));
-  top: calc(var(--scan-oval-cy) + var(--scan-oval-ry) + var(--scan-dock-gap));
-  bottom: var(--scan-footer-stack);
   z-index: 6;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   gap: var(--mm-space-2);
-  min-height: 0;
   pointer-events: none;
+}
+
+.scan-measuring-dock--pinned {
+  top: auto;
+  bottom: var(--scan-footer-stack);
+  justify-content: flex-end;
+  max-height: min(46svh, 22rem);
   overflow-x: hidden;
   overflow-y: auto;
+  padding: var(--mm-space-2) 0 var(--mm-space-1);
+  box-sizing: border-box;
+}
+
+.scan-page--fullscreen.scan-page--posture-dock {
+  --scan-footer-stack: calc(6.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 .scan-measuring-dock .scan-hud-below-oval {
@@ -933,6 +985,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .scan-page--fullscreen {
+    transition: none;
+  }
+
+  .scan-oval-frame--dynamic-roi {
     transition: none;
   }
 

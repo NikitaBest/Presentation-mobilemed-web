@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { postSaveRppgScan } from '../api/scan.js'
 import { useI18n } from '../i18n/useI18n.js'
 import { ScanPostureIndicators } from '../components/scan/ScanPostureIndicators.jsx'
+import { ScanFaceScanEffect } from '../components/scan/ScanFaceScanEffect.jsx'
 import { CaptureValidity, ImageValidity, SessionState } from '../sdk/biosenseEnums.js'
 import {
   buildPostureAxisSummary,
@@ -23,6 +24,11 @@ import {
   sdkDeviceOrientationLabel,
 } from '../sdk/faceScan.js'
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
+import {
+  computeFaceRoiLayout,
+  faceRoiLayoutToCssVars,
+  smoothEllipseLayout,
+} from '../sdk/faceRoiLayout.js'
 import './ScanPage.css'
 
 /** Камера — как Camera.jsx; портрет/ROI настраивает SDK после createFaceSession. */
@@ -146,6 +152,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const { t } = useI18n()
   const ecgCycleId = `scan-ecg-cycle-${useId().replace(/:/g, '')}`
   const videoRef = useRef(null)
+  const viewportRef = useRef(null)
+  const viewportSizeRef = useRef({ width: 0, height: 0 })
+  const smoothedFaceRoiRef = useRef(null)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
@@ -163,6 +172,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   /** Последний ImageValidity из onImageData — плашка «кадр» (docs/SDK.md). */
   const [frameValidity, setFrameValidity] = useState(null)
   const [postureSummary, setPostureSummary] = useState(null)
+  /** Эллипс по face.roi (проценты viewport), null = статический овал по центру. */
+  const [faceRoiLayout, setFaceRoiLayout] = useState(null)
   const [errorText, setErrorText] = useState('')
   /** Не обновлять подсказку без смены (состояние сессии, validity) — onImageData на каждый кадр. */
   const lastHintKeyRef = useRef('')
@@ -174,6 +185,24 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const lastImageValidityLogRef = useRef(null)
   const lastImageLogAtRef = useRef(0)
   const lastVitalLogAtRef = useRef(0)
+
+  useEffect(() => {
+    const el = viewportRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+
+    const update = () => {
+      const rect = el.getBoundingClientRect()
+      viewportSizeRef.current = {
+        width: rect.width,
+        height: rect.height,
+      }
+    }
+
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const teardownStream = useCallback(() => {
     const s = streamRef.current
@@ -241,6 +270,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       lastHintKeyRef.current = ''
       setFrameValidity(null)
       setPostureSummary(null)
+      smoothedFaceRoiRef.current = null
+      setFaceRoiLayout(null)
       lastImageValidityLogRef.current = null
       lastImageLogAtRef.current = 0
       lastVitalLogAtRef.current = 0
@@ -335,6 +366,35 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         const session = sessionRef.current
         const sdkState = session?.getState?.()
         const measuring = sdkState === SessionState.MEASURING
+
+        const roi = imageData?.captureData?.face?.roi
+        const video = videoRef.current
+        const { width: vpW, height: vpH } = viewportSizeRef.current
+        if (
+          roi &&
+          video &&
+          vpW > 0 &&
+          vpH > 0 &&
+          video.videoWidth > 0 &&
+          video.videoHeight > 0 &&
+          validity !== ImageValidity.INVALID_ROI
+        ) {
+          const nextLayout = computeFaceRoiLayout(
+            roi,
+            video.videoWidth,
+            video.videoHeight,
+            vpW,
+            vpH,
+          )
+          if (nextLayout) {
+            const smoothed = smoothEllipseLayout(smoothedFaceRoiRef.current, nextLayout)
+            smoothedFaceRoiRef.current = smoothed
+            setFaceRoiLayout(smoothed)
+          }
+        } else if (!imageData?.captureData?.face?.roi) {
+          smoothedFaceRoiRef.current = null
+          setFaceRoiLayout(null)
+        }
 
         if (measuring && !ok) {
           setLivePulse(null)
@@ -627,6 +687,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const handleStopPosture = useCallback(() => {
     const session = sessionRef.current
     posturePreparedRef.current = false
+    smoothedFaceRoiRef.current = null
+    setFaceRoiLayout(null)
     setPostureSummary(null)
     setFrameValidity(null)
     lastImageDataRef.current = null
@@ -652,6 +714,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
 
   const handleRetry = useCallback(() => {
     posturePreparedRef.current = false
+    smoothedFaceRoiRef.current = null
+    setFaceRoiLayout(null)
     teardownSession()
     teardownStream()
     lastImageValidityLogRef.current = null
@@ -680,6 +744,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   /** Отмена замера → экран «Подготовка» (шаг instruction в App). */
   const handleCancelScan = useCallback(() => {
     posturePreparedRef.current = false
+    smoothedFaceRoiRef.current = null
+    setFaceRoiLayout(null)
     teardownSession()
     teardownStream()
     onBack()
@@ -716,7 +782,12 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       ? t('scan.framePending')
       : resolveScanFramePill(frameValidity, lastImageDataRef.current, t)
   const framePillOk = isScanFrameOk(frameValidity, lastImageDataRef.current)
+  const showFaceScanEffect = phase === 'measuring' && ovalFrameTone === 'ok'
   const isPosturePhase = phase === 'posture' && sessionState === SessionState.POSTURE_CHECK
+  const useDynamicFaceRoi =
+    faceRoiLayout != null &&
+    (phase === 'posture' || phase === 'measuring' || phase === 'preview')
+  const viewportRoiStyle = useDynamicFaceRoi ? faceRoiLayoutToCssVars(faceRoiLayout) : undefined
   const scanTitle = isPosturePhase
     ? t('scan.titlePosture')
     : phase === 'measuring'
@@ -731,6 +802,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         cameraVisible ? 'scan-page--camera-visible' : '',
         scanLayoutLocked ? 'scan-page--active-scan' : '',
         phase === 'measuring' ? 'scan-page--measuring' : '',
+        phase === 'posture' ? 'scan-page--posture-dock' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -738,7 +810,13 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       aria-label={t('scan.ariaApp')}
     >
       <div className="scan-viewport-wrap">
-        <div className="scan-viewport">
+        <div
+          ref={viewportRef}
+          className={['scan-viewport', useDynamicFaceRoi ? 'scan-viewport--dynamic-roi' : '']
+            .filter(Boolean)
+            .join(' ')}
+          style={viewportRoiStyle}
+        >
           <video
               ref={videoRef}
               id="scan-face-preview"
@@ -747,8 +825,21 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             muted
           />
           <div className="scan-mask-layer" aria-hidden>
-            <div className="scan-dim" />
-            <div className={`scan-oval-frame scan-oval-frame--${ovalFrameTone}`}>
+            <div
+              className={['scan-dim', useDynamicFaceRoi ? 'scan-dim--dynamic-roi' : '']
+                .filter(Boolean)
+                .join(' ')}
+            />
+            <div
+              className={[
+                'scan-oval-frame',
+                `scan-oval-frame--${ovalFrameTone}`,
+                useDynamicFaceRoi ? 'scan-oval-frame--dynamic-roi' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <ScanFaceScanEffect active={showFaceScanEffect} />
               {phase === 'measuring' ? (
                 <div
                   className="scan-oval-progress"
@@ -785,26 +876,18 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             </div>
           ) : null}
 
-          {(phase === 'posture' || phase === 'measuring') && (
-            <div className="scan-hud scan-hud--frame-status" aria-live="polite">
-              <div
-                className={`scan-pill scan-pill--frame ${
-                  framePillOk
-                    ? 'scan-pill--frame-ok'
-                    : frameValidity == null
-                      ? 'scan-pill--frame-pending'
-                      : 'scan-pill--frame-warn'
-                }`}
-              >
-                {framePillLabel}
-              </div>
+          {phase !== 'measuring' && phase !== 'posture' ? (
+            <div className={`scan-hint scan-hint--${hintTone}`} role="status" aria-live="polite">
+              {hint}
             </div>
-          )}
+          ) : null}
+        </div>
+      </div>
 
-          {phase === 'measuring' || phase === 'posture' ? (
-            <div className="scan-measuring-dock">
-              {phase === 'measuring' ? (
-                <div className="scan-hud-below-oval">
+      {phase === 'measuring' || phase === 'posture' ? (
+        <div className="scan-measuring-dock scan-measuring-dock--pinned">
+          {phase === 'measuring' ? (
+            <div className="scan-hud-below-oval">
               <div
                 className={`scan-pulse-card${livePulse != null ? ' scan-pulse-card--live' : ''}`}
                 style={
@@ -850,27 +933,34 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
                 </span>
               </div>
             </div>
-              ) : null}
-              <div
-                className={`scan-hint scan-hint--in-dock scan-hint--${hintTone}`}
-                role="status"
-                aria-live="polite"
-              >
-                {hint}
-              </div>
-              {postureSummary ? (
-                <div className="scan-dock-pgs">
-                  <ScanPostureIndicators summary={postureSummary} t={t} />
-                </div>
-              ) : null}
+          ) : null}
+          <div
+            className={`scan-hint scan-hint--in-dock scan-hint--${hintTone}`}
+            role="status"
+            aria-live="polite"
+          >
+            {hint}
+          </div>
+          <div className="scan-dock-frame-pill" aria-live="polite">
+            <div
+              className={`scan-pill scan-pill--frame ${
+                framePillOk
+                  ? 'scan-pill--frame-ok'
+                  : frameValidity == null
+                    ? 'scan-pill--frame-pending'
+                    : 'scan-pill--frame-warn'
+              }`}
+            >
+              {framePillLabel}
             </div>
-          ) : (
-            <div className={`scan-hint scan-hint--${hintTone}`} role="status" aria-live="polite">
-              {hint}
+          </div>
+          {postureSummary ? (
+            <div className="scan-dock-pgs">
+              <ScanPostureIndicators summary={postureSummary} t={t} />
             </div>
-          )}
+          ) : null}
         </div>
-      </div>
+      ) : null}
 
       {errorText ? (
         <p className="scan-error scan-error--overlay" role="alert">

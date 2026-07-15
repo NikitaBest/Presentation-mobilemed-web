@@ -23,6 +23,18 @@ export function getBiosenseProductId() {
 export const DEFAULT_PROCESSING_SECONDS = 60
 
 /**
+ * Строгие рекомендации по измерению (strictMeasurementGuidance).
+ * По умолчанию false — при сбое позы показываем PGS-подсказки, замер не прерывается.
+ * Включить: VITE_STRICT_MEASUREMENT_GUIDANCE=true (ошибки 3011–3015 остановят сессию).
+ */
+export function getStrictMeasurementGuidance() {
+  const raw = String(import.meta.env.VITE_STRICT_MEASUREMENT_GUIDANCE ?? 'false')
+    .trim()
+    .toLowerCase()
+  return raw === 'true' || raw === '1' || raw === 'yes'
+}
+
+/**
  * DeviceOrientation для FaceSessionOptions (docs/SDK.md «Ориентация устройства»).
  * Задаётся при createFaceSession; при несовпадении с фактической — INVALID_DEVICE_ORIENTATION.
  * Опционально: VITE_FACE_SDK_ORIENTATION=PORTRAIT | LANDSCAPE_LEFT | LANDSCAPE_RIGHT (принудительно).
@@ -193,8 +205,10 @@ export function imageValidityShortPillLabel(validity, t) {
       return tr('scan.pill.tilt') || 'Голова наклонена'
     case ImageValidity.INVALID_DEVICE_ORIENTATION:
       return tr('scan.pill.orientation') || 'Сменилась ориентация'
-    case ImageValidity.FACE_TOO_FAR:
-      return tr('scan.pill.far') || 'Дальше к камере'
+    case ImageValidity.FACE_NOT_CENTERED:
+      return tr('scan.pill.center') || 'Лицо не по центру'
+    case ImageValidity.DEVICE_NOT_ALIGNED:
+      return tr('scan.pill.device') || 'Наклон телефона'
     default:
       return tr('scan.pill.pending') || 'Кадр проверяется…'
   }

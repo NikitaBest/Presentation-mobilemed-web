@@ -60,6 +60,7 @@ function FaceScanIcon() {
  * @param {{
  *   onStartScan: () => void,
  *   onOpenSettings: () => void,
+ *   onOpenDocuments: () => void,
  *   onOpenScan: (row: object) => void,
  *   onOpenAllScans: () => void,
  * }} props
@@ -67,6 +68,7 @@ function FaceScanIcon() {
 export function HomePage({
   onStartScan,
   onOpenSettings,
+  onOpenDocuments,
   onOpenScan,
   onOpenAllScans,
 }) {
@@ -268,6 +270,13 @@ export function HomePage({
           <button type="button" className="btn-primary" onClick={onStartScan}>
             {t('home.scanAction')}
           </button>
+          <p className="page-dock__disclaimer home-page__terms">
+            {t('home.termsPrefix')}
+            <button type="button" className="home-page__terms-link" onClick={onOpenDocuments}>
+              {t('home.termsLink')}
+            </button>
+            {t('home.termsSuffix')}
+          </p>
         </footer>
 
         <HomeBannerDetailSheet banner={sheetBanner} onClose={() => setSheetBanner(null)} />

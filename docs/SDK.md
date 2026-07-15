@@ -1,7 +1,73 @@
-Интеграция SDK
-После получения BiosenseSignal_Web_Sample_X.X.X.zipфайла вы готовы добавить Web SDK в свое приложение.
+# BiosenseSignal Web SDK в presentation-mobilemed-web
 
-Выполните следующие шаги, чтобы интегрировать SDK в ваше приложение.
+Версия: **5.13.1** (PGS — Posture Guidance System). Официальная документация: [developer.biosensesignal.com](https://developer.biosensesignal.com/web/latest/).
+
+## Установка пакета
+
+### Вариант A — JFrog Artifactory (рекомендуется с v5.13)
+
+Ключ API запрашивается у customer success BiosenseSignal.
+
+1. Скопируйте `.npmrc.example` → `.npmrc` и подставьте API key, **или** задайте переменную окружения `JFROG_API_KEY` — скрипт `scripts/setup-npmrc.mjs` создаст `.npmrc` при `npm install`.
+2. В `package.json` замените зависимость на версию из registry:
+
+```json
+"@biosensesignal/web-sdk": "5.13.1"
+```
+
+3. `npm install`
+
+На Vercel / CI: добавьте секрет `JFROG_API_KEY` и используйте `"5.13.1"` в `package.json` (без `file:vendor/…`).
+
+Документация Artifactory: [SDK Integration](https://developer.biosensesignal.com/web/latest/setup/integration.html).
+
+### Вариант B — legacy `.tgz` (fallback без Artifactory)
+
+По умолчанию в репозитории:
+
+```json
+"@biosensesignal/web-sdk": "file:vendor/biosensesignal/biosensesignal-web-sdk-v5.13.1.tgz"
+```
+
+Файл `vendor/biosensesignal/biosensesignal-web-sdk-v5.13.1.tgz` должен лежать в проекте (как в sample-архиве BiosenseSignal). `npm install` работает без Artifactory.
+
+## Runtime-файлы (Vite, не Webpack)
+
+Вместо CopyPlugin из sample-приложения используется `scripts/sync-biosense-assets.mjs`:
+
+- источник: `node_modules/@biosensesignal/web-sdk/dist` (после npm) или распаковка из `vendor/*.tgz`;
+- в `public/` копируются `a.wasm.gz`, `a.worker.js`, `models/`, чанки `.js` (**без** `main.js` в бандл Vite);
+- скрипт запускается в `postinstall`, `predev`, `prebuild`.
+
+Загрузка SDK в браузере: `src/sdk/loadBiosenseSdk.js` — отдельный `<script src="/main.js">` (UMD), затем `healthMonitorManager.initialize()`.
+
+Алиас Vite `@biosensesignal/web-sdk` → `src/sdk/biosenseWebSdkEntry.js` (типы и реэкспорт; runtime только через `/main.js`).
+
+## SharedArrayBuffer (код 7015)
+
+`vite.config.js` и `vercel.json`: заголовки `Cross-Origin-Opener-Policy: same-origin` и `Cross-Origin-Embedder-Policy: require-corp`.
+
+## Переменные окружения
+
+| Переменная | Назначение |
+|------------|------------|
+| `VITE_BIOSENSESIGNAL_LICENSE_KEY` | Лицензия SDK |
+| `VITE_BIOSENSESIGNAL_PRODUCT_ID` | Product ID (если требуется лицензией) |
+| `VITE_STRICT_MEASUREMENT_GUIDANCE` | `true` — строгий режим (ошибки 3011–3015 останавливают замер); по умолчанию `false` |
+| `VITE_FACE_SDK_ORIENTATION` | Принудительная ориентация: `PORTRAIT` / `LANDSCAPE_LEFT` / `LANDSCAPE_RIGHT` |
+| `JFROG_API_KEY` | API key Artifactory (только при установке из registry) |
+
+Сканирование и PGS-flow: `docs/SCAN.md`.
+
+---
+
+## Справочник SDK (vendor docs)
+
+Ниже — сохранённая копия разделов официальной документации BiosenseSignal.
+
+### Интеграция SDK (оригинал sample / Webpack)
+
+Для **этого** проекта см. раздел «BiosenseSignal Web SDK в presentation-mobilemed-web» выше. В sample-приложении шаги такие:
 
 1. Добавьте пакет BiosenseSignal SDK в свой проект.
 1.1. Распакуйте BiosenseSignal_Web_Sample_X.X.X.tgzфайл.

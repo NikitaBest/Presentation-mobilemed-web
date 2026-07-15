@@ -1,14 +1,17 @@
 import { useCallback, useState } from 'react'
 import { AppLayout } from '../components/AppLayout.jsx'
-import { SettingsIcon } from '../components/icons/SettingsIcon.jsx'
 import { LanguageSwitch } from '../components/LanguageSwitch.jsx'
 import { useI18n } from '../i18n/useI18n.js'
 import './SettingsPage.css'
 
 /**
- * @param {{ onBack: () => void, onLogout: () => void }} props
+ * @param {{
+ *   onBack: () => void,
+ *   onLogout: () => void,
+ *   onOpenDocuments: () => void,
+ * }} props
  */
-export function SettingsPage({ onBack, onLogout }) {
+export function SettingsPage({ onBack, onLogout, onOpenDocuments }) {
   const { locale, setLocale, t } = useI18n()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -34,27 +37,46 @@ export function SettingsPage({ onBack, onLogout }) {
       <div className="settings-page page-shell">
         <header className="settings-page__header">
           <span className="settings-page__brand">{t('results.brand')}</span>
-          <h1 className="settings-page__title">
-            <SettingsIcon className="settings-page__title-icon" />
-            {t('results.settingsTitle')}
-          </h1>
+          <h1 className="settings-page__title">{t('results.settingsTitle')}</h1>
         </header>
 
         <div className="settings-page__scroll page-shell__scroll">
-          <section
-            className="settings-page__section settings-page__lang"
-            aria-labelledby="settings-lang-title"
-          >
-            <h2 id="settings-lang-title" className="settings-page__section-title">
-              {t('results.settingsLang')}
+          <section className="settings-page__group" aria-labelledby="settings-general-title">
+            <h2 id="settings-general-title" className="settings-page__group-label">
+              {t('settings.general')}
             </h2>
-            <LanguageSwitch
-              value={locale}
-              onChange={handleLocaleChange}
-              disabled={busy}
-              labels={{ ru: t('lang.ru'), en: t('lang.en') }}
-              aria-label={t('results.settingsLang')}
-            />
+            <ul className="settings-page__list">
+              <li className="settings-page__item settings-page__item--lang">
+                <div className="settings-page__row">
+                  <span className="settings-page__row-label">{t('results.settingsLang')}</span>
+                  <LanguageSwitch
+                    value={locale}
+                    onChange={handleLocaleChange}
+                    disabled={busy}
+                    labels={{ ru: t('lang.ru'), en: t('lang.en') }}
+                    aria-labelledby="settings-general-title"
+                  />
+                </div>
+              </li>
+              <li className="settings-page__item">
+                <button
+                  type="button"
+                  className="settings-page__row settings-page__row--link"
+                  disabled={busy}
+                  onClick={onOpenDocuments}
+                >
+                  <span className="settings-page__link-text">
+                    <span className="settings-page__link-title">{t('settings.documents.open')}</span>
+                    <span className="settings-page__link-subtitle">
+                      {t('settings.documents.subtitle')}
+                    </span>
+                  </span>
+                  <span className="settings-page__chevron" aria-hidden>
+                    ›
+                  </span>
+                </button>
+              </li>
+            </ul>
             {error ? (
               <p className="settings-page__error" role="alert">
                 {error}
@@ -62,22 +84,22 @@ export function SettingsPage({ onBack, onLogout }) {
             ) : null}
           </section>
 
-          <section
-            className="settings-page__section settings-page__account"
-            aria-labelledby="settings-account-title"
-          >
-            <h2 id="settings-account-title" className="settings-page__section-title">
+          <section className="settings-page__group" aria-labelledby="settings-account-title">
+            <h2 id="settings-account-title" className="settings-page__group-label">
               {t('results.settingsAccount')}
             </h2>
-            <p className="settings-page__account-lead">{t('results.settingsLogoutLead')}</p>
-            <button
-              type="button"
-              className="btn-secondary settings-page__logout"
-              disabled={busy}
-              onClick={onLogout}
-            >
-              {t('results.settingsLogout')}
-            </button>
+            <ul className="settings-page__list">
+              <li className="settings-page__item">
+                <button
+                  type="button"
+                  className="settings-page__row settings-page__row--danger"
+                  disabled={busy}
+                  onClick={onLogout}
+                >
+                  {t('results.settingsLogout')}
+                </button>
+              </li>
+            </ul>
           </section>
         </div>
 

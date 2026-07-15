@@ -12,6 +12,7 @@ import { UserDataPage } from './pages/UserDataPage.jsx'
 import { ScanInstructionPage } from './pages/ScanInstructionPage.jsx'
 import { ResultsPage } from './pages/ResultsPage.jsx'
 import { SettingsPage } from './pages/SettingsPage.jsx'
+import { DocumentsPage } from './pages/DocumentsPage.jsx'
 import { ScanHistoryPage } from './pages/ScanHistoryPage.jsx'
 import { ScanInterpretationPage } from './pages/ScanInterpretationPage.jsx'
 const ScanPage = lazy(() =>
@@ -24,6 +25,7 @@ import {
   HOME_STEP,
   LANGUAGE_STEP,
   SETTINGS_STEP,
+  DOCUMENTS_STEP,
   SCAN_HISTORY_STEP,
   SCAN_INTERPRETATION_STEP,
   clearPersistedStep,
@@ -41,6 +43,7 @@ export default function App() {
   const [scanSummary, setScanSummary] = useState(null)
   const [userDataHint, setUserDataHint] = useState('')
   const [returnStep, setReturnStep] = useState(HOME_STEP)
+  const [overlayStack, setOverlayStack] = useState([])
   const [interpretationScanId, setInterpretationScanId] = useState(null)
   const {
     load: loadInterpretation,
@@ -64,6 +67,7 @@ export default function App() {
       step === LANGUAGE_STEP ||
       step === AUTH_STEP ||
       step === SETTINGS_STEP ||
+      step === DOCUMENTS_STEP ||
       step === SCAN_HISTORY_STEP ||
       step === SCAN_INTERPRETATION_STEP
     ) {
@@ -89,13 +93,31 @@ export default function App() {
     setStep(SETTINGS_STEP)
   }, [])
 
+  const openDocuments = useCallback((parentStep = HOME_STEP) => {
+    setOverlayStack((stack) => [...stack, parentStep])
+    setStep(DOCUMENTS_STEP)
+  }, [])
+
+  const openSettingsDocuments = useCallback(() => {
+    openDocuments(SETTINGS_STEP)
+  }, [openDocuments])
+
   const openScanHistory = useCallback((fromStep = HOME_STEP) => {
     setReturnStep(fromStep)
     setStep(SCAN_HISTORY_STEP)
   }, [])
 
   const closeOverlayStep = useCallback(() => {
-    setStep(returnStep)
+    setOverlayStack((stack) => {
+      if (stack.length > 0) {
+        const next = [...stack]
+        const target = next.pop() ?? returnStep
+        setStep(target)
+        return next
+      }
+      setStep(returnStep)
+      return stack
+    })
   }, [returnStep])
 
   const handleLogout = useCallback(() => {
@@ -104,6 +126,7 @@ export default function App() {
     setScanSummary(null)
     setUserDataHint('')
     clearPersistedStep()
+    setOverlayStack([])
     setStep(AUTH_STEP)
   }, [])
 
@@ -183,6 +206,7 @@ export default function App() {
   }, [])
 
   const goHome = useCallback(() => {
+    setOverlayStack([])
     setStep(HOME_STEP)
   }, [])
 
@@ -216,6 +240,7 @@ export default function App() {
         <HomePage
           onStartScan={startScanFlow}
           onOpenSettings={() => openSettings(HOME_STEP)}
+          onOpenDocuments={() => openDocuments(HOME_STEP)}
           onOpenScan={openScanFromHistory}
           onOpenAllScans={() => openScanHistory(HOME_STEP)}
         />
@@ -269,7 +294,14 @@ export default function App() {
         />
       ) : null}
       {activeStep === SETTINGS_STEP && (
-        <SettingsPage onBack={closeOverlayStep} onLogout={handleLogout} />
+        <SettingsPage
+          onBack={closeOverlayStep}
+          onLogout={handleLogout}
+          onOpenDocuments={openSettingsDocuments}
+        />
+      )}
+      {activeStep === DOCUMENTS_STEP && (
+        <DocumentsPage onBack={closeOverlayStep} />
       )}
       {activeStep === SCAN_HISTORY_STEP && (
         <ScanHistoryPage onBack={closeOverlayStep} onOpenScan={openScanFromHistory} />

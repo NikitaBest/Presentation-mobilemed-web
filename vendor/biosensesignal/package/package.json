@@ -1,18 +1,19 @@
 {
   "name": "@biosensesignal/web-sdk",
-  "version": "5.11.1-1",
+  "version": "5.13.1",
+  "build": "8",
   "license": "UNLICENSED",
   "main": "dist/main.js",
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "prebuild": "rimraf dist && rimraf biosensesignal-web-sdk-v5.11.1-1.tgz",
+    "prebuild": "rimraf dist && rimraf biosensesignal-web-sdk-*.tgz",
     "build": "cross-env NODE_ENV=production NODE_OPTIONS='--max-old-space-size=16384' webpack --progress && npm pack",
     "build-yarn": "cross-env NODE_ENV=production NODE_OPTIONS='--max-old-space-size=16384' webpack --progress && yarn pack"
   },
   "devDependencies": {
-    "@biosensesignal/wasm": "5.11.1-1",
+    "@biosensesignal/wasm": "5.13.1",
     "filemanager-webpack-plugin": "^6.1.7",
     "glob": "^10.3.10"
   },

@@ -1,14 +1,23 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { postSaveRppgScan } from '../api/scan.js'
 import { useI18n } from '../i18n/useI18n.js'
-import { ImageValidity, SessionState } from '../sdk/biosenseEnums.js'
+import { ScanPostureIndicators } from '../components/scan/ScanPostureIndicators.jsx'
+import { CaptureValidity, ImageValidity, SessionState } from '../sdk/biosenseEnums.js'
+import {
+  buildPostureAxisSummary,
+  isScanFrameOk,
+  resolveScanFrameHint,
+  resolveScanFramePill,
+  isPostureGuidanceSdkError,
+  sdkMeasurementErrorMessage,
+  sdkMeasurementWarningMessage,
+} from '../sdk/captureGuidance.js'
 import { scanSdkDebug } from '../sdk/scanSdkDebug.js'
 import {
   DEFAULT_PROCESSING_SECONDS,
   ensureSdkInitialized,
+  getStrictMeasurementGuidance,
   getHealthMonitorManager,
-  imageValidityShortPillLabel,
-  imageValidityToUserMessage,
   mapFormToSdkUserInformation,
   resolveSdkDeviceOrientation,
   sdkDeviceOrientationLabel,
@@ -42,6 +51,8 @@ function sessionStateLabel(state, t) {
       return t('scan.session.init')
     case SessionState.ACTIVE:
       return t('scan.session.active')
+    case SessionState.POSTURE_CHECK:
+      return t('scan.session.postureCheck')
     case SessionState.MEASURING:
       return t('scan.session.measuring')
     case SessionState.STOPPING:
@@ -65,24 +76,11 @@ function imageValidityName(validity) {
   return key ?? `UNKNOWN(${validity})`
 }
 
-/** Во время MEASURING — подсказки по тем же ImageValidity, что в docs/SDK.md (onImageData). */
-function hintWhileMeasuring(imageValidity, t) {
-  switch (imageValidity) {
-    case ImageValidity.VALID:
-      return t('scan.hintMeasuringValid')
-    case ImageValidity.INVALID_ROI:
-      return t('scan.hintMeasuringRoi')
-    case ImageValidity.INVALID_DEVICE_ORIENTATION:
-      return t('scan.hintMeasuringOrientation')
-    case ImageValidity.TILTED_HEAD:
-      return t('scan.hintMeasuringTilt')
-    case ImageValidity.FACE_TOO_FAR:
-      return t('scan.hintMeasuringFar')
-    case ImageValidity.UNEVEN_LIGHT:
-      return t('scan.hintMeasuringLight')
-    default:
-      return t('scan.hintMeasuringDefault')
-  }
+/** Тон овала = плашка кадра: pending | ok | warn (PGS / ImageValidity). */
+function getOvalFrameTone(imageValidity, imageData) {
+  if (imageValidity == null && !imageData?.captureData) return 'pending'
+  if (isScanFrameOk(imageValidity, imageData)) return 'ok'
+  return 'warn'
 }
 
 async function pickCameraDeviceId(stream) {
@@ -101,13 +99,6 @@ function extractPulseBpm(vs) {
   const v = pr.value
   if (typeof v === 'number' && Number.isFinite(v) && v > 0) return Math.round(v)
   return null
-}
-
-/** Тон овала = плашка кадра: pending | ok | warn (docs/SDK.md ImageValidity). */
-function getOvalFrameTone(validity) {
-  if (validity === ImageValidity.VALID) return 'ok'
-  if (validity == null) return 'pending'
-  return 'warn'
 }
 
 /** Ждём размеры кадра и readyState — как в Camera.jsx перед createFaceSession (docs/SDK.md). */
@@ -158,9 +149,10 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
-  /** true после «Начать» — до этого SDK-сессия в ACTIVE, но без session.start(). */
-  const userStartRequestedRef = useRef(false)
-  const scheduleBeginAfterActiveRef = useRef(null)
+  /** Пользователь запустил проверку позы (PGS). */
+  const posturePreparedRef = useRef(false)
+  const startMeasurementRef = useRef(null)
+  const lastImageDataRef = useRef(null)
 
   const [phase, setPhase] = useState('preview-loading')
   const [sessionState, setSessionState] = useState(null)
@@ -170,8 +162,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const [progress, setProgress] = useState(0)
   /** Последний ImageValidity из onImageData — плашка «кадр» (docs/SDK.md). */
   const [frameValidity, setFrameValidity] = useState(null)
+  const [postureSummary, setPostureSummary] = useState(null)
   const [errorText, setErrorText] = useState('')
-  const pendingStartTimerRef = useRef(null)
   /** Не обновлять подсказку без смены (состояние сессии, validity) — onImageData на каждый кадр. */
   const lastHintKeyRef = useRef('')
   /** Последний ImageValidity из onImageData (после session.start() — подсказки). */
@@ -194,11 +186,6 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   }, [])
 
   const teardownSession = useCallback(() => {
-    if (pendingStartTimerRef.current != null) {
-      window.clearTimeout(pendingStartTimerRef.current)
-      window.clearInterval(pendingStartTimerRef.current)
-      pendingStartTimerRef.current = null
-    }
     const session = sessionRef.current
     sessionRef.current = null
     startedRef.current = false
@@ -246,17 +233,19 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const runScanPipeline = useCallback(
     async ({ reuseStream = false, previewOnly = false } = {}) => {
       if (previewOnly) {
-        userStartRequestedRef.current = false
+        posturePreparedRef.current = false
       }
       /* Одна сессия одновременно: перед createFaceSession завершаем предыдущую (док. «Быстрый старт»). */
       teardownSession()
       setErrorText('')
       lastHintKeyRef.current = ''
       setFrameValidity(null)
+      setPostureSummary(null)
       lastImageValidityLogRef.current = null
       lastImageLogAtRef.current = 0
       lastVitalLogAtRef.current = 0
       lastImageValidityRef.current = null
+      lastImageDataRef.current = null
 
       const video = videoRef.current
       if (!video) throw new Error(t('scan.errNoVideo'))
@@ -304,28 +293,15 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       }
 
       const IMAGE_LOG_MS = 800
-      /**
-       * Web SDK (см. Camera.jsx): onImageData с ImageValidity в основном идёт уже после session.start(),
-       * в состоянии MEASURING. В ACTIVE колбэк часто не вызывается — ждать здесь VALID = тупик.
-       * После ACTIVE делаем паузу и start(); подсказки по ImageValidity — в MEASURING (docs/SDK.md).
-       */
-      const ACTIVE_TO_START_MS = 1000
 
-      function beginMeasurement() {
-        if (pendingStartTimerRef.current != null) {
-          window.clearTimeout(pendingStartTimerRef.current)
-          pendingStartTimerRef.current = null
-        }
+      function startMeasurement() {
         const session = sessionRef.current
-        if (!session) {
-          scanSdkDebug('beginMeasurement: нет sessionRef (гонка?)')
-          return
-        }
-        if (startedRef.current) return
-        if (session.getState?.() !== SessionState.ACTIVE) {
-          scanSdkDebug('beginMeasurement: пропуск — не ACTIVE', {
-            getState: session.getState?.(),
-            name: sessionStateName(session.getState?.()),
+        if (!session || startedRef.current) return
+        const state = session.getState?.()
+        if (state !== SessionState.POSTURE_CHECK) {
+          scanSdkDebug('startMeasurement: пропуск — не POSTURE_CHECK', {
+            getState: state,
+            name: sessionStateName(state),
           })
           return
         }
@@ -336,7 +312,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         setHint(t('scan.hintMeasuring'))
         setHintTone('neutral')
         try {
-          scanSdkDebug('session.start()')
+          scanSdkDebug('session.start()', { fromState: sessionStateName(state) })
           session.start()
         } catch (e) {
           startedRef.current = false
@@ -347,41 +323,28 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         }
       }
 
-      function scheduleBeginAfterActive() {
-        if (!userStartRequestedRef.current) return
-        if (startedRef.current) return
-        const session = sessionRef.current
-        if (!session || session.getState?.() !== SessionState.ACTIVE) return
-        if (pendingStartTimerRef.current != null) {
-          window.clearTimeout(pendingStartTimerRef.current)
-          pendingStartTimerRef.current = null
-        }
-        scanSdkDebug('планируем session.start() после ACTIVE', { delayMs: ACTIVE_TO_START_MS })
-        pendingStartTimerRef.current = window.setTimeout(() => {
-          pendingStartTimerRef.current = null
-          if (startedRef.current) return
-          if (sessionRef.current?.getState?.() !== SessionState.ACTIVE) return
-          beginMeasurement()
-        }, ACTIVE_TO_START_MS)
-      }
+      startMeasurementRef.current = startMeasurement
 
-      const onImageData = (imageValidity) => {
-        lastImageValidityRef.current = imageValidity
-        setFrameValidity(imageValidity)
-        const ok = imageValidity === ImageValidity.VALID
+      const onImageData = (imageValidity, imageData) => {
+        const validity = imageData?.imageValidity ?? imageValidity
+        lastImageValidityRef.current = validity
+        lastImageDataRef.current = imageData ?? null
+        setFrameValidity(validity)
+        setPostureSummary(buildPostureAxisSummary(imageData))
+        const ok = isScanFrameOk(validity, imageData)
         const session = sessionRef.current
         const sdkState = session?.getState?.()
+        const measuring = sdkState === SessionState.MEASURING
 
-        if (sdkState === SessionState.MEASURING && !ok) {
-          /* SDK.md / код 3500: при проблемах с детекцией не показывать промежуточные ВП */
+        if (measuring && !ok) {
           setLivePulse(null)
         }
 
-        const hintText =
-          sdkState === SessionState.MEASURING
-            ? hintWhileMeasuring(imageValidity, t)
-            : imageValidityToUserMessage(imageValidity, t)
-        const hintKey = `${sessionStateName(sdkState)}:${imageValidity}`
+        const inPosture = sdkState === SessionState.POSTURE_CHECK
+        const hintText = resolveScanFrameHint(validity, imageData, t, {
+          measuring: measuring || inPosture,
+        })
+        const hintKey = `${sessionStateName(sdkState)}:${validity}:${imageData?.captureData?.validity ?? 'na'}`
         if (lastHintKeyRef.current !== hintKey) {
           lastHintKeyRef.current = hintKey
           setHint(hintText)
@@ -389,13 +352,14 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         }
 
         const now = Date.now()
-        const changed = lastImageValidityLogRef.current !== imageValidity
+        const changed = lastImageValidityLogRef.current !== validity
         if (changed || now - lastImageLogAtRef.current >= IMAGE_LOG_MS) {
-          lastImageValidityLogRef.current = imageValidity
+          lastImageValidityLogRef.current = validity
           lastImageLogAtRef.current = now
-          scanSdkDebug('onImageData — колбэк SDK (ImageValidity)', {
-            imageValidity,
-            name: imageValidityName(imageValidity),
+          scanSdkDebug('onImageData — PGS / ImageValidity', {
+            imageValidity: validity,
+            name: imageValidityName(validity),
+            captureValidity: imageData?.captureData?.validity,
             ok,
             sdkState: sessionStateName(sdkState),
             hint: hintText,
@@ -404,15 +368,26 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       }
 
       const onStateChange = (state) => {
-        /* Диаграмма состояний SDK — docs/SDK.md «Состояние сессии» */
         switch (state) {
           case SessionState.INIT:
-            scanSdkDebug('onStateChange: INIT — ждём ACTIVE перед start()')
+            scanSdkDebug('onStateChange: INIT — ждём ACTIVE')
             break
           case SessionState.ACTIVE:
-            scanSdkDebug(
-              'onStateChange: ACTIVE — через паузу session.start() (Camera.jsx; onImageData с ROI в основном в MEASURING)',
-            )
+            scanSdkDebug('onStateChange: ACTIVE — превью готово')
+            if (!startedRef.current) {
+              setErrorText('')
+              setPhase('preview')
+              setHint(t('scan.hintPreview'))
+              setHintTone('neutral')
+            }
+            break
+          case SessionState.POSTURE_CHECK:
+            scanSdkDebug('onStateChange: POSTURE_CHECK — проверка позы (PGS)')
+            if (posturePreparedRef.current) {
+              setPhase('posture')
+              setHint(t('scan.hintPostureCheck'))
+              setHintTone('neutral')
+            }
             break
           case SessionState.MEASURING:
             scanSdkDebug('onStateChange: MEASURING — идёт замер')
@@ -423,14 +398,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             }
             break
           case SessionState.STOPPING:
-            scanSdkDebug(
-              'onStateChange: STOPPING — переходное; не вызывать start/stop (док SDK)',
-            )
-            if (pendingStartTimerRef.current != null) {
-              window.clearTimeout(pendingStartTimerRef.current)
-              window.clearInterval(pendingStartTimerRef.current)
-              pendingStartTimerRef.current = null
-            }
+            scanSdkDebug('onStateChange: STOPPING — расчёт результатов')
             if (startedRef.current) {
               measurementStartTimeRef.current = null
               setProgress(1)
@@ -439,7 +407,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             }
             break
           case SessionState.TERMINATED:
-            scanSdkDebug('onStateChange: TERMINATED — сессия закрыта, можно новый createFaceSession')
+            scanSdkDebug('onStateChange: TERMINATED — сессия закрыта')
             break
           default:
             scanSdkDebug('onStateChange', { state, name: sessionStateName(state) })
@@ -450,13 +418,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         } else {
           setSessionState(state)
         }
-
-        if (state === SessionState.ACTIVE && userStartRequestedRef.current) {
-          scheduleBeginAfterActive()
-        }
       }
-
-      scheduleBeginAfterActiveRef.current = scheduleBeginAfterActive
 
       const onVitalSign = (vs) => {
         const pulse = extractPulseBpm(vs)
@@ -467,7 +429,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         }
         if (
           pulse != null &&
-          lastImageValidityRef.current === ImageValidity.VALID
+          isScanFrameOk(lastImageValidityRef.current, lastImageDataRef.current)
         ) {
           setLivePulse(pulse)
         }
@@ -500,14 +462,32 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       }
 
       const onError = (alertData) => {
-        if (pendingStartTimerRef.current != null) {
-          window.clearTimeout(pendingStartTimerRef.current)
-          window.clearInterval(pendingStartTimerRef.current)
-          pendingStartTimerRef.current = null
-        }
         scanSdkDebug('onError', alertData)
         const code = alertData?.code ?? '?'
-        setErrorText(t('scan.errSdk', { code: String(code) }))
+        const codeNum = Number(code)
+
+        if (
+          isPostureGuidanceSdkError(codeNum) &&
+          (startedRef.current || posturePreparedRef.current)
+        ) {
+          setErrorText('')
+          setHint(sdkMeasurementErrorMessage(code, t))
+          setHintTone('warn')
+          lastHintKeyRef.current = ''
+          if (startedRef.current) {
+            startedRef.current = false
+            measurementStartTimeRef.current = null
+            setProgress(0)
+            if (posturePreparedRef.current) {
+              setPhase('posture')
+            }
+          }
+          scanSdkDebug('onError: ошибка позы PGS → подсказка, без экрана ошибки', { code: codeNum })
+          return
+        }
+
+        const message = sdkMeasurementErrorMessage(code, t)
+        setErrorText(message)
         setPhase('error')
         setHintTone('error')
         setHint(t('scan.hintSdkErr', { code: String(code) }))
@@ -520,12 +500,13 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         }
         sessionRef.current = null
         startedRef.current = false
+        posturePreparedRef.current = false
       }
 
       const onWarning = (alertData) => {
         scanSdkDebug('onWarning', alertData)
         const code = alertData?.code ?? '?'
-        setHint(t('scan.hintSdkWarn', { code: String(code) }))
+        setHint(sdkMeasurementWarningMessage(code, t))
         setHintTone('warn')
       }
 
@@ -533,6 +514,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         cameraDeviceId,
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight,
+        strictMeasurementGuidance: getStrictMeasurementGuidance(),
       })
 
       const sdkOrientation = resolveSdkDeviceOrientation()
@@ -549,8 +531,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         processingTime: DEFAULT_PROCESSING_SECONDS,
         ...(userInformation != null ? { userInformation } : {}),
         orientation: sdkOrientation,
-        /* По умолчанию в SDK — false: при кратковременных сбоях валидности кадр всё ещё обрабатывается, если лицо найдено (docs/SDK.md). */
-        strictMeasurementGuidance: false,
+        strictMeasurementGuidance: getStrictMeasurementGuidance(),
         onImageData,
         onStateChange,
         onVitalSign,
@@ -565,33 +546,12 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         stateName: sessionStateName(session.getState?.()),
       })
 
-      /* Редкий случай: ACTIVE до onStateChange — start только если пользователь нажал «Начать» */
-      if (userStartRequestedRef.current && session.getState?.() === SessionState.ACTIVE) {
-        scheduleBeginAfterActive()
-      }
-      queueMicrotask(() => {
-        if (
-          userStartRequestedRef.current &&
-          sessionRef.current === session &&
-          session.getState?.() === SessionState.ACTIVE &&
-          !startedRef.current
-        ) {
-          scheduleBeginAfterActive()
-        }
-      })
-
       if (previewOnly) {
         setPhase('preview')
         lastHintKeyRef.current = ''
         setHint(t('scan.hintPreview'))
         setHintTone('neutral')
-        return
       }
-
-      setPhase('running')
-      lastHintKeyRef.current = ''
-      setHint(t('scan.hintRunning'))
-      setHintTone('neutral')
     },
     [onContinue, onSaved, teardownSession, teardownStream, userForm, t],
   )
@@ -622,20 +582,76 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     }
   }, [preparePreview, teardownSession, teardownStream, t])
 
-  const handleStart = useCallback(() => {
-    userStartRequestedRef.current = true
+  const handlePreparePosture = useCallback(() => {
     const session = sessionRef.current
-    if (session?.getState?.() === SessionState.ACTIVE && !startedRef.current) {
-      scheduleBeginAfterActiveRef.current?.()
+    if (!session || startedRef.current || session.getState?.() !== SessionState.ACTIVE) {
       return
     }
-    setPhase('running')
-    setHint(t('scan.hintPrepareRun'))
+
+    posturePreparedRef.current = true
+    setLivePulse(null)
+    lastHintKeyRef.current = ''
+    setPhase('posture')
+    setHint(t('scan.hintPostureCheck'))
     setHintTone('neutral')
+
+    try {
+      scanSdkDebug('startPostureCheck() — синхронно из клика (iOS motion permission)')
+      const posturePromise = session.startPostureCheck?.()
+      if (posturePromise && typeof posturePromise.catch === 'function') {
+        posturePromise.catch((e) => {
+          scanSdkDebug('startPostureCheck() ошибка', e)
+          posturePreparedRef.current = false
+          setErrorText(e instanceof Error ? e.message : t('scan.errStartMeasure'))
+          setPhase('error')
+          setHintTone('error')
+        })
+      }
+    } catch (e) {
+      scanSdkDebug('startPostureCheck() sync ошибка', e)
+      posturePreparedRef.current = false
+      setErrorText(e instanceof Error ? e.message : t('scan.errStartMeasure'))
+      setPhase('error')
+      setHintTone('error')
+    }
+  }, [t])
+
+  const handleStartMeasurement = useCallback(() => {
+    const session = sessionRef.current
+    if (!session || startedRef.current) return
+    if (session.getState?.() !== SessionState.POSTURE_CHECK) return
+    if (!isScanFrameOk(lastImageValidityRef.current, lastImageDataRef.current)) return
+    startMeasurementRef.current?.()
+  }, [])
+
+  const handleStopPosture = useCallback(() => {
+    const session = sessionRef.current
+    posturePreparedRef.current = false
+    setPostureSummary(null)
+    setFrameValidity(null)
+    lastImageDataRef.current = null
+    lastHintKeyRef.current = ''
+    setHint(t('scan.hintPreview'))
+    setHintTone('neutral')
+    setPhase('preview')
+
+    if (!session || session.getState?.() !== SessionState.POSTURE_CHECK) return
+
+    try {
+      scanSdkDebug('stopPostureCheck() — возврат к превью')
+      const stopPromise = session.stopPostureCheck?.()
+      if (stopPromise && typeof stopPromise.catch === 'function') {
+        stopPromise.catch((e) => {
+          scanSdkDebug('stopPostureCheck() ошибка', e)
+        })
+      }
+    } catch (e) {
+      scanSdkDebug('stopPostureCheck() sync ошибка', e)
+    }
   }, [t])
 
   const handleRetry = useCallback(() => {
-    userStartRequestedRef.current = false
+    posturePreparedRef.current = false
     teardownSession()
     teardownStream()
     lastImageValidityLogRef.current = null
@@ -648,6 +664,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     setLivePulse(null)
     setSessionState(null)
     setFrameValidity(null)
+    setPostureSummary(null)
+    lastImageDataRef.current = null
     lastHintKeyRef.current = ''
     void preparePreview().catch((e) => {
       const msg = e instanceof Error ? e.message : t('scan.errPrepare')
@@ -661,19 +679,24 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
 
   /** Отмена замера → экран «Подготовка» (шаг instruction в App). */
   const handleCancelScan = useCallback(() => {
-    userStartRequestedRef.current = false
+    posturePreparedRef.current = false
     teardownSession()
     teardownStream()
     onBack()
   }, [teardownSession, teardownStream, onBack])
 
-  /* eslint-disable react-hooks/refs -- startedRef для синхронизации с SDK-сессией (кнопка «Начать») */
-  const canStartScan =
+  /* eslint-disable react-hooks/refs -- startedRef для синхронизации с SDK-сессией */
+  const canPreparePosture =
     phase === 'preview' && sessionState === SessionState.ACTIVE && !startedRef.current
+  const postureReady =
+    phase === 'posture' &&
+    sessionState === SessionState.POSTURE_CHECK &&
+    postureSummary?.overall === CaptureValidity.CAPTURE_VALID
+  const canStartMeasurement = postureReady && !startedRef.current
   const primaryDisabled = phase === 'preview-loading' || phase === 'saving'
   const cameraVisible =
     phase === 'preview' ||
-    phase === 'running' ||
+    phase === 'posture' ||
     phase === 'measuring' ||
     phase === 'saving'
 
@@ -681,11 +704,24 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const scanLayoutLocked =
     phase === 'preview-loading' ||
     phase === 'preview' ||
-    phase === 'running' ||
+    phase === 'posture' ||
     phase === 'measuring' ||
     phase === 'saving'
 
-  const ovalFrameTone = scanLayoutLocked ? getOvalFrameTone(frameValidity) : 'ok'
+  const ovalFrameTone = scanLayoutLocked
+    ? getOvalFrameTone(frameValidity, lastImageDataRef.current)
+    : 'ok'
+  const framePillLabel =
+    frameValidity == null
+      ? t('scan.framePending')
+      : resolveScanFramePill(frameValidity, lastImageDataRef.current, t)
+  const framePillOk = isScanFrameOk(frameValidity, lastImageDataRef.current)
+  const isPosturePhase = phase === 'posture' && sessionState === SessionState.POSTURE_CHECK
+  const scanTitle = isPosturePhase
+    ? t('scan.titlePosture')
+    : phase === 'measuring'
+      ? t('scan.titleMeasuring')
+      : t('scan.title')
 
   return (
     <div
@@ -724,40 +760,48 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             </div>
           </div>
 
-          <header className="scan-page-overlay scan-page-overlay--top">
-            <h1 className="scan-page-title">{t('scan.title')}</h1>
-            <p className="scan-page-lead">{t('scan.lead')}</p>
+          <header
+            className={[
+              'scan-page-overlay',
+              'scan-page-overlay--top',
+              isPosturePhase ? 'scan-page-overlay--top-posture' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            <h1 className="scan-page-title">{scanTitle}</h1>
+            {isPosturePhase ? (
+              <p className="scan-page-posture-lead">{t('scan.leadPosture')}</p>
+            ) : null}
           </header>
 
           {sessionState !== null &&
           phase !== 'preview' &&
           phase !== 'preview-loading' &&
-          phase !== 'running' &&
+          phase !== 'posture' &&
           phase !== 'measuring' ? (
             <div className="scan-hud scan-hud--top">
               <div className="scan-pill">{sessionStateLabel(sessionState, t)}</div>
             </div>
           ) : null}
 
-          {(phase === 'running' || phase === 'measuring') && (
+          {(phase === 'posture' || phase === 'measuring') && (
             <div className="scan-hud scan-hud--frame-status" aria-live="polite">
               <div
                 className={`scan-pill scan-pill--frame ${
-                  frameValidity === ImageValidity.VALID
+                  framePillOk
                     ? 'scan-pill--frame-ok'
                     : frameValidity == null
                       ? 'scan-pill--frame-pending'
                       : 'scan-pill--frame-warn'
                 }`}
               >
-                {frameValidity == null
-                  ? t('scan.framePending')
-                  : imageValidityShortPillLabel(frameValidity, t)}
+                {framePillLabel}
               </div>
             </div>
           )}
 
-          {phase === 'running' || phase === 'measuring' ? (
+          {phase === 'measuring' || phase === 'posture' ? (
             <div className="scan-measuring-dock">
               {phase === 'measuring' ? (
                 <div className="scan-hud-below-oval">
@@ -814,6 +858,11 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
               >
                 {hint}
               </div>
+              {postureSummary ? (
+                <div className="scan-dock-pgs">
+                  <ScanPostureIndicators summary={postureSummary} t={t} />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className={`scan-hint scan-hint--${hintTone}`} role="status" aria-live="polite">
@@ -829,10 +878,24 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
         </p>
       ) : null}
 
-      {phase === 'running' || phase === 'measuring' ? (
+      {phase === 'measuring' ? (
         <footer className="scan-footer scan-footer--overlay scan-footer--single">
           <button type="button" className="btn-secondary scan-footer-cancel" onClick={handleCancelScan}>
             {t('scan.btnCancel')}
+          </button>
+        </footer>
+      ) : phase === 'posture' ? (
+        <footer className="scan-footer scan-footer--overlay page-footer--row">
+          <button type="button" className="btn-secondary" onClick={handleStopPosture}>
+            {t('scan.btnPostureBack')}
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={!canStartMeasurement}
+            onClick={handleStartMeasurement}
+          >
+            {canStartMeasurement ? t('scan.btnStartMeasure') : t('scan.btnStartMeasureWait')}
           </button>
         </footer>
       ) : (
@@ -853,10 +916,10 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             <button
               type="button"
               className="btn-primary"
-              disabled={!canStartScan}
-              onClick={handleStart}
+              disabled={!canPreparePosture}
+              onClick={handlePreparePosture}
             >
-              {canStartScan ? t('scan.btnStart') : t('scan.btnPreparing')}
+              {canPreparePosture ? t('scan.btnPreparePosture') : t('scan.btnPreparing')}
             </button>
           ) : (
             <button type="button" className="btn-primary" disabled={primaryDisabled}>

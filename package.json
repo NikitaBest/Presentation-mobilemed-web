@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "preinstall": "node scripts/setup-npmrc.mjs",
     "sync:biosense": "node scripts/sync-biosense-assets.mjs",
     "postinstall": "node scripts/sync-biosense-assets.mjs",
     "predev": "node scripts/sync-biosense-assets.mjs",
@@ -14,6 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@biosensesignal/web-sdk": "file:vendor/biosensesignal/biosensesignal-web-sdk-v5.13.1.tgz",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

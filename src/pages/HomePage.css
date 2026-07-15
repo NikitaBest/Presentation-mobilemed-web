@@ -352,3 +352,33 @@
 .home-page__dock {
   flex-shrink: 0;
 }
+
+.home-page__terms {
+  margin-top: var(--mm-space-2);
+}
+
+.home-page__terms-link {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--mm-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.home-page__terms-link:hover {
+  color: var(--mm-primary-hover);
+}
+
+.home-page__terms-link:focus-visible {
+  outline: none;
+  border-radius: 0.15rem;
+  box-shadow: 0 0 0 2px var(--mm-bg-primary-soft);
+}

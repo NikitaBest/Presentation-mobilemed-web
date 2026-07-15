@@ -11,6 +11,8 @@ export const ImageValidity = {
   TILTED_HEAD: 3,
   FACE_TOO_FAR: 4,
   UNEVEN_LIGHT: 5,
+  FACE_NOT_CENTERED: 6,
+  DEVICE_NOT_ALIGNED: 7,
 }
 
 /** @readonly */
@@ -34,6 +36,21 @@ export const SessionState = {
   MEASURING: 2,
   STOPPING: 3,
   TERMINATED: 4,
+  POSTURE_CHECK: 5,
+}
+
+/** @readonly — SDK v5.13 PGS */
+export const CaptureMetricStatus = {
+  VALID: 0,
+  WARNING: 1,
+  ERROR: 2,
+}
+
+/** @readonly — SDK v5.13 PGS */
+export const CaptureValidity = {
+  CAPTURE_VALID: 0,
+  CAPTURE_WARNING: 1,
+  CAPTURE_ERROR: 2,
 }
 
 /** @readonly — см. vendor …/device/types.d.ts */

@@ -8,10 +8,11 @@
 |----------|----------|-----|
 | Камера | `facingMode: { ideal: 'user' }` (как Camera.jsx) | `ScanPage.jsx` |
 | Превью | тот же `<video>`, `object-fit: cover`, зеркало `scaleX(-1)` | `ScanPage.css` |
-| SDK до «Начать» | `createFaceSession` при входе на экран, **без** `session.start()` | `ScanPage.jsx` → `previewOnly` |
-| Старт замера | только по кнопке «Начать» → `session.start()` | `userStartRequestedRef` |
+| SDK до «Подготовить» | `createFaceSession` при входе на экран, **без** `session.start()` | `ScanPage.jsx` → `previewOnly` |
+| Проверка позы (PGS) | «Подготовить положение» → `startPostureCheck()` из клика (iOS motion) | `ScanPage.jsx` |
+| Старт замера | только при `CAPTURE_VALID` → «Начать замер» → `session.start()` | `ScanPage.jsx` |
 | Ориентация сессии | `resolveSdkDeviceOrientation()` | `createFaceSession` |
-| Строгий режим | `strictMeasurementGuidance: false` | `ScanPage.jsx` |
+| Строгий режим | `strictMeasurementGuidance: false` (вкл.: `VITE_STRICT_MEASUREMENT_GUIDANCE=true`) | `faceScan.js` → `ScanPage.jsx` |
 | Вход SDK | тот же `<video ref>` → `input` | `ScanPage.jsx` |
 | WASM / потоки | COOP/COEP, `sync-biosense-assets` | `docs/SDK.md` |
 | Лицензия | `VITE_BIOSENSESIGNAL_*` | `.env` |

@@ -11,6 +11,9 @@ lerna-debug.log*
 .env.*
 !.env.example
 
+.npmrc
+!.npmrc.example
+
 node_modules
 dist
 dist-ssr

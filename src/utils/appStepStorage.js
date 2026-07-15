@@ -12,6 +12,9 @@ export const AUTH_STEP = 'auth'
 /** Настройки (не в цепочке сканирования). */
 export const SETTINGS_STEP = 'settings'
 
+/** Юридические документы (оверлей, не в цепочке сканирования). */
+export const DOCUMENTS_STEP = 'documents'
+
 /** Полная история сканов (не в цепочке сканирования). */
 export const SCAN_HISTORY_STEP = 'scanHistory'
 

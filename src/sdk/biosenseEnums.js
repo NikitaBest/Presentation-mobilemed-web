@@ -53,6 +53,11 @@ export const CaptureValidity = {
   CAPTURE_ERROR: 2,
 }
 
+/** @readonly — SDK v5.13 PGS, единственный landmark в CaptureFaceData */
+export const CaptureLandmark = {
+  NOSE: 0,
+}
+
 /** @readonly — см. vendor …/device/types.d.ts */
 export const DeviceOrientation = {
   PORTRAIT: 0,

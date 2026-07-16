@@ -1,66 +1,163 @@
 import { useEffect, useRef } from 'react'
+import { DEFAULT_MASK_PROFILE } from '../../sdk/faceRoiLayout.js'
 import './ScanFaceScanEffect.css'
 
-const DOT_SPACING = 3.6
-const DOT_RADIUS = 0.85
+const DOT_SPACING = 3.45
+const DOT_RADIUS = 0.82
 const MAX_DOT_RADIUS = 1.12
-const WAVE_PERIOD = Math.PI * 2.4
 
 /**
- * Расстояние по циклической фазе.
+ * @param {number} edge0
+ * @param {number} edge1
+ * @param {number} x
+ */
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)))
+  return t * t * (3 - 2 * t)
+}
+
+/**
  * @param {number} a
  * @param {number} b
  * @param {number} period
  */
 function phaseDist(a, b, period) {
-  let d = a - b
-  d = ((d % period) + period) % period
+  let d = ((a - b) % period + period) % period
   if (d > period / 2) d -= period
   return d
 }
 
 /**
- * Условный «рельеф» лица в нормализованных координатах овала.
  * @param {number} ex
  * @param {number} ey
+ * @param {number} ox
+ * @param {number} oy
+ * @param {number} yaw
+ * @param {number} pitch
+ * @param {number} roll
  */
-function faceRelief(ex, ey) {
-  const noseBridge = Math.exp(-(ex * ex) / 0.01 - ((ey - 0.04) ** 2) / 0.07) * 1.5
-  const noseTip = Math.exp(-(ex * ex) / 0.02 - ((ey - 0.17) ** 2) / 0.035) * 1.2
-  const leftCheek = Math.exp(-((ex + 0.36) ** 2) / 0.055 - ((ey - 0.02) ** 2) / 0.09) * 0.7
-  const rightCheek = Math.exp(-((ex - 0.36) ** 2) / 0.055 - ((ey - 0.02) ** 2) / 0.09) * 0.7
-  const forehead = Math.exp(-(ex * ex) / 0.07 - ((ey + 0.24) ** 2) / 0.045) * 0.4
-  const chin = Math.exp(-(ex * ex) / 0.035 - ((ey - 0.36) ** 2) / 0.028) * 0.5
-
-  return Math.min(2.8, 0.22 + noseBridge + noseTip + leftCheek + rightCheek + forehead + chin)
+function warpAroundNose(ex, ey, ox, oy, yaw, pitch, roll) {
+  const dx = ex - ox
+  const dy = ey - oy
+  const cr = Math.cos(roll * 0.62)
+  const sr = Math.sin(roll * 0.62)
+  const rx = dx * cr - dy * sr
+  const ry = dx * sr + dy * cr
+  return {
+    x: rx - yaw * 0.2 * (1 + Math.min(1, Math.abs(ry)) * 0.45) + ox,
+    y: ry - pitch * 0.16 + oy,
+  }
 }
 
 /**
- * Деформированная фаза волны — не равномерный круг, а огибание «анатомии».
- * @param {number} ex
- * @param {number} ey
- * @param {number} relief
+ * @typedef {{ nx: number, ny: number, sx: number, sy: number, yaw: number, pitch: number, roll: number }} MaskProfile
  */
-function contourPhase(ex, ey, relief) {
-  const angle = Math.atan2(ey, ex)
-  const noseBulge = Math.exp(-(ex * ex) / 0.018 - ((ey - 0.1) ** 2) / 0.06)
-  const cheekPull = Math.sin(angle * 2) * 0.22 * (1 - noseBulge)
-  const verticalSweep = ey * 1.35 + ex * ex * 0.4
-  const reliefWarp = relief * 0.55 * Math.sin(angle * 1.5 + ey * 2.8)
 
-  return angle * 0.48 + verticalSweep * 0.82 + cheekPull + reliefWarp
+/**
+ * «Дорисованное» лицо: равномерная заливка овала + штрихи лба / бровей / щёк / челюсти.
+ * Нос — тонкая линия без яркого пятна.
+ * @param {number} lx
+ * @param {number} ly
+ * @param {number} ovalDist
+ */
+function faceMaskShell(lx, ly, ovalDist) {
+  const ax = Math.abs(lx)
+
+  const ovalFill = 1 - smoothstep(0.92, 1.02, ovalDist)
+  const edgeFade = 1 - smoothstep(0.84, 1.0, ovalDist) * 0.5
+
+  // Ровная заливка всего овала (без гаусса от центра/носа)
+  const basePlate = ovalFill * 0.72
+
+  // Лоб — широкая горизонтальная полоса
+  const forehead =
+    Math.exp(-((ly + 0.38) ** 2) / 0.07) *
+    (1 - smoothstep(0.55, 0.85, ax)) *
+    1.35
+
+  // Брови — две дуги
+  const brow =
+    Math.exp(-((ly + 0.16) ** 2) / 0.014) *
+    Math.exp(-((ax - 0.28) ** 2) / 0.05) *
+    1.15
+
+  // Зона глаз / виски
+  const temples =
+    Math.exp(-((ly + 0.04) ** 2) / 0.04) *
+    Math.exp(-((ax - 0.48) ** 2) / 0.04) *
+    0.85
+
+  // Щёки — главные акценты по бокам
+  const leftCheek =
+    Math.exp(-((lx + 0.42) ** 2) / 0.07 - ((ly - 0.06) ** 2) / 0.12) * 1.4
+  const rightCheek =
+    Math.exp(-((lx - 0.42) ** 2) / 0.07 - ((ly - 0.06) ** 2) / 0.12) * 1.4
+
+  // Скулы
+  const cheekbone =
+    Math.exp(-((ax - 0.46) ** 2) / 0.04 - ((ly + 0.02) ** 2) / 0.055) * 1.0
+
+  // Челюсть / подбородок
+  const jaw =
+    Math.exp(-((ax - 0.36) ** 2) / 0.06 - ((ly - 0.36) ** 2) / 0.06) *
+    smoothstep(0.1, 0.4, ly) *
+    0.95
+  const chin =
+    Math.exp(-(lx * lx) / 0.06 - ((ly - 0.42) ** 2) / 0.045) * 0.9
+
+  // Нос — только тонкий штрих, без «пятна»
+  const noseStroke =
+    Math.exp(-(lx * lx) / 0.004) *
+    smoothstep(-0.12, 0.22, ly) *
+    (1 - smoothstep(0.22, 0.38, ly)) *
+    0.28
+
+  const strokes =
+    forehead +
+    brow +
+    temples +
+    leftCheek +
+    rightCheek +
+    cheekbone +
+    jaw +
+    chin +
+    noseStroke
+
+  const rim = smoothstep(0.88, 0.99, ovalDist) * 0.22
+  const shell = Math.min(3.2, (basePlate + strokes * 0.85) * edgeFade + rim * 0.2)
+
+  return { shell, insideMask: ovalFill, rim, strokes, edgeFade }
 }
 
 /**
- * Сетка точек с органической волной по форме лица — визуальный эффект сканирования (только UI).
- * @param {{ active?: boolean }} props
+ * Энергия по «нарисованным» линиям лица — горизонтальные пояса + щёки, не радиус от носа.
+ * @param {number} lx
+ * @param {number} ly
+ * @param {number} strokes
  */
-export function ScanFaceScanEffect({ active = false }) {
+function surfaceEnergyPhase(lx, ly, strokes) {
+  const ax = Math.abs(lx)
+  // Вертикальные пояса лица: лоб → брови → щёки → челюсть
+  const bandPhase = (ly + 0.45) * 2.8 + ax * 0.35 + strokes * 0.25
+  // Обход по скулам (две половины)
+  const cheekPhase = Math.atan2(ly - 0.02, ax - 0.05) * 1.4 + ly * 0.5
+
+  return { bandPhase, cheekPhase }
+}
+
+/**
+ * Футуристическая маска — «дорисованное» лицо по всему овалу.
+ * @param {{
+ *   active?: boolean,
+ *   maskProfileRef?: import('react').RefObject<MaskProfile | null | undefined>,
+ * }} props
+ */
+export function ScanFaceScanEffect({ active = false, maskProfileRef }) {
   const rootRef = useRef(null)
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
   const dotsRef = useRef(
-    /** @type {{ x: number, y: number, ex: number, ey: number, relief: number, contourPhase: number }[]} */ ([]),
+    /** @type {{ x: number, y: number, ex: number, ey: number, dist: number }[]} */ ([]),
   )
   const reducedMotionRef = useRef(false)
 
@@ -86,24 +183,16 @@ export function ScanFaceScanEffect({ active = false }) {
       const dots = []
       const cx = w / 2
       const cy = h / 2
-      const rx = cx * 0.905
-      const ry = cy * 0.905
+      const rx = cx * 0.995
+      const ry = cy * 0.995
 
-      for (let y = DOT_SPACING * 0.5; y < h; y += DOT_SPACING) {
-        for (let x = DOT_SPACING * 0.5; x < w; x += DOT_SPACING) {
+      for (let y = DOT_SPACING * 0.35; y < h; y += DOT_SPACING) {
+        for (let x = DOT_SPACING * 0.35; x < w; x += DOT_SPACING) {
           const ex = (x - cx) / rx
           const ey = (y - cy) / ry
-          if (ex * ex + ey * ey > 1) continue
-
-          const relief = faceRelief(ex, ey)
-          dots.push({
-            x,
-            y,
-            ex,
-            ey,
-            relief,
-            contourPhase: contourPhase(ex, ey, relief),
-          })
+          const dist2 = ex * ex + ey * ey
+          if (dist2 > 1) continue
+          dots.push({ x, y, ex, ey, dist: Math.sqrt(dist2) })
         }
       }
       dotsRef.current = dots
@@ -136,49 +225,102 @@ export function ScanFaceScanEffect({ active = false }) {
         return
       }
 
+      const profile = maskProfileRef?.current ?? DEFAULT_MASK_PROFILE
       const t = (now - startAt) * 0.001
       const staticWave = reducedMotionRef.current
 
       ctx.clearRect(0, 0, w, h)
 
-      const waveFront = staticWave ? 1.1 : (t * 0.95) % WAVE_PERIOD
-      const ripplePhase = staticWave ? 0 : t * 2.2
+      const bandFront = staticWave ? 0.8 : t * 1.15
+      const cheekFront = staticWave ? 0.3 : t * 0.9
+      const shimmerPhase = staticWave ? 0 : t * 2.1
+      const breathe = staticWave ? 0.55 : 0.5 + 0.5 * Math.sin(t * 1.25)
 
       for (const dot of dotsRef.current) {
-        const delta = phaseDist(dot.contourPhase, waveFront, WAVE_PERIOD)
-
-        const lead = delta > 0 ? Math.exp(-(delta * delta) * 3.6) : 0
-        const tail =
-          delta < 0 ? Math.exp(-((delta + 0.55) * (delta + 0.55)) * 2.6) * 0.44 : 0
-        const sweep = Math.min(1, lead + tail)
-
-        const localRipple =
-          0.5 +
-          0.5 *
-            Math.sin(
-              dot.contourPhase * 2.1 - ripplePhase + dot.relief * 1.8 + dot.ex * 3.2,
-            )
-
-        const reliefBoost = 0.3 + dot.relief * 0.7
-        const wave = sweep * reliefBoost * (0.5 + localRipple * 0.5)
-
-        const alpha = Math.min(0.96, 0.16 + wave * 0.76 + sweep * reliefBoost * 0.1)
-
-        const cyanMix = Math.min(1, wave * 1.15)
-        const r = Math.round(200 + cyanMix * 55)
-        const g = Math.round(222 + cyanMix * 33)
-        const b = 255
-
-        const swell = sweep * reliefBoost
-        const radius = Math.min(
-          MAX_DOT_RADIUS,
-          DOT_RADIUS * (0.98 + swell * 0.34 + localRipple * swell * 0.1),
+        const warped = warpAroundNose(
+          dot.ex,
+          dot.ey,
+          profile.nx,
+          profile.ny,
+          profile.yaw,
+          profile.pitch,
+          profile.roll,
         )
 
-        if (wave > 0.28) {
-          ctx.fillStyle = `rgba(110, 245, 255, ${wave * 0.11})`
+        const lx = (warped.x - profile.nx) / profile.sx
+        const ly = (warped.y - profile.ny) / profile.sy
+        const ax = Math.abs(lx)
+        const { shell, insideMask, rim, strokes, edgeFade } = faceMaskShell(lx, ly, dot.dist)
+        const { bandPhase, cheekPhase } = surfaceEnergyPhase(lx, ly, strokes)
+
+        // 1) Ровная заливка всего овала
+        const baseMask = insideMask * (0.34 + 0.08 * breathe) * edgeFade
+
+        // 2) Волна по поясам лица (лоб → щёки → подбородок)
+        const bandDelta = phaseDist(bandPhase, bandFront, Math.PI * 2.6)
+        const bandWave =
+          Math.exp(-(bandDelta * bandDelta) * 3.8) * (0.35 + strokes * 0.35)
+
+        // 3) Волна по щекам / скулам
+        const cheekDelta = phaseDist(cheekPhase, cheekFront, Math.PI * 2)
+        const cheekWave =
+          Math.exp(-(cheekDelta * cheekDelta) * 5.5) *
+          (0.25 +
+            Math.exp(-((ax - 0.4) ** 2) / 0.06 - ((ly - 0.04) ** 2) / 0.1) * 0.7)
+
+        // 4) Лёгкое мерцание по всей маске
+        const shimmer =
+          (0.5 + 0.5 * Math.sin(shell * 4.2 - shimmerPhase + ly * 3.5 + ax * 2.2)) *
+          shell *
+          0.12 *
+          insideMask
+
+        // 5) Статичные акценты «нарисованного» лица
+        const foreheadAccent =
+          Math.exp(-((ly + 0.36) ** 2) / 0.08) *
+          (1 - smoothstep(0.5, 0.8, ax)) *
+          (0.45 + 0.25 * breathe)
+        const cheekAccent =
+          (Math.exp(-((lx + 0.4) ** 2) / 0.065 - ((ly - 0.05) ** 2) / 0.11) +
+            Math.exp(-((lx - 0.4) ** 2) / 0.065 - ((ly - 0.05) ** 2) / 0.11)) *
+          (0.4 + 0.2 * breathe)
+        const browAccent =
+          Math.exp(-((ly + 0.15) ** 2) / 0.016) *
+          Math.exp(-((ax - 0.28) ** 2) / 0.055) *
+          (0.35 + 0.2 * breathe)
+        const chinAccent =
+          Math.exp(-(lx * lx) / 0.055 - ((ly - 0.4) ** 2) / 0.05) *
+          (0.3 + 0.15 * breathe)
+
+        const seal = rim * 0.12
+
+        const energy =
+          (bandWave * 0.7 +
+            cheekWave * 0.75 +
+            shimmer +
+            foreheadAccent * 0.9 +
+            cheekAccent * 0.95 +
+            browAccent * 0.8 +
+            chinAccent * 0.7) *
+            edgeFade +
+          seal
+
+        const visible = baseMask + energy
+        if (visible < 0.04) continue
+
+        const alpha = Math.min(0.88, (0.14 + visible * 0.42 + energy * 0.22) * edgeFade)
+        const cyanMix = Math.min(1, baseMask * 0.5 + energy * 0.7)
+        const r = Math.round(190 + cyanMix * 65)
+        const g = Math.round(218 + cyanMix * 37)
+        const b = 255
+
+        const swell = Math.min(1, energy * 0.45 + baseMask * 0.4)
+        const radius = Math.min(MAX_DOT_RADIUS, DOT_RADIUS * (0.92 + swell * 0.28))
+
+        if (energy > 0.38 && edgeFade > 0.6) {
+          ctx.fillStyle = `rgba(80, 240, 255, ${energy * 0.06 * edgeFade})`
           ctx.beginPath()
-          ctx.arc(dot.x, dot.y, radius + 0.65, 0, Math.PI * 2)
+          ctx.arc(dot.x, dot.y, radius + 0.55, 0, Math.PI * 2)
           ctx.closePath()
           ctx.fill()
         }
@@ -199,7 +341,7 @@ export function ScanFaceScanEffect({ active = false }) {
       cancelAnimationFrame(rafRef.current)
       ro.disconnect()
     }
-  }, [active])
+  }, [active, maskProfileRef])
 
   if (!active) return null
 

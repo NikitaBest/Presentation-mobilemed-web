@@ -25,9 +25,12 @@ import {
 } from '../sdk/faceScan.js'
 import { buildSaveRppgScanResult } from '../sdk/saveRppgPayload.js'
 import {
+  computeFaceMaskProfile,
   computeFaceRoiLayout,
+  DEFAULT_MASK_PROFILE,
   faceRoiLayoutToCssVars,
   smoothEllipseLayout,
+  smoothMaskProfile,
 } from '../sdk/faceRoiLayout.js'
 import './ScanPage.css'
 
@@ -155,6 +158,9 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const viewportRef = useRef(null)
   const viewportSizeRef = useRef({ width: 0, height: 0 })
   const smoothedFaceRoiRef = useRef(null)
+  /** Профиль маски (нос, масштаб ROI, углы) — для ScanFaceScanEffect. */
+  const maskProfileRef = useRef({ ...DEFAULT_MASK_PROFILE })
+  const smoothedMaskProfileRef = useRef(null)
   const sessionRef = useRef(null)
   const startedRef = useRef(false)
   const streamRef = useRef(null)
@@ -271,6 +277,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
       setFrameValidity(null)
       setPostureSummary(null)
       smoothedFaceRoiRef.current = null
+      smoothedMaskProfileRef.current = null
+      maskProfileRef.current = { ...DEFAULT_MASK_PROFILE }
       setFaceRoiLayout(null)
       lastImageValidityLogRef.current = null
       lastImageLogAtRef.current = 0
@@ -390,9 +398,25 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
             const smoothed = smoothEllipseLayout(smoothedFaceRoiRef.current, nextLayout)
             smoothedFaceRoiRef.current = smoothed
             setFaceRoiLayout(smoothed)
+
+            const face = imageData?.captureData?.face
+            const nextProfile = computeFaceMaskProfile(
+              face,
+              roi,
+              video.videoWidth,
+              video.videoHeight,
+              vpW,
+              vpH,
+              smoothed,
+            )
+            const smoothedProfile = smoothMaskProfile(smoothedMaskProfileRef.current, nextProfile)
+            smoothedMaskProfileRef.current = smoothedProfile
+            maskProfileRef.current = smoothedProfile
           }
         } else if (!imageData?.captureData?.face?.roi) {
           smoothedFaceRoiRef.current = null
+          smoothedMaskProfileRef.current = null
+          maskProfileRef.current = { ...DEFAULT_MASK_PROFILE }
           setFaceRoiLayout(null)
         }
 
@@ -688,6 +712,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
     const session = sessionRef.current
     posturePreparedRef.current = false
     smoothedFaceRoiRef.current = null
+    smoothedMaskProfileRef.current = null
+    maskProfileRef.current = { ...DEFAULT_MASK_PROFILE }
     setFaceRoiLayout(null)
     setPostureSummary(null)
     setFrameValidity(null)
@@ -715,6 +741,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const handleRetry = useCallback(() => {
     posturePreparedRef.current = false
     smoothedFaceRoiRef.current = null
+    smoothedMaskProfileRef.current = null
+    maskProfileRef.current = { ...DEFAULT_MASK_PROFILE }
     setFaceRoiLayout(null)
     teardownSession()
     teardownStream()
@@ -745,6 +773,8 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
   const handleCancelScan = useCallback(() => {
     posturePreparedRef.current = false
     smoothedFaceRoiRef.current = null
+    smoothedMaskProfileRef.current = null
+    maskProfileRef.current = { ...DEFAULT_MASK_PROFILE }
     setFaceRoiLayout(null)
     teardownSession()
     teardownStream()
@@ -839,7 +869,7 @@ export function ScanPage({ userForm, onBack, onContinue, onSaved }) {
                 .filter(Boolean)
                 .join(' ')}
             >
-              <ScanFaceScanEffect active={showFaceScanEffect} />
+              <ScanFaceScanEffect active={showFaceScanEffect} maskProfileRef={maskProfileRef} />
               {phase === 'measuring' ? (
                 <div
                   className="scan-oval-progress"
